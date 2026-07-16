@@ -1,0 +1,75 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --color-bg: #1a1a2e;
+  --color-bg-elevated: #16213e;
+  --color-bg-surface: #1e1e3a;
+  --color-accent: #00d4ff;
+  --color-status-locked: #22c55e;
+  --color-status-unlocked: #f59e0b;
+  --color-status-error: #ef4444;
+}
+
+:root {
+  --color-bg: #1a1a2e;
+  --color-bg-elevated: #16213e;
+  --color-bg-surface: #1e1e3a;
+  --color-accent: #00d4ff;
+}
+
+html {
+  background-color: #1a1a2e;
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #1a1a2e;
+  color: #e2e8f0;
+}
+
+/* 等宽字体工具类 */
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* 滚动条样式 (暗色主题) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3d3d5c;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4d4d6c;
+}
+
+/* 十六进制查看器样式 */
+.hex-viewer {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.hex-viewer .hex-offset {
+  color: #64748b;
+}
+
+.hex-viewer .hex-bytes {
+  color: #00d4ff;
+}
+
+.hex-viewer .hex-ascii {
+  color: #94a3b8;
+}
