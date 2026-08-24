@@ -2,7 +2,7 @@ import { db } from '../../database/init'
 
 export default defineEventHandler((event) => {
   const query = getQuery(event)
-  const { search, model } = query
+  const { search, model, chip_type } = query
 
   let sql = 'SELECT * FROM chips WHERE 1=1'
   const params: any[] = []
@@ -16,6 +16,11 @@ export default defineEventHandler((event) => {
   if (model) {
     sql += ' AND model = ?'
     params.push(String(model))
+  }
+
+  if (chip_type) {
+    sql += ' AND chip_type = ?'
+    params.push(String(chip_type))
   }
 
   sql += ' ORDER BY created_at DESC'

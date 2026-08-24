@@ -66,3 +66,17 @@ try {
 } catch {
   // 列已存在，忽略错误
 }
+
+// 迁移：chips 表添加 chip_type 列
+try {
+  db.exec(`ALTER TABLE chips ADD COLUMN chip_type TEXT NOT NULL DEFAULT 'flash'`)
+} catch {
+  // 列已存在，忽略错误
+}
+
+// 迁移：添加 chip_type 索引
+try {
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_chips_type ON chips(chip_type)`)
+} catch {
+  // 忽略
+}

@@ -55,7 +55,7 @@ onUnmounted(() => {
           <UIcon name="i-lucide-cpu" class="h-6 w-6 text-cyan-400" />
         </div>
         <div>
-          <h1 class="text-sm font-bold tracking-wide text-slate-100">Flash Manager</h1>
+          <h1 class="text-sm font-bold tracking-wide text-slate-100">Chip Manager</h1>
           <p class="text-xs text-slate-500">芯片库存管理系统</p>
         </div>
       </div>

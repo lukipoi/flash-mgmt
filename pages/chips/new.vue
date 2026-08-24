@@ -6,7 +6,7 @@ interface IdentifyResult {
   match_by: 'uid' | 'jedec_id' | null
   reason?: string
   chip?: Chip
-  candidates?: { id: number; model: string; jedec_id: string; uid: string; uid_length: number; capacity: string; created_at: string }[]
+  candidates?: { id: number; model: string; jedec_id: string; uid: string; uid_length: number; capacity: string; created_at: string; chip_type?: string }[]
 }
 
 definePageMeta({
@@ -14,6 +14,7 @@ definePageMeta({
 })
 
 const mode = ref<'auto' | 'manual'>('auto')
+const chipType = ref<'flash' | 'mcu'>('flash')
 
 // ---- 自动录入 (Probe) ----
 const probing = ref(false)
@@ -49,7 +50,6 @@ watch(identifyResult, (val) => {
     if (val) {
       sessionStorage.setItem('new-identify-result', JSON.stringify(val))
     }
-    // 不再在 val 为 null 时清除 sessionStorage，防止 probe() 重置导致丢失
   } catch { /* ignore */ }
 })
 
@@ -58,7 +58,6 @@ watch(probeResult, (val) => {
     if (val) {
       sessionStorage.setItem('new-probe-result', JSON.stringify(val))
     }
-    // 不再在 val 为 null 时清除 sessionStorage，防止 probe() 重置导致丢失
   } catch { /* ignore */ }
 })
 
@@ -75,12 +74,17 @@ async function probe() {
       return
     }
 
+    // 根据 JEDEC ID 判断芯片类型
+    const jedecId = (result.jedec_id || '').trim()
+    chipType.value = jedecId ? 'flash' : 'mcu'
+
     const identify = await $fetch<IdentifyResult>('/api/identify', {
       method: 'POST',
       body: {
         jedec_id: result.jedec_id,
         uid: result.uid,
-        uid_length: result.uid_length
+        uid_length: result.uid_length,
+        chip_type: chipType.value
       }
     })
     identifyResult.value = identify
@@ -90,6 +94,7 @@ async function probe() {
     }
 
     form.model = result.model || identify.candidates?.[0]?.model || ''
+    form.chip_type = chipType.value
     form.jedec_id = result.jedec_id
     form.uid = result.uid
     form.uid_length = result.uid_length
@@ -109,9 +114,9 @@ function goToMatchedChip() {
 }
 
 function startNewArchive() {
-  // 用读到的 JEDEC + UID 填充表单
   if (probeResult.value) {
     form.model = identifyResult.value?.candidates?.[0]?.model || ''
+    form.chip_type = chipType.value
     form.jedec_id = probeResult.value.jedec_id
     form.uid = probeResult.value.uid
     form.uid_length = probeResult.value.uid_length
@@ -125,6 +130,7 @@ function startNewArchive() {
 // ---- 手动录入表单 ----
 const form = reactive({
   model: '',
+  chip_type: 'flash' as 'flash' | 'mcu',
   jedec_id: '',
   uid: '',
   uid_length: 8,
@@ -162,6 +168,7 @@ async function submit() {
       method: 'POST',
       body: {
         model: form.model.trim(),
+        chip_type: form.chip_type,
         jedec_id: form.jedec_id.trim(),
         uid: form.uid.trim(),
         uid_length: Number(form.uid_length),
@@ -179,6 +186,7 @@ async function submit() {
 
 function resetForm() {
   form.model = ''
+  form.chip_type = 'flash'
   form.jedec_id = ''
   form.uid = ''
   form.uid_length = 8
@@ -268,6 +276,12 @@ function resetForm() {
             </div>
             <dl class="grid grid-cols-2 gap-3 text-sm">
               <div>
+                <dt class="text-xs text-slate-500">类型</dt>
+                <dd class="font-mono" :class="chipType === 'mcu' ? 'text-purple-400' : 'text-cyan-400'">
+                  {{ chipType === 'mcu' ? 'MCU 单片机' : 'Flash 存储' }}
+                </dd>
+              </div>
+              <div>
                 <dt class="text-xs text-slate-500">JEDEC ID</dt>
                 <dd class="font-mono text-cyan-400">{{ probeResult.jedec_id }}</dd>
               </div>
@@ -278,10 +292,6 @@ function resetForm() {
               <div>
                 <dt class="text-xs text-slate-500">UID 长度</dt>
                 <dd class="font-mono text-slate-300">{{ probeResult.uid_length }}</dd>
-              </div>
-              <div>
-                <dt class="text-xs text-slate-500">SR1 / SR2</dt>
-                <dd class="font-mono text-slate-300">{{ probeResult.sr1 }} / {{ probeResult.sr2 }}</dd>
               </div>
             </dl>
           </div>
@@ -300,6 +310,7 @@ function resetForm() {
             </div>
             <div class="mt-3 space-y-1 rounded-md bg-white/5 p-3 font-mono text-xs text-slate-300">
               <div>型号：<span class="text-cyan-400">{{ identifyResult.chip.model }}</span></div>
+              <div>类型：<span class="text-cyan-400">{{ identifyResult.chip.chip_type === 'mcu' ? 'MCU' : 'Flash' }}</span></div>
               <div>JEDEC ID：<span class="text-cyan-400">{{ identifyResult.chip.jedec_id }}</span></div>
               <div>容量：<span class="text-cyan-400">{{ identifyResult.chip.capacity || '-' }}</span></div>
               <div>创建于：<span class="text-slate-500">{{ formatDate(identifyResult.chip.created_at) }}</span></div>
@@ -328,7 +339,7 @@ function resetForm() {
             </div>
             <p class="mt-2 text-sm text-slate-300">{{ identifyResult.reason }}</p>
 
-            <!-- 同型号候选（提示可能误录） -->
+            <!-- 同型号候选 -->
             <div v-if="identifyResult.candidates?.length" class="mt-3 space-y-2">
               <p class="text-xs text-slate-500">同 JEDEC ID 的已存在芯片：</p>
               <div
@@ -339,6 +350,7 @@ function resetForm() {
                 <div class="font-mono text-slate-300">
                   <span class="text-slate-500">#{{ c.id }}</span>
                   <span class="ml-2 text-cyan-400">{{ c.model }}</span>
+                  <span v-if="c.chip_type" class="ml-1" :class="c.chip_type === 'mcu' ? 'text-purple-400' : 'text-cyan-400'">[{{ c.chip_type === 'mcu' ? 'MCU' : 'Flash' }}]</span>
                   <span class="ml-2 text-slate-500">UID: {{ truncateUid(c.uid, 12) }}</span>
                 </div>
                 <UButton
@@ -390,6 +402,37 @@ function resetForm() {
     <div v-else class="max-w-2xl">
       <div class="rounded-lg bg-[#1e1e3a] p-6 ring-1 ring-white/5">
         <div class="space-y-5">
+          <!-- 芯片类型 -->
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-300">
+              芯片类型 <span class="text-red-400">*</span>
+            </label>
+            <div class="flex gap-3">
+              <button
+                type="button"
+                class="flex-1 rounded-md border px-4 py-3 text-sm font-medium transition-colors"
+                :class="form.chip_type === 'flash'
+                  ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
+                  : 'border-white/10 bg-white/5 text-slate-400 hover:text-slate-200'"
+                @click="form.chip_type = 'flash'"
+              >
+                <UIcon name="i-lucide-memory-stick" class="mr-2 inline h-4 w-4" />
+                Flash 存储
+              </button>
+              <button
+                type="button"
+                class="flex-1 rounded-md border px-4 py-3 text-sm font-medium transition-colors"
+                :class="form.chip_type === 'mcu'
+                  ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                  : 'border-white/10 bg-white/5 text-slate-400 hover:text-slate-200'"
+                @click="form.chip_type = 'mcu'"
+              >
+                <UIcon name="i-lucide-cpu" class="mr-2 inline h-4 w-4" />
+                MCU 单片机
+              </button>
+            </div>
+          </div>
+
           <!-- 型号 -->
           <div>
             <label class="mb-1.5 block text-sm font-medium text-slate-300">
@@ -397,7 +440,7 @@ function resetForm() {
             </label>
             <UInput
               v-model="form.model"
-              placeholder="如: W25Q128"
+              :placeholder="form.chip_type === 'mcu' ? '如: STM32F103C8T6' : '如: W25Q128'"
               class="w-full"
               :class="{ 'ring-1 ring-red-500/50': errors.model }"
             />
@@ -411,7 +454,7 @@ function resetForm() {
             </label>
             <UInput
               v-model="form.jedec_id"
-              placeholder="如: EF 40 18"
+              :placeholder="form.chip_type === 'mcu' ? '如: STM32 或 自定义' : '如: EF 40 18'"
               class="w-full font-mono"
               :class="{ 'ring-1 ring-red-500/50': errors.jedec_id }"
             />
@@ -444,7 +487,7 @@ function resetForm() {
                 class="w-full"
               />
             </div>
-            <div>
+            <div v-if="form.chip_type === 'flash'">
               <label class="mb-1.5 block text-sm font-medium text-slate-300">容量</label>
               <UInput
                 v-model="form.capacity"

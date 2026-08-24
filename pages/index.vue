@@ -7,7 +7,7 @@ definePageMeta({
 })
 
 const { data: stats, pending, error, refresh } = await useFetch<Stats>('/api/stats', {
-  default: () => ({ total: 0, models: [] })
+  default: () => ({ total: 0, models: [], by_type: { flash: 0, mcu: 0 } })
 })
 
 const maxModelCount = computed(() => {
@@ -15,11 +15,24 @@ const maxModelCount = computed(() => {
   return Math.max(...stats.value.models.map(m => m.count))
 })
 
-const columns: TableColumn<{ model: string; count: number }>[] = [
+const columns: TableColumn<{ model: string; count: number; chip_type?: string }>[] = [
   {
     accessorKey: 'model',
     header: '型号',
     cell: ({ row }) => row.getValue('model') || '(未知)'
+  },
+  {
+    accessorKey: 'chip_type',
+    header: '类型',
+    cell: ({ row }) => {
+      const type = row.original.chip_type
+      const isFlash = type === 'flash'
+      return h(UBadge, {
+        color: isFlash ? 'cyan' : 'purple',
+        variant: 'subtle',
+        size: 'xs'
+      }, () => (isFlash ? 'NOR Flash' : 'MCU'))
+    }
   },
   {
     accessorKey: 'count',
@@ -38,7 +51,7 @@ const columns: TableColumn<{ model: string; count: number }>[] = [
     <div class="mb-6 flex items-center justify-between">
       <div>
         <h2 class="text-xl font-bold text-slate-100">仪表盘</h2>
-        <p class="mt-1 text-sm text-slate-500">Flash 芯片库存概览</p>
+        <p class="mt-1 text-sm text-slate-500">芯片库存概览</p>
       </div>
       <UButton
         icon="i-lucide-refresh-cw"
@@ -70,10 +83,22 @@ const columns: TableColumn<{ model: string; count: number }>[] = [
         color="cyan"
       />
       <StatCard
+        title="NOR Flash"
+        :value="stats?.by_type?.flash ?? 0"
+        icon="i-lucide-hard-drive"
+        color="cyan"
+      />
+      <StatCard
+        title="MCU"
+        :value="stats?.by_type?.mcu ?? 0"
+        icon="i-lucide-microchip"
+        color="purple"
+      />
+      <StatCard
         title="型号种类"
         :value="stats?.models?.length ?? 0"
         icon="i-lucide-layers"
-        color="purple"
+        color="amber"
       />
     </div>
 
@@ -119,7 +144,8 @@ const columns: TableColumn<{ model: string; count: number }>[] = [
               </span>
               <div class="h-1.5 w-24 overflow-hidden rounded-full bg-white/5">
                 <div
-                  class="h-full rounded-full bg-cyan-500/60"
+                  class="h-full rounded-full"
+                  :class="row.original.chip_type === 'flash' ? 'bg-cyan-500/60' : 'bg-purple-500/60'"
                   :style="{ width: `${maxModelCount ? (row.original.count / maxModelCount) * 100 : 0}%` }"
                 />
               </div>

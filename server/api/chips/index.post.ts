@@ -2,12 +2,14 @@ import { db } from '../../database/init'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { model, jedec_id, uid, uid_length, capacity,
+  const { model, chip_type, jedec_id, uid, uid_length, capacity,
     sec1_locked, sec2_locked, sec3_locked, sec1_data, sec2_data, sec3_data, note } = body
 
   if (!model || !jedec_id || !uid) {
     throw createError({ statusCode: 400, statusMessage: '缺少必填字段: model, jedec_id, uid' })
   }
+
+  const type = (chip_type === 'mcu') ? 'mcu' : 'flash'
 
   // 检查 UID 唯一性
   const existing = db.prepare('SELECT id FROM chips WHERE uid = ?').get(uid)
@@ -16,12 +18,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const stmt = db.prepare(`
-    INSERT INTO chips (model, jedec_id, uid, uid_length, capacity,
+    INSERT INTO chips (model, chip_type, jedec_id, uid, uid_length, capacity,
       sec1_locked, sec2_locked, sec3_locked, sec1_data, sec2_data, sec3_data, note)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
-    model, jedec_id, uid, uid_length ?? 8, capacity ?? null,
+    model, type, jedec_id, uid, uid_length ?? 8, capacity ?? null,
     sec1_locked ?? 0, sec2_locked ?? 0, sec3_locked ?? 0,
     sec1_data ?? null, sec2_data ?? null, sec3_data ?? null, note ?? null
   )

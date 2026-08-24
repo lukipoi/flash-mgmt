@@ -1,6 +1,7 @@
 export interface Chip {
   id: number
   model: string
+  chip_type: 'flash' | 'mcu'
   jedec_id: string
   uid: string
   uid_length: number
@@ -38,5 +39,6 @@ export interface ProbeResult {
 
 export interface Stats {
   total: number
-  models: { model: string; count: number }[]
+  models: { model: string; count: number; chip_type?: string }[]
+  by_type?: { flash: number; mcu: number }
 }

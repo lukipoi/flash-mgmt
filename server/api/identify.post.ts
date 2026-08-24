@@ -10,11 +10,13 @@ export default defineEventHandler(async (event) => {
     jedec_id?: string
     uid?: string
     uid_length?: number
+    chip_type?: string
   }>(event)
 
   const jedecId = (body.jedec_id || '').trim()
   const uid = (body.uid || '').trim()
   const uidLength = body.uid_length
+  const chipType = body.chip_type
 
   if (!jedecId && !uid) {
     throw createError({
@@ -48,8 +50,12 @@ export default defineEventHandler(async (event) => {
       conditions.push('uid_length = ?')
       params.push(uidLength)
     }
+    if (chipType) {
+      conditions.push('chip_type = ?')
+      params.push(chipType)
+    }
     const candidates = db.prepare(`
-      SELECT id, model, jedec_id, uid, uid_length, capacity, created_at
+      SELECT id, model, jedec_id, uid, uid_length, capacity, chip_type, created_at
       FROM chips
       WHERE ${conditions.join(' AND ')}
       ORDER BY created_at DESC

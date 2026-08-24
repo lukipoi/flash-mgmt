@@ -147,9 +147,19 @@ function operationColor(op: string): string {
           size="sm"
         />
         <div>
-          <h2 class="text-xl font-bold text-slate-100">
-            {{ chip?.model || '芯片详情' }}
-          </h2>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-bold text-slate-100">
+              {{ chip?.model || '芯片详情' }}
+            </h2>
+            <UBadge
+              v-if="chip"
+              :color="chip.chip_type === 'flash' ? 'cyan' : 'purple'"
+              variant="subtle"
+              size="xs"
+            >
+              {{ chip.chip_type === 'flash' ? 'NOR Flash' : 'MCU' }}
+            </UBadge>
+          </div>
           <p v-if="chip" class="mt-1 font-mono text-xs text-slate-500">
             ID: {{ chip.id }} · UID: {{ truncateUid(chip.uid, 20) }}
           </p>
@@ -167,7 +177,7 @@ function operationColor(op: string): string {
           改备注
         </UButton>
         <UButton
-          v-if="chip"
+          v-if="chip?.chip_type === 'flash'"
           icon="i-lucide-lock"
           color="warning"
           variant="outline"
@@ -177,7 +187,7 @@ function operationColor(op: string): string {
           锁定 OTP
         </UButton>
         <UButton
-          v-if="chip"
+          v-if="chip?.chip_type === 'flash'"
           icon="i-lucide-upload"
           color="info"
           variant="outline"
@@ -243,12 +253,32 @@ function operationColor(op: string): string {
             <dd class="mt-1 font-medium text-slate-200">{{ chip.model }}</dd>
           </div>
           <div>
+            <dt class="text-xs text-slate-500">芯片类型</dt>
+            <dd class="mt-1">
+              <UBadge
+                :color="chip.chip_type === 'flash' ? 'cyan' : 'purple'"
+                variant="subtle"
+                size="xs"
+              >
+                {{ chip.chip_type === 'flash' ? 'NOR Flash' : 'MCU' }}
+              </UBadge>
+            </dd>
+          </div>
+          <div v-if="chip.chip_type === 'flash'">
             <dt class="text-xs text-slate-500">JEDEC ID</dt>
             <dd class="mt-1 font-mono text-cyan-400">{{ chip.jedec_id }}</dd>
           </div>
-          <div>
+          <div v-if="chip.chip_type === 'flash'">
             <dt class="text-xs text-slate-500">容量</dt>
             <dd class="mt-1 text-slate-300">{{ chip.capacity || '-' }}</dd>
+          </div>
+          <div v-if="chip.chip_type === 'mcu'">
+            <dt class="text-xs text-slate-500">芯片 ID</dt>
+            <dd class="mt-1 font-mono text-cyan-400">{{ chip.jedec_id }}</dd>
+          </div>
+          <div v-if="chip.chip_type === 'mcu'">
+            <dt class="text-xs text-slate-500">UID 长度</dt>
+            <dd class="mt-1 text-slate-300">{{ chip.uid_length }} 字节</dd>
           </div>
           <div class="md:col-span-2">
             <dt class="text-xs text-slate-500">UID ({{ chip.uid_length }} 字节)</dt>
@@ -273,7 +303,7 @@ function operationColor(op: string): string {
             <dt class="text-xs text-slate-500">更新时间</dt>
             <dd class="mt-1 font-mono text-xs text-slate-400">{{ formatDate(chip.updated_at) }}</dd>
           </div>
-          <div class="md:col-span-3">
+          <div v-if="chip.chip_type === 'flash'" class="md:col-span-3">
             <dt class="text-xs text-slate-500">OTP 锁定状态</dt>
             <dd class="mt-1 flex flex-wrap gap-2">
               <SecBadge :locked="chip.sec1_locked === 1" name="SEC1" />

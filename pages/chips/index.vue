@@ -12,6 +12,7 @@ const UButton = resolveComponent('UButton')
 
 const search = ref('')
 const modelFilter = ref<string | undefined>(undefined)
+const typeFilter = ref<string | undefined>(undefined)
 const chips = ref<Chip[]>([])
 const pending = ref(false)
 const fetchError = ref<any>(null)
@@ -23,6 +24,7 @@ async function fetchChips() {
     const params: Record<string, string> = {}
     if (search.value) params.search = search.value
     if (modelFilter.value) params.model = modelFilter.value
+    if (typeFilter.value) params.chip_type = typeFilter.value
     chips.value = await $fetch<Chip[]>('/api/chips', { params })
   } catch (e: any) {
     fetchError.value = e
@@ -60,8 +62,19 @@ const modelItems = computed(() => [
   ...(statsData.value?.models?.map(m => ({ label: `${m.model} (${m.count})`, value: m.model })) ?? [])
 ])
 
+const typeItems = computed(() => [
+  { label: '全部类型', value: 'all' },
+  { label: 'Flash 存储', value: 'flash' },
+  { label: 'MCU 单片机', value: 'mcu' }
+])
+
 function onModelChange(val: string | undefined) {
   modelFilter.value = (val === 'all' || !val) ? undefined : val
+  fetchChips()
+}
+
+function onTypeChange(val: string | undefined) {
+  typeFilter.value = (val === 'all' || !val) ? undefined : val
   fetchChips()
 }
 
@@ -78,11 +91,25 @@ watch(search, () => {
   fetchChipsDebounced()
 })
 
+function chipTypeBadge(type: string) {
+  const isMcu = type === 'mcu'
+  return h(UBadge, {
+    color: isMcu ? 'purple' : 'cyan',
+    variant: 'subtle',
+    size: 'xs'
+  }, () => isMcu ? 'MCU' : 'Flash')
+}
+
 const columns: TableColumn<Chip>[] = [
   {
     accessorKey: 'model',
     header: '型号',
     cell: ({ row }) => h('span', { class: 'font-medium text-slate-200' }, row.getValue('model') || '(未知)')
+  },
+  {
+    id: 'type',
+    header: '类型',
+    cell: ({ row }) => chipTypeBadge(row.getValue('chip_type') || 'flash')
   },
   {
     accessorKey: 'uid',
@@ -137,7 +164,7 @@ interface IdentifyResult {
   match_by: 'uid' | 'jedec_id' | null
   reason?: string
   chip?: Chip
-  candidates?: { id: number; model: string; jedec_id: string; uid: string }[]
+  candidates?: { id: number; model: string; jedec_id: string; uid: string; chip_type?: string }[]
 }
 
 const identifying = ref(false)
@@ -157,7 +184,6 @@ watch(identifyResult, (val) => {
     if (val) {
       sessionStorage.setItem('chips-identify-result', JSON.stringify(val))
     }
-    // 不再在 val 为 null 时清除 sessionStorage，防止 probe() 重置导致丢失
   } catch {
     // ignore
   }
@@ -172,12 +198,16 @@ async function identifyChip() {
       identifyResult.value = { matched: false, match_by: null, reason: probe.error }
       return
     }
+    // 根据 JEDEC ID 判断芯片类型
+    const jedecId = (probe.jedec_id || '').trim()
+    const chipType = jedecId ? 'flash' : 'mcu'
     const result = await $fetch<IdentifyResult>('/api/identify', {
       method: 'POST',
       body: {
         jedec_id: probe.jedec_id,
         uid: probe.uid,
-        uid_length: probe.uid_length
+        uid_length: probe.uid_length,
+        chip_type: chipType
       }
     })
     identifyResult.value = result
@@ -272,6 +302,13 @@ async function confirmDelete() {
         size="sm"
       />
       <USelect
+        :model-value="typeFilter ?? 'all'"
+        :items="typeItems"
+        size="sm"
+        class="w-36"
+        @update:model-value="onTypeChange"
+      />
+      <USelect
         :model-value="modelFilter ?? 'all'"
         :items="modelItems"
         size="sm"
@@ -279,12 +316,12 @@ async function confirmDelete() {
         @update:model-value="onModelChange"
       />
       <UButton
-        v-if="search || modelFilter"
+        v-if="search || modelFilter || typeFilter"
         icon="i-lucide-x"
         color="neutral"
         variant="ghost"
         size="sm"
-        @click="search = ''; modelFilter = undefined"
+        @click="search = ''; modelFilter = undefined; typeFilter = undefined"
       >
         清除
       </UButton>
@@ -304,6 +341,7 @@ async function confirmDelete() {
       </div>
       <div class="mt-3 space-y-1 rounded-md bg-white/5 p-3 font-mono text-xs text-slate-300">
         <div>型号：<span class="text-cyan-400">{{ identifyResult.chip.model }}</span></div>
+        <div>类型：<span class="text-cyan-400">{{ identifyResult.chip.chip_type === 'mcu' ? 'MCU' : 'Flash' }}</span></div>
         <div>JEDEC ID：<span class="text-cyan-400">{{ identifyResult.chip.jedec_id }}</span></div>
         <div>容量：<span class="text-cyan-400">{{ identifyResult.chip.capacity || '-' }}</span></div>
       </div>
@@ -343,6 +381,7 @@ async function confirmDelete() {
           <div class="font-mono text-slate-300">
             <span class="text-slate-500">#{{ c.id }}</span>
             <span class="ml-2 text-cyan-400">{{ c.model }}</span>
+            <span v-if="c.chip_type" class="ml-1" :class="c.chip_type === 'mcu' ? 'text-purple-400' : 'text-cyan-400'">[{{ c.chip_type === 'mcu' ? 'MCU' : 'Flash' }}]</span>
             <span class="ml-2 text-slate-500">UID: {{ truncateUid(c.uid, 12) }}</span>
           </div>
           <UButton
@@ -385,10 +424,10 @@ async function confirmDelete() {
       <div v-else-if="!chips?.length" class="px-5 py-16 text-center">
         <UIcon name="i-lucide-search-x" class="mx-auto h-10 w-10 text-slate-600" />
         <p class="mt-3 text-sm text-slate-500">
-          {{ search || modelFilter ? '没有匹配的芯片' : '暂无芯片数据' }}
+          {{ search || modelFilter || typeFilter ? '没有匹配的芯片' : '暂无芯片数据' }}
         </p>
         <UButton
-          v-if="!search && !modelFilter"
+          v-if="!search && !modelFilter && !typeFilter"
           to="/chips/new"
           icon="i-lucide-plus"
           color="primary"
@@ -420,6 +459,7 @@ async function confirmDelete() {
           </p>
           <div v-if="chipToDelete" class="rounded-md bg-white/5 p-3 font-mono text-xs text-slate-400">
             <div>型号：{{ chipToDelete.model }}</div>
+            <div>类型：{{ chipToDelete.chip_type === 'mcu' ? 'MCU' : 'Flash' }}</div>
             <div>JEDEC ID：{{ chipToDelete.jedec_id }}</div>
             <div>UID：{{ truncateUid(chipToDelete.uid, 20) }}</div>
           </div>
