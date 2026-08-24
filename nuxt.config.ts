@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'Flash 管理系统',
+      title: 'Chip Manager - 芯片库存管理系统',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }
