@@ -127,7 +127,12 @@ const columns: TableColumn<Chip>[] = [
   {
     accessorKey: 'capacity',
     header: '容量',
-    cell: ({ row }) => h('span', { class: 'text-slate-400' }, row.getValue('capacity') || '-')
+    cell: ({ row }) => {
+      const type = row.getValue('chip_type')
+      const cap = row.getValue('capacity')
+      const val = type === 'mcu' ? '/' : (cap || '-')
+      return h('span', { class: 'text-slate-400' }, val)
+    }
   },
   {
     id: 'actions',
