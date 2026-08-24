@@ -107,7 +107,7 @@ const columns: TableColumn<Chip>[] = [
     cell: ({ row }) => h('span', { class: 'font-medium text-slate-200' }, row.getValue('model') || '(未知)')
   },
   {
-    id: 'type',
+    accessorKey: 'chip_type',
     header: '类型',
     cell: ({ row }) => chipTypeBadge(row.getValue('chip_type') || 'flash')
   },
