@@ -1,16 +1,15 @@
 ' Chip Manager 启动脚本
 ' 功能：静默启动 Nuxt 开发服务器，启动前提示端口，就绪后弹窗通知
 
-Dim WshShell, Port, Url, Quote
+Dim WshShell, Port, Url
 Port = 3080
 Url = "http://localhost:" & Port
-Quote = Chr(34)
 
 ' ---- 1. 启动前提示 ----
 MsgBox "即将启动 Chip Manager 开发服务器" & vbCrLf & vbCrLf & _
        "  端口: " & Port & vbCrLf & _
        "  地址: " & Url & vbCrLf & vbCrLf & _
-       "点击" & Quote & "确定" & Quote & "开始启动（后台静默运行）", _
+       "点击确定开始启动（后台静默运行）", _
        vbInformation + vbOKOnly, "Chip Manager - 启动中"
 
 ' ---- 2. 静默启动 Nuxt 开发服务器 ----
