@@ -283,7 +283,7 @@ function resetForm() {
               </div>
               <div>
                 <dt class="text-xs text-slate-500">JEDEC ID</dt>
-                <dd class="font-mono text-cyan-400">{{ probeResult.jedec_id }}</dd>
+                <dd class="font-mono text-cyan-400">{{ formatJedecId(probeResult.jedec_id) }}</dd>
               </div>
               <div>
                 <dt class="text-xs text-slate-500">UID</dt>
@@ -311,7 +311,7 @@ function resetForm() {
             <div class="mt-3 space-y-1 rounded-md bg-white/5 p-3 font-mono text-xs text-slate-300">
               <div>型号：<span class="text-cyan-400">{{ identifyResult.chip.model }}</span></div>
               <div>类型：<span class="text-cyan-400">{{ identifyResult.chip.chip_type === 'mcu' ? 'MCU' : 'Flash' }}</span></div>
-              <div>JEDEC ID：<span class="text-cyan-400">{{ identifyResult.chip.jedec_id }}</span></div>
+              <div>JEDEC ID：<span class="text-cyan-400">{{ formatJedecId(identifyResult.chip.jedec_id) }}</span></div>
               <div>容量：<span class="text-cyan-400">{{ identifyResult.chip.capacity || '-' }}</span></div>
               <div>创建于：<span class="text-slate-500">{{ formatDate(identifyResult.chip.created_at) }}</span></div>
             </div>

@@ -1,12 +1,42 @@
 /**
+ * 归一化 UID: 去空格、转大写，用于存储和匹配
+ * "DE AD BE EF" → "DEADBEEF"
+ * "deadbeef" → "DEADBEEF"
+ */
+export function normalizeUid(uid: string): string {
+  if (!uid) return ''
+  return uid.replace(/\s+/g, '').toUpperCase()
+}
+
+/**
+ * 归一化 JEDEC ID: 去空格、转大写，用于存储和匹配
+ * "85 60 14" → "856014"
+ * "856014" → "856014"
+ */
+export function normalizeJedecId(jedecId: string): string {
+  if (!jedecId) return ''
+  return jedecId.replace(/\s+/g, '').toUpperCase()
+}
+
+/**
  * 格式化 UID 显示: 每 4 字节加空格分组
  * 输入 "DE AD BE EF 12 34 56 78" → "DEAD BEEF 1234 5678"
  * 输入 "DEADBEEF12345678" → "DEAD BEEF 1234 5678"
  */
 export function formatUid(uid: string): string {
   if (!uid) return ''
-  const hex = uid.replace(/\s+/g, '').toUpperCase()
+  const hex = normalizeUid(uid)
   return hex.replace(/(.{4})/g, '$1 ').trim()
+}
+
+/**
+ * 格式化 JEDEC ID 显示: 每字节加空格
+ * "856014" → "85 60 14"
+ */
+export function formatJedecId(jedecId: string): string {
+  if (!jedecId) return ''
+  const hex = normalizeJedecId(jedecId)
+  return hex.replace(/(.{2})/g, '$1 ').trim()
 }
 
 /**
@@ -27,7 +57,7 @@ export function formatDate(date: string): string {
  */
 export function truncateUid(uid: string, maxLen: number = 16): string {
   if (!uid) return ''
-  const hex = uid.replace(/\s+/g, '').toUpperCase()
+  const hex = normalizeUid(uid)
   if (hex.length <= maxLen) return hex
   return hex.slice(0, maxLen) + '…'
 }
@@ -36,11 +66,14 @@ export function truncateUid(uid: string, maxLen: number = 16): string {
  * 根据 JEDEC ID 第三字节自动识别容量
  * 标准公式: 容量(字节) = 2^capacity_id
  * 返回如 "16Mbit / 2MB" 的字符串，无法识别时返回空串
+ * 支持两种格式: "85 60 14" 或 "856014"
  */
 export function jedecIdToCapacity(jedecId: string): string {
   if (!jedecId) return ''
-  const parts = jedecId.trim().split(/\s+/)
-  const capByte = parts[2] || parts[parts.length - 1]
+  const clean = normalizeJedecId(jedecId)
+  // 从无空格格式中提取第三字节
+  const capByte = clean.length >= 6 ? clean.slice(4, 6) : (clean.length === 2 ? clean : '')
+  if (!capByte) return ''
   const capId = parseInt(capByte, 16)
   if (Number.isNaN(capId)) return ''
   const bytes = Math.pow(2, capId)

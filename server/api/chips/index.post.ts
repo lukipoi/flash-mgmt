@@ -1,4 +1,5 @@
 import { db } from '../../database/init'
+import { normalizeUid, normalizeJedecId } from '~~/utils/format'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -10,11 +11,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const type = (chip_type === 'mcu') ? 'mcu' : 'flash'
+  const normJedecId = normalizeJedecId(jedec_id as string)
+  const normUid = normalizeUid(uid as string)
 
   // 检查 UID 唯一性
-  const existing = db.prepare('SELECT id FROM chips WHERE uid = ?').get(uid)
+  const existing = db.prepare('SELECT id FROM chips WHERE uid = ?').get(normUid)
   if (existing) {
-    throw createError({ statusCode: 409, statusMessage: `UID "${uid}" 已存在` })
+    throw createError({ statusCode: 409, statusMessage: `UID "${normUid}" 已存在` })
   }
 
   const stmt = db.prepare(`
@@ -23,7 +26,7 @@ export default defineEventHandler(async (event) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
-    model, type, jedec_id, uid, uid_length ?? 8, capacity ?? null,
+    model, type, normJedecId, normUid, uid_length ?? 8, capacity ?? null,
     sec1_locked ?? 0, sec2_locked ?? 0, sec3_locked ?? 0,
     sec1_data ?? null, sec2_data ?? null, sec3_data ?? null, note ?? null
   )

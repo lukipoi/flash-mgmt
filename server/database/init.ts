@@ -80,3 +80,16 @@ try {
 } catch {
   // 忽略
 }
+
+// 迁移：归一化 UID 和 JEDEC ID（去空格、转大写）
+// 旧数据格式: "AB CD EF 12 34 56 78 90" → 新格式: "ABCDEF1234567890"
+// 旧数据格式: "85 60 14" → 新格式: "856014"
+try {
+  db.exec(`
+    UPDATE chips SET
+      uid = UPPER(REPLACE(REPLACE(uid, ' ', ''), char(9), '')),
+      jedec_id = UPPER(REPLACE(REPLACE(jedec_id, ' ', ''), char(9), ''))
+  `)
+} catch {
+  // 忽略
+}

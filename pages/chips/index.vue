@@ -122,7 +122,7 @@ const columns: TableColumn<Chip>[] = [
   {
     accessorKey: 'jedec_id',
     header: 'JEDEC ID',
-    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-slate-400' }, row.getValue('jedec_id') || '-')
+    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-slate-400' }, formatJedecId(row.getValue('jedec_id')) || '-')
   },
   {
     accessorKey: 'capacity',
@@ -347,7 +347,7 @@ async function confirmDelete() {
       <div class="mt-3 space-y-1 rounded-md bg-white/5 p-3 font-mono text-xs text-slate-300">
         <div>型号：<span class="text-cyan-400">{{ identifyResult.chip.model }}</span></div>
         <div>类型：<span class="text-cyan-400">{{ identifyResult.chip.chip_type === 'mcu' ? 'MCU' : 'Flash' }}</span></div>
-        <div>JEDEC ID：<span class="text-cyan-400">{{ identifyResult.chip.jedec_id }}</span></div>
+        <div>JEDEC ID：<span class="text-cyan-400">{{ formatJedecId(identifyResult.chip.jedec_id) }}</span></div>
         <div>容量：<span class="text-cyan-400">{{ identifyResult.chip.capacity || '-' }}</span></div>
       </div>
       <div class="mt-3 flex justify-end gap-2">
@@ -465,7 +465,7 @@ async function confirmDelete() {
           <div v-if="chipToDelete" class="rounded-md bg-white/5 p-3 font-mono text-xs text-slate-400">
             <div>型号：{{ chipToDelete.model }}</div>
             <div>类型：{{ chipToDelete.chip_type === 'mcu' ? 'MCU' : 'Flash' }}</div>
-            <div>JEDEC ID：{{ chipToDelete.jedec_id }}</div>
+            <div>JEDEC ID：{{ formatJedecId(chipToDelete.jedec_id) }}</div>
             <div>UID：{{ truncateUid(chipToDelete.uid, 20) }}</div>
           </div>
           <div v-if="deleteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">

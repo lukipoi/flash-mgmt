@@ -1,4 +1,5 @@
 import { db } from '../database/init'
+import { normalizeUid, normalizeJedecId } from '~~/utils/format'
 
 /**
  * 自动档案识别接口
@@ -13,8 +14,8 @@ export default defineEventHandler(async (event) => {
     chip_type?: string
   }>(event)
 
-  const jedecId = (body.jedec_id || '').trim()
-  const uid = (body.uid || '').trim()
+  const jedecId = normalizeJedecId(body.jedec_id || '')
+  const uid = normalizeUid(body.uid || '')
   const uidLength = body.uid_length
   const chipType = body.chip_type
 

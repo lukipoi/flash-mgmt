@@ -266,7 +266,7 @@ function operationColor(op: string): string {
           </div>
           <div v-if="chip.chip_type === 'flash'">
             <dt class="text-xs text-slate-500">JEDEC ID</dt>
-            <dd class="mt-1 font-mono text-cyan-400">{{ chip.jedec_id }}</dd>
+            <dd class="mt-1 font-mono text-cyan-400">{{ formatJedecId(chip.jedec_id) }}</dd>
           </div>
           <div v-if="chip.chip_type === 'flash'">
             <dt class="text-xs text-slate-500">容量</dt>
@@ -274,7 +274,7 @@ function operationColor(op: string): string {
           </div>
           <div v-if="chip.chip_type === 'mcu'">
             <dt class="text-xs text-slate-500">芯片 ID</dt>
-            <dd class="mt-1 font-mono text-cyan-400">{{ chip.jedec_id }}</dd>
+            <dd class="mt-1 font-mono text-cyan-400">{{ formatJedecId(chip.jedec_id) }}</dd>
           </div>
           <div v-if="chip.chip_type === 'mcu'">
             <dt class="text-xs text-slate-500">UID 长度</dt>
@@ -465,7 +465,7 @@ function operationColor(op: string): string {
           </p>
           <div v-if="chip" class="rounded-md bg-white/5 p-3 font-mono text-xs text-slate-400">
             <div>型号：{{ chip.model }}</div>
-            <div>JEDEC ID：{{ chip.jedec_id }}</div>
+            <div>JEDEC ID：{{ formatJedecId(chip.jedec_id) }}</div>
             <div>UID：{{ truncateUid(chip.uid, 20) }}</div>
           </div>
           <div v-if="deleteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">

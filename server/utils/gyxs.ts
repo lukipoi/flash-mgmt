@@ -83,14 +83,14 @@ function parseProbeOutput(output: string): ProbeResult {
     throw new Error('解析 gyxs 输出失败: 缺少必要字段')
   }
 
-  // JEDEC ID: "0x85,0x60,0x14" -> "85 60 14"
-  const jedec_id = hexToBytes(jedecRaw)
+  // JEDEC ID: "0x85,0x60,0x14" -> "856014" (归一化: 无空格、大写)
+  const jedec_id = hexToBytes(jedecRaw).replace(/\s+/g, '').toUpperCase()
 
   // SR1/SR2: "0x02" -> "0x02"
   const sr1 = sr1Raw.trim()
   const sr2 = sr2Raw.trim()
 
-  // UID: "0xAB,0xCD,..." -> "AB CD ..."
+  // UID: "0xAB,0xCD,..." -> "ABCDEF12..." (归一化: 无空格、大写)
   const uidBytes = uidRaw
     .split(',')
     .map((h) => h.trim().replace(/^0x/i, '').toUpperCase().padStart(2, '0'))
@@ -101,7 +101,7 @@ function parseProbeOutput(output: string): ProbeResult {
   const isAllFF = last8.every((b) => b === 'FF')
 
   const uid_length = isAllZero || isAllFF ? 8 : 16
-  const uid = uidBytes.slice(0, uid_length).join(' ')
+  const uid = uidBytes.slice(0, uid_length).join('')
 
   return {
     jedec_id,
