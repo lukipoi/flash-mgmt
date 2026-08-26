@@ -6,12 +6,22 @@ export default defineEventHandler(async (event) => {
   const { model, chip_type, jedec_id, uid, uid_length, capacity,
     sec1_locked, sec2_locked, sec3_locked, sec1_data, sec2_data, sec3_data, note } = body
 
-  if (!model || !jedec_id || !uid) {
-    throw createError({ statusCode: 400, statusMessage: '缺少必填字段: model, jedec_id, uid' })
+  if (!model) {
+    throw createError({ statusCode: 400, statusMessage: '缺少必填字段: model' })
   }
 
   const type = (chip_type === 'mcu') ? 'mcu' : 'flash'
-  const normJedecId = normalizeJedecId(jedec_id as string)
+
+  // Flash 必须有 JEDEC ID；MCU 可以没有
+  if (type === 'flash' && !jedec_id) {
+    throw createError({ statusCode: 400, statusMessage: 'Flash 芯片必填 JEDEC ID' })
+  }
+
+  if (!uid) {
+    throw createError({ statusCode: 400, statusMessage: '缺少必填字段: uid' })
+  }
+
+  const normJedecId = jedec_id ? normalizeJedecId(jedec_id as string) : ''
   const normUid = normalizeUid(uid as string)
 
   // 检查 UID 唯一性

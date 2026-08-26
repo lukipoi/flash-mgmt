@@ -272,7 +272,7 @@ function operationColor(op: string): string {
             <dt class="text-xs text-slate-500">容量</dt>
             <dd class="mt-1 text-slate-300">{{ chip.capacity || '-' }}</dd>
           </div>
-          <div v-if="chip.chip_type === 'mcu'">
+          <div v-if="chip.chip_type === 'mcu' && chip.jedec_id">
             <dt class="text-xs text-slate-500">芯片 ID</dt>
             <dd class="mt-1 font-mono text-cyan-400">{{ formatJedecId(chip.jedec_id) }}</dd>
           </div>

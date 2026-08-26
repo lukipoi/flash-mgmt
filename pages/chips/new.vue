@@ -153,8 +153,14 @@ const errors = computed(() => {
   const e: Record<string, string> = {}
   if (!form.model.trim()) e.model = '型号为必填项'
 
-  const jedecCheck = isValidJedecId(form.jedec_id)
-  if (!jedecCheck.valid && jedecCheck.error) e.jedec_id = jedecCheck.error
+  if (form.chip_type === 'flash') {
+    // Flash: JEDEC ID 必填 + 合法性校验
+    const jedecCheck = isValidJedecId(form.jedec_id)
+    if (!jedecCheck.valid && jedecCheck.error) e.jedec_id = jedecCheck.error
+  } else if (form.jedec_id.trim()) {
+    // MCU: 填了就校验合法性，没填跳过
+    if (!isValidHex(form.jedec_id)) e.jedec_id = '只能包含十六进制字符 (0-9, A-F)'
+  }
 
   const uidCheck = isValidUid(form.uid, Number(form.uid_length))
   if (!uidCheck.valid && uidCheck.error) e.uid = uidCheck.error
@@ -452,18 +458,20 @@ function resetForm() {
             <p v-if="errors.model" class="mt-1 text-xs text-red-400">{{ errors.model }}</p>
           </div>
 
-          <!-- JEDEC ID -->
+          <!-- JEDEC ID / 芯片 ID -->
           <div>
             <label class="mb-1.5 block text-sm font-medium text-slate-300">
-              JEDEC ID <span class="text-red-400">*</span>
+              {{ form.chip_type === 'mcu' ? '芯片 ID' : 'JEDEC ID' }}
+              <span v-if="form.chip_type === 'flash'" class="text-red-400">*</span>
             </label>
             <UInput
               v-model="form.jedec_id"
-              :placeholder="form.chip_type === 'mcu' ? '如: STM32 或 自定义' : '如: EF 40 18'"
+              :placeholder="form.chip_type === 'mcu' ? '如: STM32F103 或 留空' : '如: EF 40 18'"
               class="w-full font-mono"
               :class="{ 'ring-1 ring-red-500/50': errors.jedec_id }"
             />
             <p v-if="errors.jedec_id" class="mt-1 text-xs text-red-400">{{ errors.jedec_id }}</p>
+            <p v-else-if="form.chip_type === 'mcu'" class="mt-1 text-xs text-slate-500">MCU 无 JEDEC ID，可填芯片系列标识或留空</p>
           </div>
 
           <!-- UID -->
