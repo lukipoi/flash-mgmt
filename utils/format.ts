@@ -63,6 +63,43 @@ export function truncateUid(uid: string, maxLen: number = 16): string {
 }
 
 /**
+ * 校验十六进制字符串合法性
+ * 允许空格分隔，不允许除 [0-9a-fA-F] 和空格之外的字符
+ */
+export function isValidHex(hex: string): boolean {
+  if (!hex) return false
+  const clean = hex.replace(/\s+/g, '')
+  if (!clean) return false
+  return /^[0-9a-fA-F]+$/.test(clean)
+}
+
+/**
+ * 校验 UID 合法性: 必须是合法十六进制，且长度匹配 uid_length
+ */
+export function isValidUid(uid: string, uidLength: number): { valid: boolean; error?: string } {
+  if (!uid || !uid.trim()) return { valid: false, error: 'UID 为必填项' }
+  if (!isValidHex(uid)) return { valid: false, error: 'UID 只能包含十六进制字符 (0-9, A-F)' }
+  const clean = normalizeUid(uid)
+  const expectedLen = uidLength * 2 // 每字节 2 个 hex 字符
+  if (clean.length !== expectedLen) {
+    return { valid: false, error: `UID 长度应为 ${uidLength} 字节 (${expectedLen} 个十六进制字符)，当前 ${clean.length} 个` }
+  }
+  return { valid: true }
+}
+
+/**
+ * 校验 JEDEC ID 合法性: 必须是合法十六进制，通常为 3 字节 (6 字符)
+ */
+export function isValidJedecId(jedecId: string): { valid: boolean; error?: string } {
+  if (!jedecId || !jedecId.trim()) return { valid: false, error: 'JEDEC ID 为必填项' }
+  if (!isValidHex(jedecId)) return { valid: false, error: 'JEDEC ID 只能包含十六进制字符 (0-9, A-F)' }
+  const clean = normalizeJedecId(jedecId)
+  if (clean.length % 2 !== 0) return { valid: false, error: 'JEDEC ID 必须为偶数个字符 (每字节 2 个十六进制字符)' }
+  if (clean.length < 2) return { valid: false, error: 'JEDEC ID 至少需要 1 字节' }
+  return { valid: true }
+}
+
+/**
  * 根据 JEDEC ID 第三字节自动识别容量
  * 标准公式: 容量(字节) = 2^capacity_id
  * 返回如 "16Mbit / 2MB" 的字符串，无法识别时返回空串

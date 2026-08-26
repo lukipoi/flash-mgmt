@@ -152,8 +152,13 @@ const submitError = ref<string | null>(null)
 const errors = computed(() => {
   const e: Record<string, string> = {}
   if (!form.model.trim()) e.model = '型号为必填项'
-  if (!form.jedec_id.trim()) e.jedec_id = 'JEDEC ID 为必填项'
-  if (!form.uid.trim()) e.uid = 'UID 为必填项'
+
+  const jedecCheck = isValidJedecId(form.jedec_id)
+  if (!jedecCheck.valid && jedecCheck.error) e.jedec_id = jedecCheck.error
+
+  const uidCheck = isValidUid(form.uid, Number(form.uid_length))
+  if (!uidCheck.valid && uidCheck.error) e.uid = uidCheck.error
+
   return e
 })
 
