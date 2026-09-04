@@ -100,19 +100,21 @@ export function isValidJedecId(jedecId: string): { valid: boolean; error?: strin
 }
 
 /**
- * 根据 JEDEC ID 第三字节自动识别容量
- * 标准公式: 容量(字节) = 2^capacity_id
- * 返回如 "16Mbit / 2MB" 的字符串，无法识别时返回空串
- * 支持两种格式: "85 60 14" 或 "856014"
+ * 根据 JEDEC ID 自动识别 Flash 容量
+ * 标准 JEDEC SPI Flash ID: 厂商(1B) + 型号(1-2B) + 容量(1B) = 通常 3 字节 (6字符)
+ * 容量代码范围: 0x10(64KB) ~ 0x28(256GB)
+ * 超出范围或长度不符返回空串
  */
 export function jedecIdToCapacity(jedecId: string): string {
   if (!jedecId) return ''
   const clean = normalizeJedecId(jedecId)
-  // 从无空格格式中提取第三字节
-  const capByte = clean.length >= 6 ? clean.slice(4, 6) : (clean.length === 2 ? clean : '')
-  if (!capByte) return ''
+  // 必须正好 3 字节（6字符）才解析
+  if (clean.length !== 6) return ''
+  const capByte = clean.slice(4, 6)
   const capId = parseInt(capByte, 16)
   if (Number.isNaN(capId)) return ''
+  // 合理性校验: 0x10(64KB) ~ 0x28(256GB)
+  if (capId < 16 || capId > 40) return ''
   const bytes = Math.pow(2, capId)
   const mbit = bytes * 8 / (1024 * 1024)
   const mb = bytes / (1024 * 1024)

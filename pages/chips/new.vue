@@ -140,7 +140,7 @@ const form = reactive({
 
 // JEDEC ID 变化时自动识别容量（仅在容量为空时）
 watch(() => form.jedec_id, (val) => {
-  if (val && !form.capacity) {
+  if (val && form.chip_type === 'flash' && !form.capacity) {
     const cap = jedecIdToCapacity(val)
     if (cap) form.capacity = cap
   }
