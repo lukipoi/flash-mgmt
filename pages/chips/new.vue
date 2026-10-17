@@ -99,6 +99,7 @@ async function probe() {
     form.uid = result.uid
     form.uid_length = result.uid_length
     form.capacity = jedecIdToCapacity(result.jedec_id) || ''
+    form.vendor = jedecIdToVendor(result.jedec_id, form.model) || ''
     mode.value = 'manual'
   } catch (e: any) {
     probeError.value = e.data?.message || e.message || '读取芯片失败'
@@ -129,22 +130,52 @@ function startNewArchive() {
 
 // ---- 手动录入表单 ----
 const form = reactive({
+  vendor: '',
   model: '',
   chip_type: 'flash' as 'flash' | 'mcu',
   jedec_id: '',
   uid: '',
   uid_length: 8,
   capacity: '',
+  location_a: '',
+  location_b: '',
+  location_c: '',
   note: ''
 })
 
-// JEDEC ID 变化时自动识别容量（仅在容量为空时）
+// JEDEC ID 变化时自动识别容量和厂商（仅在字段为空时自动填写，不覆盖用户手动填的值）
 watch(() => form.jedec_id, (val) => {
   if (val && form.chip_type === 'flash' && !form.capacity) {
     const cap = jedecIdToCapacity(val)
     if (cap) form.capacity = cap
   }
+  if (val && !form.vendor) {
+    const v = jedecIdToVendor(val, form.model)
+    if (v) form.vendor = v
+  }
 })
+
+// 库位：大箱 + 小箱填齐后，序号自动取同组最大 + 1
+let fetchSeqPromise: Promise<void> | null = null
+async function tryAutoSeq() {
+  if (!form.location_a?.trim() || !form.location_b?.trim() || form.location_c?.trim()) return
+  if (fetchSeqPromise) return  // 去重
+  fetchSeqPromise = (async () => {
+    try {
+      const rows: any[] = await $fetch('/api/chips', {
+        params: { location_a: form.location_a.trim(), location_b: form.location_b.trim() }
+      })
+      let maxN = 0
+      for (const r of rows) {
+        const n = parseInt(r.location_c, 10)
+        if (!isNaN(n) && n > maxN) maxN = n
+      }
+      if (!form.location_c?.trim()) form.location_c = String(maxN + 1)
+    } catch { /* 网络失败就让用户手动填 */ }
+    fetchSeqPromise = null
+  })()
+}
+watch(() => [form.location_a, form.location_b] as const, () => tryAutoSeq())
 
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
@@ -178,12 +209,16 @@ async function submit() {
     const result = await $fetch<Chip>('/api/chips', {
       method: 'POST',
       body: {
+        vendor: form.vendor.trim() || null,
         model: form.model.trim(),
         chip_type: form.chip_type,
         jedec_id: form.jedec_id.trim(),
         uid: form.uid.trim(),
         uid_length: Number(form.uid_length),
         capacity: form.capacity.trim() || null,
+        location_a: form.location_a.trim() || null,
+        location_b: form.location_b.trim() || null,
+        location_c: form.location_c.trim() || null,
         note: form.note.trim() || null
       }
     })
@@ -196,12 +231,16 @@ async function submit() {
 }
 
 function resetForm() {
+  form.vendor = ''
   form.model = ''
   form.chip_type = 'flash'
   form.jedec_id = ''
   form.uid = ''
   form.uid_length = 8
   form.capacity = ''
+  form.location_a = ''
+  form.location_b = ''
+  form.location_c = ''
   form.note = ''
   submitError.value = null
   userDismissedIdentify = true
@@ -444,6 +483,16 @@ function resetForm() {
             </div>
           </div>
 
+          <!-- 厂商 -->
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-300">厂商</label>
+            <UInput
+              v-model="form.vendor"
+              placeholder="如: Winbond / STMic / NXP / Infineon..."
+              class="w-full"
+            />
+          </div>
+
           <!-- 型号 -->
           <div>
             <label class="mb-1.5 block text-sm font-medium text-slate-300">
@@ -509,6 +558,29 @@ function resetForm() {
               />
               <p class="mt-1 text-xs text-slate-500">根据 JEDEC ID 自动识别，可手动修改</p>
             </div>
+          </div>
+
+          <!-- 库位（三级） -->
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-300">库位</label>
+            <div class="grid grid-cols-3 gap-2">
+              <UInput
+                v-model="form.location_a"
+                placeholder="大箱"
+                class="w-full"
+              />
+              <UInput
+                v-model="form.location_b"
+                placeholder="小箱"
+                class="w-full"
+              />
+              <UInput
+                v-model="form.location_c"
+                placeholder="序号"
+                class="w-full"
+              />
+            </div>
+            <p class="mt-1 text-xs text-slate-500">可选，三级容器定位：大箱 / 小箱 / 序号</p>
           </div>
 
           <!-- 备注 -->

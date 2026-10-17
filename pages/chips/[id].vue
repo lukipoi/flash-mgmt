@@ -17,6 +17,15 @@ const showDeleteModal = ref(false)
 const deleting = ref(false)
 const deleteError = ref<string | null>(null)
 
+// ---- 打印标签 ----
+const showPrintModal = ref(false)
+const printer = usePrinter()
+
+onMounted(() => {
+  // 页面加载时预初始化打印机
+  printer.init()
+})
+
 async function copyUid() {
   if (!chip.value?.uid) return
   try {
@@ -132,6 +141,80 @@ function operationColor(op: string): string {
   if (op.includes('write') || op.includes('写入')) return 'info'
   return 'neutral'
 }
+
+// ---- 编辑档案 ----
+const showEditModal = ref(false)
+const editing = ref(false)
+const editError = ref<string | null>(null)
+const editForm = reactive<Record<string, any>>({})
+
+// 库位自动序号
+let editSeqPromise: Promise<void> | null = null
+async function tryEditAutoSeq() {
+  if (!editForm.location_a?.trim() || !editForm.location_b?.trim() || editForm.location_c?.trim()) return
+  if (editSeqPromise) return
+  editSeqPromise = (async () => {
+    try {
+      const rows: any[] = await $fetch('/api/chips', {
+        params: { location_a: editForm.location_a.trim(), location_b: editForm.location_b.trim() }
+      })
+      let maxN = 0
+      for (const r of rows) {
+        if (chip.value && r.id === chip.value.id) continue
+        const n = parseInt(r.location_c, 10)
+        if (!isNaN(n) && n > maxN) maxN = n
+      }
+      if (!editForm.location_c?.trim()) editForm.location_c = String(maxN + 1)
+    } catch { /* 忽略 */ }
+    editSeqPromise = null
+  })()
+}
+watch(() => [editForm.location_a, editForm.location_b] as const, () => tryEditAutoSeq())
+
+function openEditModal() {
+  if (!chip.value) return
+  Object.assign(editForm, {
+    vendor: chip.value.vendor ?? '',
+    model: chip.value.model ?? '',
+    chip_type: chip.value.chip_type,
+    jedec_id: chip.value.jedec_id ?? '',
+    uid_length: chip.value.uid_length ?? 8,
+    capacity: chip.value.capacity ?? '',
+    location_a: chip.value.location_a ?? '',
+    location_b: chip.value.location_b ?? '',
+    location_c: chip.value.location_c ?? '',
+    note: chip.value.note ?? ''
+  })
+  editError.value = null
+  showEditModal.value = true
+}
+
+async function confirmEdit() {
+  if (!chip.value) return
+  editing.value = true
+  editError.value = null
+  try {
+    const body: Record<string, any> = {
+      vendor: editForm.vendor?.trim() || null,
+      model: editForm.model?.trim(),
+      chip_type: editForm.chip_type,
+      jedec_id: editForm.jedec_id?.trim() || '',
+      uid_length: Number(editForm.uid_length) || 8,
+      capacity: editForm.capacity?.trim() || null,
+      location_a: editForm.location_a?.trim() || null,
+      location_b: editForm.location_b?.trim() || null,
+      location_c: editForm.location_c?.trim() || null,
+      note: editForm.note?.trim() || null,
+    }
+    await $fetch(`/api/chips/${chip.value.id}`, { method: 'PUT', body })
+    showEditModal.value = false
+    await refresh()
+  } catch (err: any) {
+    editError.value = err?.statusMessage || err?.message || '保存失败'
+  } finally {
+    editing.value = false
+  }
+}
 </script>
 
 <template>
@@ -168,9 +251,19 @@ function operationColor(op: string): string {
       <div class="flex flex-wrap gap-2">
         <UButton
           v-if="chip"
-          icon="i-lucide-pen-line"
+          icon="i-lucide-pencil"
           color="neutral"
           variant="outline"
+          size="sm"
+          @click="openEditModal"
+        >
+          编辑档案
+        </UButton>
+        <UButton
+          v-if="chip"
+          icon="i-lucide-pen-line"
+          color="neutral"
+          variant="ghost"
           size="sm"
           @click="noteText = chip.note || ''; showNoteModal = true"
         >
@@ -195,6 +288,16 @@ function operationColor(op: string): string {
           @click="showWriteModal = true"
         >
           写入 Flash
+        </UButton>
+        <UButton
+          v-if="chip"
+          icon="i-lucide-printer"
+          color="amber"
+          variant="outline"
+          size="sm"
+          @click="showPrintModal = true"
+        >
+          打印标签
         </UButton>
         <UButton
           v-if="chip"
@@ -249,6 +352,10 @@ function operationColor(op: string): string {
         </div>
         <div class="grid grid-cols-2 gap-x-6 gap-y-4 p-5 md:grid-cols-3">
           <div>
+            <dt class="text-xs text-slate-500">厂商</dt>
+            <dd class="mt-1 text-amber-400">{{ chip.vendor || '-' }}</dd>
+          </div>
+          <div>
             <dt class="text-xs text-slate-500">型号</dt>
             <dd class="mt-1 font-medium text-slate-200">{{ chip.model }}</dd>
           </div>
@@ -262,6 +369,16 @@ function operationColor(op: string): string {
               >
                 {{ chip.chip_type === 'flash' ? 'NOR Flash' : 'MCU' }}
               </UBadge>
+            </dd>
+          </div>
+          <div v-if="chip.location_a || chip.location_b || chip.location_c">
+            <dt class="text-xs text-slate-500">库位</dt>
+            <dd class="mt-1 text-cyan-400">
+              <template v-if="chip.location_a">{{ chip.location_a }}</template>
+              <template v-if="chip.location_a && (chip.location_b || chip.location_c)">-</template>
+              <template v-if="chip.location_b">{{ chip.location_b }}</template>
+              <template v-if="chip.location_b && chip.location_c">-</template>
+              <template v-if="chip.location_c">{{ chip.location_c }}</template>
             </dd>
           </div>
           <div v-if="chip.chip_type === 'flash'">
@@ -365,6 +482,81 @@ function operationColor(op: string): string {
         </div>
       </div>
     </template>
+
+    <!-- 编辑档案对话框 -->
+    <UModal v-model:open="showEditModal" title="编辑芯片档案">
+      <template #body>
+        <div class="space-y-3">
+          <div v-if="editError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+            {{ editError }}
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">厂商</label>
+              <UInput v-model="editForm.vendor" placeholder="如: Winbond / STMic" class="w-full" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">型号</label>
+              <UInput v-model="editForm.model" class="w-full" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">类型</label>
+              <USelect
+                v-model="editForm.chip_type"
+                :items="[
+                  { label: 'NOR Flash', value: 'flash' },
+                  { label: 'MCU 单片机', value: 'mcu' }
+                ]"
+                class="w-full"
+              />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">容量</label>
+              <UInput v-model="editForm.capacity" placeholder="如: 16Mbit / 2MB" class="w-full" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">JEDEC ID</label>
+              <UInput v-model="editForm.jedec_id" class="w-full font-mono" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">UID 长度 (字节)</label>
+              <UInput v-model.number="editForm.uid_length" type="number" class="w-full" />
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs text-slate-500">库位</label>
+            <div class="grid grid-cols-3 gap-2">
+              <UInput v-model="editForm.location_a" placeholder="大箱" class="w-full" />
+              <UInput v-model="editForm.location_b" placeholder="小箱" class="w-full" />
+              <UInput v-model="editForm.location_c" placeholder="序号" class="w-full" />
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs text-slate-500">备注</label>
+            <UTextarea v-model="editForm.note" :rows="3" class="w-full" />
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" :disabled="editing" @click="showEditModal = false">
+            取消
+          </UButton>
+          <UButton color="primary" variant="solid" :loading="editing" @click="confirmEdit">
+            保存
+          </UButton>
+        </div>
+      </template>
+    </UModal>
 
     <!-- 改备注对话框 -->
     <UModal v-model:open="showNoteModal" title="修改备注">
@@ -484,5 +676,8 @@ function operationColor(op: string): string {
         </div>
       </template>
     </UModal>
+
+    <!-- 打印标签对话框 -->
+    <PrintLabelModal v-model:open="showPrintModal" mode="chip" :chip="chip" />
   </div>
 </template>

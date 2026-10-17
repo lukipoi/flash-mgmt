@@ -3,7 +3,8 @@ import { normalizeUid, normalizeJedecId } from '~~/utils/format'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { model, chip_type, jedec_id, uid, uid_length, capacity,
+  const { vendor, model, chip_type, jedec_id, uid, uid_length, capacity,
+    location_a, location_b, location_c,
     sec1_locked, sec2_locked, sec3_locked, sec1_data, sec2_data, sec3_data, note } = body
 
   if (!model) {
@@ -30,13 +31,29 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 409, statusMessage: `UID "${normUid}" 已存在` })
   }
 
+  // 检查库位唯一性（三字段都非空时）
+  const la = location_a ? String(location_a).trim() : null
+  const lb = location_b ? String(location_b).trim() : null
+  const lc = location_c ? String(location_c).trim() : null
+  if (la && lb && lc) {
+    const locDup = db.prepare(
+      'SELECT id FROM chips WHERE location_a = ? AND location_b = ? AND location_c = ?'
+    ).get(la, lb, lc)
+    if (locDup) {
+      throw createError({ statusCode: 409, statusMessage: `库位 "${la}-${lb}-${lc}" 已被占用` })
+    }
+  }
+
   const stmt = db.prepare(`
-    INSERT INTO chips (model, chip_type, jedec_id, uid, uid_length, capacity,
+    INSERT INTO chips (vendor, model, chip_type, jedec_id, uid, uid_length, capacity,
+      location_a, location_b, location_c,
       sec1_locked, sec2_locked, sec3_locked, sec1_data, sec2_data, sec3_data, note)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
+    vendor ? String(vendor).trim() : null,
     model, type, normJedecId, normUid, uid_length ?? 8, capacity ?? null,
+    la, lb, lc,
     sec1_locked ?? 0, sec2_locked ?? 0, sec3_locked ?? 0,
     sec1_data ?? null, sec2_data ?? null, sec3_data ?? null, note ?? null
   )

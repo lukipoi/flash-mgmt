@@ -1,0 +1,211 @@
+# ================================================================
+# SD 卡 CID/CSD 读取 (SPI 模式)
+# 适用: 标准 SD v1.x / v2.0 / SDHC / SDXC
+#
+# 接线 (与 MFRC522 共用 CS0 排针, 但 CS 引脚按需改):
+#   SD CS  -> D0 (CS0, 默认)
+#   SD SCK -> SCK
+#   SD DO  -> DIN   (CH341 视角的 MISO)
+#   SD DI  -> DOUT  (CH341 视角的 MOSI)
+#   VCC    -> 3.3V  ⚠️ 严禁 5V (CH341 实验台跳线务必拨到 3.3V)
+#   GND    -> GND
+#
+# SD 卡 SPI 命令帧 (6 字节固定):
+#   [0]  cmd[7:0]   = 0x40 | cmd 号
+#   [1..4] arg[31:0] MSB first
+#   [5]  crc7 + stop bit
+# R1 响应固定出现在 TRANSFER buffer 的 index 6。
+#
+# CID/CSD 长响应:
+#   R1[6] + NRC[7..N] + 0xFE_token[N+1] + data[16] + crc[2]
+#   NRC (响应前时钟) 1~8 字节, 这里用 8 字节冗余。
+#   所以 CMD2/CMD9 用 34 字节 TRANSFER 足够。
+# ================================================================
+
+OPEN()
+PRINT("===SD_CID_START===")
+
+# ==================== 上电初始化: ≥74 clock @ CS high ====================
+# CH341 SPI: TRANSFER 期间 CS 自动拉低, 结束后拉高。
+# 上电后卡未进入 SPI 模式, 会忽略任何数据, 故传 80 字节 0xFF 安全。
+TRANSFER(0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF)
+DELAY(50MS)
+
+# ==================== CMD0: GO_IDLE_STATE (CRC=0x95) ====================
+PRINT("--- CMD0 (GO_IDLE_STATE) ---")
+cmd0_ok = FALSE
+i = 0
+WHILE i < 10:
+    c0 = TRANSFER(0x40, 0x00, 0x00, 0x00, 0x00, 0x95, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)
+    r1 = GET_BYTE(c0, 6)
+    PRINT("  try=" + HEX(i) + " R1=" + HEX(r1))
+    IF r1 == 0x01:
+        cmd0_ok = TRUE
+        BREAK
+    i = i + 1
+    DELAY(5MS)
+IF cmd0_ok == FALSE:
+    PRINT("ERROR: CMD0 failed, card not entering idle state")
+    PRINT("  排查: 1)SD卡是否插好 2)CS是否接CH341 D0(CS0) 3)VCC是否3.3V(严禁5V) 4)SCK/MOSI/MISO/GND是否接全")
+    CLOSE()
+    EXIT()
+
+# ==================== CMD8: SEND_IF_COND (CRC=0x87, arg=0x000001AA) ====================
+# R1 在 [6], R7 在 [7..10]
+PRINT("--- CMD8 (SEND_IF_COND) ---")
+c8 = TRANSFER(0x48, 0x00, 0x00, 0x01, 0xAA, 0x87, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)
+c8_r1 = GET_BYTE(c8, 6)
+r7_b3  = GET_BYTE(c8, 7)
+r7_b2  = GET_BYTE(c8, 8)
+r7_b1  = GET_BYTE(c8, 9)
+r7_b0  = GET_BYTE(c8, 10)
+PRINT("  R1=" + HEX(c8_r1))
+PRINT("  R7=" + HEX(r7_b3) + " " + HEX(r7_b2) + " " + HEX(r7_b1) + " " + HEX(r7_b0))
+sd_v2 = FALSE
+sd_sdhc = FALSE
+IF c8_r1 == 0x01:
+    sd_v2 = TRUE
+    # R7 byte[0] (LSB) bit 6 = VHS 电压匹配; 低 4 bit 应为 check pattern (0xA >> 0 = 0x0A 匹配)
+    IF (r7_b0 & 0x0F) == 0x0A AND (r7_b0 & 0xF0) != 0:
+        PRINT("  SD v2.0+ (VHS+check_pattern OK)")
+    ELSE:
+        PRINT("  WARN: SD v2.0 R7 check pattern mismatch")
+
+# ==================== ACMD41 循环: CMD55 -> ACMD41 ====================
+# CMD55 (0x77) + ACMD41 (0x69) with HCS
+# R1 在每次响应的 index 6
+# 注意: 卡 busy 时 DO 持续拉低, 单次 TRANSFER 抓到的 R1 可能误判 0x00;
+# 验证: R1=0x00 且后续 dummy 都是 0xFF 才算真 ready
+PRINT("--- ACMD41 loop (init) ---")
+hcs = 0x00
+IF sd_v2 == TRUE:
+    hcs = 0x40
+init_ok = FALSE
+loop = 0
+WHILE loop < 100:
+    # CMD55: APP_CMD prefix
+    TRANSFER(0x77, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF)
+    # ACMD41: 用 12 字节 (cmd 6 + R1 + 5 dummy), 后面 dummy 检测 DO 释放
+    a = TRANSFER(0x69, hcs, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)
+    r1 = GET_BYTE(a, 6)
+    # 验证: 后续 dummy 若全 0xFF, DO 已释放, R1 才可信
+    d1 = GET_BYTE(a, 7)
+    d2 = GET_BYTE(a, 8)
+    IF r1 == 0x00 AND d1 == 0xFF AND d2 == 0xFF:
+        init_ok = TRUE
+        BREAK
+    loop = loop + 1
+    DELAY(20MS)
+PRINT("  init_ok=" + HEX(init_ok) + " loops=" + HEX(loop))
+IF init_ok == FALSE:
+    PRINT("ERROR: ACMD41 timeout (init failed)")
+    CLOSE()
+
+# ==================== CMD58: READ_OCR (4 字节 OCR) ====================
+# R1 在 [6], OCR 在 [7..10] (MSB first)
+PRINT("--- CMD58 (READ_OCR) ---")
+c58 = TRANSFER(0x7A, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)
+ocr_b3 = GET_BYTE(c58, 7)
+ocr_b2 = GET_BYTE(c58, 8)
+ocr_b1 = GET_BYTE(c58, 9)
+ocr_b0 = GET_BYTE(c58, 10)
+c58_r1 = GET_BYTE(c58, 6)
+PRINT("  R1=" + HEX(c58_r1))
+PRINT("  OCR=" + HEX(ocr_b3) + " " + HEX(ocr_b2) + " " + HEX(ocr_b1) + " " + HEX(ocr_b0))
+# OCR byte[0] (LSB) bit 7 = busy, bit 6 = CCS (Card Capacity Status)
+IF (ocr_b0 & 0x40) != 0:
+    sd_sdhc = TRUE
+    PRINT("  CCS=1 -> SDHC/SDXC (high capacity)")
+ELSE:
+    PRINT("  CCS=0 -> SDSC (standard capacity, byte addressing)")
+PRINT("  SD_TYPE=" + HEX(sd_sdhc))
+
+# ==================== CMD2: SEND_CID ====================
+# 34 字节 buffer: cmd(6) + R1(1) + NRC max(8) + token(1) + CID(16) + CRC(2)
+# 搜索 token 在 [7..15] 范围, CID 从 token+1 开始读 16 字节
+PRINT("--- CMD2 (SEND_CID) ---")
+t2 = TRANSFER(0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)
+cmd2_r1 = GET_BYTE(t2, 6)
+PRINT("  CMD2_R1=" + HEX(cmd2_r1))
+
+tk = -1
+k = 7
+WHILE k < 16:
+    IF GET_BYTE(t2, k) == 0xFE:
+        tk = k
+        BREAK
+    k = k + 1
+PRINT("  CID_TOKEN_AT=" + HEX(tk))
+
+IF tk >= 7 AND tk <= 15:
+    b = tk + 1
+    # CID raw 16 字节
+    raw = ""
+    k = 0
+    WHILE k < 16:
+        raw = raw + HEX(GET_BYTE(t2, b + k))
+        IF k < 15:
+            raw = raw + ","
+        k = k + 1
+    PRINT("  CID_RAW=" + raw)
+    # CID 字段 (SD spec)
+    # [0]       MID    Manufacturer ID (8 bit)
+    # [1..2]    OID    OEM/Application ID (16 bit)
+    # [3..7]    PNM    Product Name (40 bit ASCII)
+    # [8]       PRV    Product Revision (8 bit)
+    # [9..12]   PSN    Product Serial Number (32 bit)
+    # [13]      reserved(4) + MDT_Y_H(4)
+    # [14]      MDT_Y_L(4) + MDT_M(4)
+    # [15]      CRC7(7) + always_1(1)
+    PRINT("  CID_MID=" + HEX(GET_BYTE(t2, b)))
+    PRINT("  CID_OEM=" + HEX(GET_BYTE(t2, b + 1)) + HEX(GET_BYTE(t2, b + 2)))
+    pnm = ""
+    k = 3
+    WHILE k < 8:
+        pnm = pnm + HEX(GET_BYTE(t2, b + k))
+        k = k + 1
+    PRINT("  CID_PNM=" + pnm)
+    PRINT("  CID_PRV=" + HEX(GET_BYTE(t2, b + 8)))
+    PRINT("  CID_PSN=" + HEX(GET_BYTE(t2, b + 9)) + HEX(GET_BYTE(t2, b + 10)) + HEX(GET_BYTE(t2, b + 11)) + HEX(GET_BYTE(t2, b + 12)))
+    PRINT("  CID_MDT=" + HEX(GET_BYTE(t2, b + 13)) + " " + HEX(GET_BYTE(t2, b + 14)))
+    PRINT("  CID_CRC7=" + HEX(GET_BYTE(t2, b + 15)))
+ELSE:
+    PRINT("  WARN: CID token 0xFE not found in [7..15]")
+
+# ==================== CMD9: SEND_CSD ====================
+PRINT("--- CMD9 (SEND_CSD) ---")
+t9 = TRANSFER(0x49, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)
+cmd9_r1 = GET_BYTE(t9, 6)
+PRINT("  CMD9_R1=" + HEX(cmd9_r1))
+
+tk9 = -1
+k = 7
+WHILE k < 16:
+    IF GET_BYTE(t9, k) == 0xFE:
+        tk9 = k
+        BREAK
+    k = k + 1
+PRINT("  CSD_TOKEN_AT=" + HEX(tk9))
+
+IF tk9 >= 7 AND tk9 <= 15:
+    b = tk9 + 1
+    raw = ""
+    k = 0
+    WHILE k < 16:
+        raw = raw + HEX(GET_BYTE(t9, b + k))
+        IF k < 15:
+            raw = raw + ","
+        k = k + 1
+    PRINT("  CSD_RAW=" + raw)
+    # CSD 字段:
+    # [0]       CSD_STRUCTURE (2 bit) + reserved + TAAC(8 bit)
+    # [1]       NSAC(8 bit)
+    # [2]       TRAN_SPEED(8 bit)
+    # [3]       CCC(12 bit) + read_bl_len(4 bit) 高 4 位
+    # [4]       read_bl_len(4 bit) 低 4 位 + CCC 续(4 bit) + ... (取决于 v1/v2)
+    # 这里只打 raw, v1/v2 完整解析留给上层
+ELSE:
+    PRINT("  WARN: CSD token 0xFE not found in [7..15]")
+
+PRINT("===SD_CID_END===")
+CLOSE()

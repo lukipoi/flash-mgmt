@@ -4,7 +4,8 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
   css: ['~/assets/css/main.css'],
   ui: {
-    colorMode: true
+    colorMode: true,
+    fonts: false  // 关掉 @nuxt/fonts，它会尝试连 fonts.google.com 拉元数据，国内网络超时拖慢启动
   },
   colorMode: {
     preference: 'dark',
@@ -14,6 +15,7 @@ export default defineNuxtConfig({
     appManifest: false
   },
   nitro: {
+    nodeCompatibility: true,
     externals: {
       external: ['node:sqlite']
     },
@@ -27,7 +29,6 @@ export default defineNuxtConfig({
         timeout: 60000
       },
       watch: {
-        // 忽略 data 目录，防止 SQLite WAL 文件变化触发 HMR 全页面刷新
         ignored: ['**/data/**', '**/.nuxt/**', '**/node_modules/**']
       }
     }

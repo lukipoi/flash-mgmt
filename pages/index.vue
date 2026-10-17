@@ -7,7 +7,14 @@ definePageMeta({
 })
 
 const { data: stats, pending, error, refresh } = await useFetch<Stats>('/api/stats', {
-  default: () => ({ total: 0, models: [], by_type: { flash: 0, mcu: 0 } })
+  default: () => ({
+    total: 0,
+    models: [],
+    by_type: { flash: 0, mcu: 0 },
+    equipment_total: 0,
+    consumables_total: 0,
+    boards_total: 0
+  })
 })
 
 const maxModelCount = computed(() => {
@@ -99,6 +106,24 @@ const columns: TableColumn<{ model: string; count: number; chip_type?: string }>
         :value="stats?.models?.length ?? 0"
         icon="i-lucide-layers"
         color="amber"
+      />
+      <StatCard
+        title="设备总数"
+        :value="stats?.equipment_total ?? 0"
+        icon="i-lucide-list"
+        color="blue"
+      />
+      <StatCard
+        title="耗材总数"
+        :value="stats?.consumables_total ?? 0"
+        icon="i-lucide-package"
+        color="blue"
+      />
+      <StatCard
+        title="电路板总数"
+        :value="stats?.boards_total ?? 0"
+        icon="i-lucide-circuit-board"
+        color="blue"
       />
     </div>
 

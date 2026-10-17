@@ -100,7 +100,17 @@ function chipTypeBadge(type: string) {
   }, () => isMcu ? 'MCU' : 'Flash')
 }
 
+function formatLocation(a?: string | null, b?: string | null, c?: string | null): string {
+  const parts = [a, b, c].filter(x => x && x.trim()).map(x => x!.trim())
+  return parts.length ? parts.join('-') : '-'
+}
+
 const columns: TableColumn<Chip>[] = [
+  {
+    accessorKey: 'vendor',
+    header: '厂商',
+    cell: ({ row }) => h('span', { class: 'text-xs text-amber-400' }, row.getValue('vendor') || '-')
+  },
   {
     accessorKey: 'model',
     header: '型号',
@@ -135,6 +145,12 @@ const columns: TableColumn<Chip>[] = [
     }
   },
   {
+    accessorKey: 'location_a',
+    header: '库位',
+    cell: ({ row }) => h('span', { class: 'text-xs text-slate-400' },
+      formatLocation(row.getValue('location_a'), row.getValue('location_b'), row.getValue('location_c')))
+  },
+  {
     id: 'actions',
     header: '操作',
     meta: { class: { th: 'text-right', td: 'text-right' } },
@@ -146,6 +162,14 @@ const columns: TableColumn<Chip>[] = [
         size: 'xs',
         label: '查看',
         onClick: (e: Event) => { e.stopPropagation(); navigateTo(`/chips/${row.original.id}`) }
+      }),
+      h(UButton, {
+        icon: 'i-lucide-pencil',
+        color: 'neutral',
+        variant: 'ghost',
+        size: 'xs',
+        label: '编辑',
+        onClick: (e: Event) => { e.stopPropagation(); openEditModal(row.original) }
       }),
       h(UButton, {
         icon: 'i-lucide-trash-2',
@@ -227,11 +251,176 @@ async function identifyChip() {
   }
 }
 
+// ---- 编辑 ----
+const showEditModal = ref(false)
+const editing = ref(false)
+const editError = ref<string | null>(null)
+const editForm = reactive<Partial<Chip>>({})
+const editId = ref<number | null>(null)
+
+// 库位自动序号（大箱+小箱填齐、序号为空时触发）
+let editSeqPromise: Promise<void> | null = null
+async function tryEditAutoSeq() {
+  if (!editForm.location_a?.trim() || !editForm.location_b?.trim() || editForm.location_c?.trim()) return
+  if (editSeqPromise) return
+  editSeqPromise = (async () => {
+    try {
+      const rows: any[] = await $fetch('/api/chips', {
+        params: { location_a: editForm.location_a.trim(), location_b: editForm.location_b.trim() }
+      })
+      let maxN = 0
+      for (const r of rows) {
+        if (editId.value && r.id === editId.value) continue  // 排除自身
+        const n = parseInt(r.location_c, 10)
+        if (!isNaN(n) && n > maxN) maxN = n
+      }
+      if (!editForm.location_c?.trim()) editForm.location_c = String(maxN + 1)
+    } catch { /* 忽略 */ }
+    editSeqPromise = null
+  })()
+}
+watch(() => [editForm.location_a, editForm.location_b] as const, () => tryEditAutoSeq())
+
+function openEditModal(chip: Chip) {
+  editId.value = chip.id
+  Object.assign(editForm, chip)
+  editError.value = null
+  showEditModal.value = true
+}
+
+async function confirmEdit() {
+  if (!editId.value) return
+  editing.value = true
+  editError.value = null
+  try {
+    const body: Record<string, any> = {}
+    if (editForm.vendor !== undefined) {
+      const v = editForm.vendor
+      body.vendor = (v == null || v === '') ? null : v.trim()
+    }
+    if (editForm.model !== undefined) body.model = editForm.model
+    if (editForm.chip_type !== undefined) body.chip_type = editForm.chip_type
+    if (editForm.jedec_id !== undefined) body.jedec_id = editForm.jedec_id
+    if (editForm.uid !== undefined) body.uid = editForm.uid
+    if (editForm.uid_length !== undefined) body.uid_length = Number(editForm.uid_length)
+    if (editForm.capacity !== undefined) {
+      const v = editForm.capacity
+      body.capacity = (v == null || v === '') ? null : v
+    }
+    if (editForm.location_a !== undefined) {
+      const v = editForm.location_a
+      body.location_a = (v == null || v === '') ? null : v.trim()
+    }
+    if (editForm.location_b !== undefined) {
+      const v = editForm.location_b
+      body.location_b = (v == null || v === '') ? null : v.trim()
+    }
+    if (editForm.location_c !== undefined) {
+      const v = editForm.location_c
+      body.location_c = (v == null || v === '') ? null : v.trim()
+    }
+    if (editForm.note !== undefined) {
+      const v = editForm.note
+      body.note = (v == null || v === '') ? null : v
+    }
+
+    await $fetch(`/api/chips/${editId.value}`, {
+      method: 'PUT',
+      body
+    })
+    showEditModal.value = false
+    await fetchChips()
+  } catch (err: any) {
+    editError.value = err?.statusMessage || err?.message || '保存失败'
+  } finally {
+    editing.value = false
+  }
+}
+
 // ---- 删除芯片 ----
 const showDeleteModal = ref(false)
 const deleting = ref(false)
 const deleteError = ref<string | null>(null)
 const chipToDelete = ref<Chip | null>(null)
+
+// ---- 容器标签 ----
+const showContainerParamModal = ref(false)
+const showContainerPrintModal = ref(false)
+const containerForm = reactive({
+  kind: 'big' as 'big' | 'small',
+  name: '',
+  subtitle: ''
+})
+function openContainerPrint() {
+  containerForm.kind = 'big'
+  containerForm.name = ''
+  containerForm.subtitle = ''
+  showContainerParamModal.value = true
+}
+function confirmContainerParam() {
+  if (!containerForm.name.trim()) return
+  showContainerParamModal.value = false
+  showContainerPrintModal.value = true
+}
+
+// ---- 核查厂商 ----
+const vendorChecking = ref(false)
+const vendorCheckResults = ref<any[]>([])
+const vendorCheckSummary = ref<{ total: number; autoFillCount: number; conflictCount: number; unknownCount: number } | null>(null)
+const showVendorModal = ref(false)
+
+async function checkVendors() {
+  vendorChecking.value = true
+  try {
+    const data = await $fetch('/api/admin/backfill-vendors', { method: 'POST' })
+    vendorCheckSummary.value = {
+      total: data.total ?? data.results?.length ?? 0,
+      autoFillCount: data.autoFillCount ?? data.updated ?? 0,
+      conflictCount: data.conflictCount ?? 0,
+      unknownCount: data.unknownCount ?? 0,
+    }
+    vendorCheckResults.value = data.results || []
+    showVendorModal.value = true
+  } catch (err: any) {
+    alert('核查失败: ' + (err?.statusMessage || err?.message))
+  } finally {
+    vendorChecking.value = false
+  }
+}
+
+async function applyVendorAutoFill() {
+  if (!confirm('确认自动填充所有"可自动填入"的空厂商吗？\n(冲突和未知的不会动)')) return
+  vendorChecking.value = true
+  try {
+    const data = await $fetch('/api/admin/backfill-vendors', { method: 'POST', body: { apply: true } })
+    await fetchChips()
+    vendorCheckSummary.value = {
+      total: data.results?.length ?? 0,
+      autoFillCount: data.updated ?? 0,
+      conflictCount: data.conflictCount ?? 0,
+      unknownCount: data.unknownCount ?? 0,
+    }
+    vendorCheckResults.value = data.results || []
+  } catch (err: any) {
+    alert('回填失败: ' + (err?.statusMessage || err?.message))
+  } finally {
+    vendorChecking.value = false
+  }
+}
+
+function vendorStatusBadge(status: string) {
+  const map: Record<string, { text: string; cls: string }> = {
+    ok:        { text: '✓ 已正确', cls: 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20' },
+    ok_manual: { text: '✓ 手动值', cls: 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20' },
+    auto_fill: { text: '可自动填', cls: 'bg-cyan-500/10 text-cyan-300 ring-cyan-500/20' },
+    conflict:  { text: '⚠ 冲突',  cls: 'bg-amber-500/10 text-amber-300 ring-amber-500/20' },
+    unknown:   { text: '✗ 未知',  cls: 'bg-red-500/10 text-red-300 ring-red-500/20' },
+  }
+  const m = map[status] || { text: status, cls: 'bg-slate-500/10 text-slate-300' }
+  return h('span', {
+    class: ['inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ring-1', m.cls]
+  }, m.text)
+}
 
 function openDeleteModal(chip: Chip) {
   chipToDelete.value = chip
@@ -278,6 +467,25 @@ async function confirmDelete() {
           识别芯片
         </UButton>
         <UButton
+          icon="i-lucide-sparkles"
+          color="cyan"
+          variant="outline"
+          size="sm"
+          :loading="vendorChecking"
+          @click="checkVendors"
+        >
+          核查厂商
+        </UButton>
+        <UButton
+          icon="i-lucide-printer"
+          color="amber"
+          variant="outline"
+          size="sm"
+          @click="openContainerPrint"
+        >
+          容器标签
+        </UButton>
+        <UButton
           to="/chips/new"
           icon="i-lucide-plus"
           color="primary"
@@ -302,7 +510,7 @@ async function confirmDelete() {
       <UInput
         v-model="search"
         icon="i-lucide-search"
-        placeholder="搜索型号 / UID / JEDEC ID"
+        placeholder="搜索厂商 / 型号 / UID / JEDEC ID / 库位"
         class="flex-1 min-w-[240px]"
         size="sm"
       />
@@ -455,6 +663,81 @@ async function confirmDelete() {
       </div>
     </div>
 
+    <!-- 编辑芯片对话框 -->
+    <UModal v-model:open="showEditModal" :title="`编辑芯片 - ${editForm.model ?? ''}`">
+      <template #body>
+        <div class="space-y-3">
+          <div v-if="editError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+            {{ editError }}
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">厂商</label>
+              <UInput v-model="editForm.vendor" placeholder="如: Winbond / STMic" class="w-full" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">型号</label>
+              <UInput v-model="editForm.model" class="w-full" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">类型</label>
+              <USelect
+                v-model="editForm.chip_type"
+                :items="[
+                  { label: 'NOR Flash', value: 'flash' },
+                  { label: 'MCU 单片机', value: 'mcu' }
+                ]"
+                class="w-full"
+              />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">容量</label>
+              <UInput v-model="editForm.capacity" placeholder="如: 16Mbit / 2MB" class="w-full" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">JEDEC ID</label>
+              <UInput v-model="editForm.jedec_id" class="w-full font-mono" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs text-slate-500">UID 长度 (字节)</label>
+              <UInput v-model.number="editForm.uid_length" type="number" class="w-full" />
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs text-slate-500">库位</label>
+            <div class="grid grid-cols-3 gap-2">
+              <UInput v-model="editForm.location_a" placeholder="大箱" class="w-full" />
+              <UInput v-model="editForm.location_b" placeholder="小箱" class="w-full" />
+              <UInput v-model="editForm.location_c" placeholder="序号" class="w-full" />
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs text-slate-500">备注</label>
+            <UTextarea v-model="editForm.note" :rows="3" class="w-full" />
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" :disabled="editing" @click="showEditModal = false">
+            取消
+          </UButton>
+          <UButton color="primary" variant="solid" :loading="editing" @click="confirmEdit">
+            保存
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
     <!-- 销毁确认对话框 -->
     <UModal v-model:open="showDeleteModal" :title="`销毁 ${chipToDelete?.model || '芯片'}？`">
       <template #body>
@@ -481,6 +764,145 @@ async function confirmDelete() {
           <UButton color="error" variant="solid" :loading="deleting" @click="confirmDelete">
             确认删除
           </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- 容器标签参数输入 -->
+    <UModal v-model:open="showContainerParamModal" title="打印容器标签">
+      <template #body>
+        <div class="space-y-3">
+          <div>
+            <label class="mb-1 block text-xs text-slate-500">容器类型</label>
+            <USelect
+              v-model="containerForm.kind"
+              :items="[
+                { label: '大箱（大容器）', value: 'big' },
+                { label: '小箱（小容器）', value: 'small' }
+              ]"
+              class="w-full"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-slate-500">名称</label>
+            <UInput
+              v-model="containerForm.name"
+              :placeholder="containerForm.kind === 'big' ? '如: A / B / C' : '如: A-1 / B-2'"
+              class="w-full"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-slate-500">副标题（可选）</label>
+            <UInput
+              v-model="containerForm.subtitle"
+              placeholder="如: 12 颗芯片"
+              class="w-full"
+            />
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="showContainerParamModal = false">
+            取消
+          </UButton>
+          <UButton
+            color="primary"
+            variant="solid"
+            :disabled="!containerForm.name.trim()"
+            @click="confirmContainerParam"
+          >
+            预览
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- 容器标签打印（复用 PrintLabelModal） -->
+    <PrintLabelModal
+      v-model:open="showContainerPrintModal"
+      mode="container"
+      :container-kind="containerForm.kind"
+      :container-name="containerForm.name.trim()"
+      :container-subtitle="containerForm.subtitle.trim() || null"
+    />
+
+    <!-- 厂商核查结果 -->
+    <UModal v-model:open="showVendorModal" title="厂商核查结果">
+      <template #body>
+        <div v-if="vendorCheckSummary" class="mb-4 grid grid-cols-4 gap-3">
+          <div class="rounded-md bg-white/5 p-3 ring-1 ring-white/10">
+            <div class="text-xs text-slate-400">总数</div>
+            <div class="mt-1 text-lg font-semibold text-slate-100">{{ vendorCheckSummary.total }}</div>
+          </div>
+          <div class="rounded-md bg-cyan-500/10 p-3 ring-1 ring-cyan-500/20">
+            <div class="text-xs text-cyan-300">可自动填</div>
+            <div class="mt-1 text-lg font-semibold text-cyan-200">{{ vendorCheckSummary.autoFillCount }}</div>
+          </div>
+          <div class="rounded-md bg-amber-500/10 p-3 ring-1 ring-amber-500/20">
+            <div class="text-xs text-amber-300">冲突</div>
+            <div class="mt-1 text-lg font-semibold text-amber-200">{{ vendorCheckSummary.conflictCount }}</div>
+          </div>
+          <div class="rounded-md bg-red-500/10 p-3 ring-1 ring-red-500/20">
+            <div class="text-xs text-red-300">未知</div>
+            <div class="mt-1 text-lg font-semibold text-red-200">{{ vendorCheckSummary.unknownCount }}</div>
+          </div>
+        </div>
+
+        <div class="max-h-[400px] overflow-y-auto rounded-md bg-black/20 ring-1 ring-white/5">
+          <table class="w-full text-sm">
+            <thead class="sticky top-0 bg-slate-800/80 backdrop-blur">
+              <tr class="border-b border-white/10 text-left text-xs text-slate-400">
+                <th class="px-3 py-2">型号</th>
+                <th class="px-3 py-2">JEDEC</th>
+                <th class="px-3 py-2">当前厂商</th>
+                <th class="px-3 py-2">推荐厂商</th>
+                <th class="px-3 py-2">状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="r in vendorCheckResults"
+                :key="r.id"
+                class="border-b border-white/5 hover:bg-white/5"
+              >
+                <td class="px-3 py-2 text-slate-200">{{ r.model }}</td>
+                <td class="px-3 py-2 font-mono text-xs text-slate-500">{{ r.jedec_id || '-' }}</td>
+                <td class="px-3 py-2">
+                  <span :class="r.current_vendor ? 'text-slate-200' : 'text-slate-500 italic'">
+                    {{ r.current_vendor || '(空)' }}
+                  </span>
+                </td>
+                <td class="px-3 py-2">
+                  <span :class="r.suggested_vendor ? 'text-cyan-300' : 'text-slate-500 italic'">
+                    {{ r.suggested_vendor || '—' }}
+                  </span>
+                </td>
+                <td class="px-3 py-2">
+                  <component :is="vendorStatusBadge(r.status)" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-between items-center w-full">
+          <div class="text-xs text-slate-500">
+            冲突条目不自动覆盖，未知的需要手动填
+          </div>
+          <div class="flex gap-2">
+            <UButton color="neutral" variant="ghost" @click="showVendorModal = false">关闭</UButton>
+            <UButton
+              v-if="vendorCheckSummary && vendorCheckSummary.autoFillCount > 0"
+              color="cyan"
+              variant="solid"
+              :loading="vendorChecking"
+              @click="applyVendorAutoFill"
+            >
+              自动填 {{ vendorCheckSummary.autoFillCount }} 条空厂商
+            </UButton>
+          </div>
         </div>
       </template>
     </UModal>

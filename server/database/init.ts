@@ -81,6 +81,34 @@ try {
   // 忽略
 }
 
+// ── 设备表 ──────────────────────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS equipment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    brand TEXT,
+    model TEXT NOT NULL,
+    serial_number TEXT,
+    status TEXT NOT NULL DEFAULT 'normal',
+    note TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_equipment_brand ON equipment(brand);
+  CREATE INDEX IF NOT EXISTS idx_equipment_model ON equipment(model);
+  CREATE INDEX IF NOT EXISTS idx_equipment_serial ON equipment(serial_number);
+  CREATE INDEX IF NOT EXISTS idx_equipment_status ON equipment(status);
+`)
+
+// 迁移：equipment 表加 brand 列
+try {
+  db.exec(`ALTER TABLE equipment ADD COLUMN brand TEXT`)
+} catch { /* 列已存在，忽略 */ }
+
+// 迁移：equipment 表加 status 列
+try {
+  db.exec(`ALTER TABLE equipment ADD COLUMN status TEXT NOT NULL DEFAULT 'normal'`)
+} catch { /* 列已存在，忽略 */ }
+
 // 迁移：归一化 UID 和 JEDEC ID（去空格、转大写）
 // 旧数据格式: "AB CD EF 12 34 56 78 90" → 新格式: "ABCDEF1234567890"
 // 旧数据格式: "85 60 14" → 新格式: "856014"
@@ -93,3 +121,88 @@ try {
 } catch {
   // 忽略
 }
+
+try {
+  db.exec(`ALTER TABLE chips ADD COLUMN vendor TEXT`)
+} catch { /* 列已存在，忽略 */ }
+
+// 迁移：chips 表加库位三级（大箱 / 小箱 / 序号）
+try { db.exec(`ALTER TABLE chips ADD COLUMN location_a TEXT`) } catch { /* 忽略 */ }
+try { db.exec(`ALTER TABLE chips ADD COLUMN location_b TEXT`) } catch { /* 忽略 */ }
+try { db.exec(`ALTER TABLE chips ADD COLUMN location_c TEXT`) } catch { /* 忽略 */ }
+
+// 库位唯一性（仅三字段都非空时强制；SQLite 中 NULL 不参与 UNIQUE）
+try {
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_chips_location_unique
+    ON chips(location_a, location_b, location_c)
+    WHERE location_a IS NOT NULL AND location_b IS NOT NULL AND location_c IS NOT NULL`)
+} catch { /* 忽略 */ }
+
+// ── 耗材表 ──────────────────────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS consumables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    brand TEXT,
+    model TEXT NOT NULL,
+    serial_number TEXT,
+    status TEXT NOT NULL DEFAULT 'in_stock',
+    note TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_consumables_brand ON consumables(brand);
+  CREATE INDEX IF NOT EXISTS idx_consumables_model ON consumables(model);
+  CREATE INDEX IF NOT EXISTS idx_consumables_serial ON consumables(serial_number);
+  CREATE INDEX IF NOT EXISTS idx_consumables_status ON consumables(status);
+`)
+
+// 迁移：旧耗材状态（normal/damaged/lost）→ 新两态（in_use/in_stock）
+// 旧 normal → in_stock（储备中），其余也归为 in_stock（暂时没有损坏/丢失概念）
+try {
+  db.exec(`
+    UPDATE consumables SET status = 'in_stock'
+    WHERE status IN ('normal', 'damaged', 'lost')
+  `)
+} catch { /* 表还没创建或无数据，忽略 */ }
+
+// 耗材表：添加商品条码列（可选）
+try {
+  db.exec(`ALTER TABLE consumables ADD COLUMN barcode TEXT`)
+} catch { /* 列已存在，忽略 */ }
+
+// 耗材表：添加保质期 / 执行标准 / 净含量列（可选，针对带保质期品类）
+try { db.exec(`ALTER TABLE consumables ADD COLUMN shelf_life TEXT`) } catch { /* 忽略 */ }
+try { db.exec(`ALTER TABLE consumables ADD COLUMN production_date TEXT`) } catch { /* 忽略 */ }
+try { db.exec(`ALTER TABLE consumables ADD COLUMN exec_standard TEXT`) } catch { /* 忽略 */ }
+try { db.exec(`ALTER TABLE consumables ADD COLUMN net_content TEXT`) } catch { /* 忽略 */ }
+
+// 迁移：consumables 表加库位三级（大箱 / 小箱 / 序号）
+try { db.exec(`ALTER TABLE consumables ADD COLUMN location_a TEXT`) } catch { /* 忽略 */ }
+try { db.exec(`ALTER TABLE consumables ADD COLUMN location_b TEXT`) } catch { /* 忽略 */ }
+try { db.exec(`ALTER TABLE consumables ADD COLUMN location_c TEXT`) } catch { /* 忽略 */ }
+
+// 库位唯一性（仅三字段都非空时强制）
+try {
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_consumables_location_unique
+    ON consumables(location_a, location_b, location_c)
+    WHERE location_a IS NOT NULL AND location_b IS NOT NULL AND location_c IS NOT NULL`)
+} catch { /* 忽略 */ }
+
+// ── 电路板表 ──────────────────────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS circuit_boards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    brand TEXT,
+    model TEXT NOT NULL,
+    serial_number TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    chips TEXT,
+    note TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_boards_brand ON circuit_boards(brand);
+  CREATE INDEX IF NOT EXISTS idx_boards_model ON circuit_boards(model);
+  CREATE INDEX IF NOT EXISTS idx_boards_serial ON circuit_boards(serial_number);
+  CREATE INDEX IF NOT EXISTS idx_boards_status ON circuit_boards(status);
+`)

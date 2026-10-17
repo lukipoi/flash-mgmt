@@ -4,45 +4,20 @@ const route = useRoute()
 const navItems = [
   { label: '仪表盘', to: '/', icon: 'i-lucide-layout-dashboard' },
   { label: '芯片列表', to: '/chips', icon: 'i-lucide-cpu' },
-  { label: '录入芯片', to: '/chips/new', icon: 'i-lucide-plus-circle' }
+  { label: '录入芯片', to: '/chips/new', icon: 'i-lucide-plus-circle' },
+  { label: '设备列表', to: '/equipment', icon: 'i-lucide-list' },
+  { label: '录入设备', to: '/equipment/new', icon: 'i-lucide-zap' },
+  { label: '耗材列表', to: '/consumables', icon: 'i-lucide-package' },
+  { label: '录入耗材', to: '/consumables/new', icon: 'i-lucide-plus-square' },
+  { label: '电路板列表', to: '/boards', icon: 'i-lucide-circuit-board' },
+  { label: '录入电路板', to: '/boards/new', icon: 'i-lucide-square-plus' }
 ]
 
+// 所有导航项只精确匹配自己的 path，避免父子路径互相高亮
+// 详情页 /chips/:id 时「芯片列表」不会额外亮，保持纯粹
 function isActive(to: string): boolean {
-  if (to === '/') return route.path === '/'
-  if (to === '/chips') return route.path === '/chips'
-  return route.path.startsWith(to)
+  return route.path === to
 }
-
-// CH341 连接状态
-const ch341Status = ref<{ connected: boolean; reason?: string } | null>(null)
-const checking = ref(false)
-
-async function checkCh341() {
-  checking.value = true
-  try {
-    const result = await $fetch<{ connected: boolean; reason?: string }>('/api/ch341-status', { method: 'POST' })
-    ch341Status.value = result
-  } catch {
-    ch341Status.value = { connected: false, reason: '检测失败' }
-  } finally {
-    checking.value = false
-  }
-}
-
-let intervalId: ReturnType<typeof setInterval> | null = null
-
-onMounted(() => {
-  // 暂时禁用 CH341 状态检测，确认是否是它导致的导航问题
-  ch341Status.value = { connected: false, reason: '检测已禁用' }
-  // setTimeout(() => {
-  //   checkCh341()
-  // }, 2000)
-  // intervalId = setInterval(checkCh341, 60000)
-})
-
-onUnmounted(() => {
-  if (intervalId) clearInterval(intervalId)
-})
 </script>
 
 <template>
@@ -66,6 +41,8 @@ onUnmounted(() => {
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
+          active-class=""
+          exact-active-class=""
           class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
           :class="isActive(item.to)
             ? 'bg-cyan-500/10 text-cyan-400 ring-1 ring-cyan-500/20'
@@ -75,42 +52,6 @@ onUnmounted(() => {
           {{ item.label }}
         </NuxtLink>
       </nav>
-
-      <!-- 底部状态指示 -->
-      <div class="border-t border-white/5 px-5 py-4">
-        <div class="flex items-center gap-2">
-          <span
-            class="h-2 w-2 rounded-full transition-colors"
-            :class="ch341Status === null
-              ? 'bg-slate-500'
-              : ch341Status.connected
-                ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]'
-                : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]'"
-          />
-          <span
-            class="text-xs"
-            :class="ch341Status === null
-              ? 'text-slate-500'
-              : ch341Status.connected
-                ? 'text-slate-400'
-                : 'text-red-400'"
-          >
-            {{ ch341Status === null
-              ? '检测中...'
-              : ch341Status.connected
-                ? 'CH341 已连接'
-                : (ch341Status.reason || 'CH341 未连接') }}
-          </span>
-          <button
-            class="ml-auto inline-flex h-5 w-5 items-center justify-center rounded text-slate-500 hover:bg-white/5 hover:text-slate-300"
-            :disabled="checking"
-            @click="checkCh341"
-          >
-            <UIcon name="i-lucide-refresh-cw" class="h-3 w-3" :class="checking && 'animate-spin'" />
-          </button>
-        </div>
-        <p class="mt-1 font-mono text-xs text-slate-600">CH341 SPI Bridge</p>
-      </div>
     </aside>
 
     <!-- 右侧主内容区 -->
