@@ -21,7 +21,7 @@ interface IdentifyResult {
 const toast = useToast()
 
 // ---- 读取器选择 ----
-const readerKinds = ['STC 系列（8051 / stcgal）', 'WCH CH32V 系列（RISC-V / wlink）', 'WCH CH55x 系列（8051 / USB ISP）', 'AT32 系列（ARM / SWD）', 'STM32 / GD32 系列（ARM / SWD）']
+const readerKinds = ['STC 系列（8051 / stcgal）', 'WCH CH32V 系列（RISC-V / wlink）', 'WCH CH55x 系列（8051 / USB ISP）', 'AT32 系列（ARM / SWD）', 'STM32 / GD32 系列（ARM / SWD）', 'PY32 系列（ARM / SWD）']
 const readerKind = ref(readerKinds[0])
 const busy = ref(false)
 
@@ -285,6 +285,33 @@ async function doStm32Read() {
   }
 }
 
+// ---- PY32 读取（Puya 特殊布局：UID 16B @0x1FFF0E00，DEV_ID 缺席靠 0x78 特征码）----
+async function doPy32Read() {
+  if (busy.value) return
+  const { logId, pollLog, pollTimer, stop } = openLog('py32')
+  busy.value = true
+  try {
+    const res = await $fetch<{
+      model: string, vendor: string | null, uid: string, uid_length: number,
+      dev_id: string, flash_kb: number | null, matched_table: boolean
+    }>('/api/mcu/stm32/read', { method: 'POST', body: { logId } })
+    const hex = (res.uid || '').toUpperCase()
+    const spec = 'UID 16B（0x78 特征码' + (res.uid[24] === '7' && res.uid[25] === '8' ? '命中' : '未命中') + '）'
+    await finishIdentify('PY32 SWD', res.model, res.vendor || 'Puya', hex, res.uid_length, spec)
+  } catch (e: any) {
+    toast.add({
+      title: 'PY32 读取失败',
+      description: (e?.data?.statusMessage || e?.message || '未知错误'),
+      color: 'error', timeout: 0,
+    })
+  } finally {
+    busy.value = false
+    await pollLog()
+    clearInterval(pollTimer)
+    await stop()
+  }
+}
+
 // ---- 去录入（带参预填）----
 const newLink = computed(() => {
   if (!result.value) return '/chips/new'
@@ -372,6 +399,17 @@ const newLink = computed(() => {
         >
           读取
         </UButton>
+        <UButton
+          v-else-if="readerKind.includes('PY32')"
+          icon="i-lucide-cpu"
+          color="primary"
+          variant="soft"
+          size="xs"
+          :loading="busy"
+          @click="doPy32Read"
+        >
+          读取
+        </UButton>
         <span class="flex-1" />
       </div>
 
@@ -396,6 +434,10 @@ const newLink = computed(() => {
       </p>
       <p v-else-if="readerKind.includes('AT32') || readerKind.includes('STM32')" class="mt-2 text-xs text-ink-tertiary">
         SWD 四线：SWDIO(PA13) / SWCLK(PA14) / GND / 3V3，随时可读、无需断电重启。LinkE 模式自动处理。
+      </p>
+      <p v-else-if="readerKind.includes('PY32')" class="mt-2 text-xs text-ink-tertiary">
+        Puya PY32 独立通道：SWD 四线同上，但 UID 为 <b>16 字节 @0x1FFF0E00</b>（Lot ASCII + Wafer + 坐标 +
+        偏移 12 固定码 0x78），且 DBG_IDCODE 不含 DEV_ID——识别靠 0x78 特征码，与 STM32 家族表机制完全不同。
       </p>
     </div>
 

@@ -515,8 +515,10 @@
 /* 下面把 @nuxt/ui 需要的键名别名到 Endfield 角色色（全部 var 引用，  */
 /* 单一来源仍是上面的角色色阶），让所有按钮正常上色。                  */
 /* ------------------------------------------------------------------ */
-@theme {
+@theme static {
   /* primary -> action（信号黄，明暗同值 #fffa00） */
+  /* 用 static 强制输出：这些键名无对应工具类被引用，JIT 会剪枝掉，
+     导致 --color-secondary-500 等缺失、按钮再次透明。static 关闭剪枝。 */
   --color-primary-50: var(--color-action-50);
   --color-primary-100: var(--color-action-100);
   --color-primary-200: var(--color-action-200);

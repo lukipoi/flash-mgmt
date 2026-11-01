@@ -215,7 +215,7 @@ const stcPanelOpen = ref(false)
 // STC USB ISP 已下线（用户拍板）：UID 字节数未定案 + 每次读取需 P3.2 短接进 BOOT，操作繁琐。
 // 完整实现保留（stc_usb_read.py / usb_read.post.ts，实测可读 UID），恢复 = 加回下面注释项。
 // 'STC USB（AI8H/STC32G / USB ISP）',
-const readerKinds = ['STC 系列（8051 / stcgal）', 'WCH CH32V 系列（RISC-V / wlink）', 'WCH CH55x 系列（8051 / USB ISP）', 'AT32 系列（ARM / SWD）', 'STM32 / GD32 系列（ARM / SWD）']
+const readerKinds = ['STC 系列（8051 / stcgal）', 'WCH CH32V 系列（RISC-V / wlink）', 'WCH CH55x 系列（8051 / USB ISP）', 'AT32 系列（ARM / SWD）', 'STM32 / GD32 系列（ARM / SWD）', 'PY32 系列（ARM / SWD）']
 const readerKind = ref(readerKinds[0])
 const stcLogOpen = ref(false)
 const stcLogLines = ref<string[]>([])
@@ -734,6 +734,72 @@ async function doStm32Read() {
   } catch (e: any) {
     toast.add({
       title: 'STM32 读取失败',
+      description: `${e?.data?.statusMessage || e?.message || '未知错误'}`,
+      color: 'error',
+      timeout: 0,
+    })
+  } finally {
+    stcReading.value = false
+    stcLogBusy.value = false
+    await pollLog()
+    clearInterval(pollTimer)
+    setTimeout(() => { stcLogOpen.value = false }, 1000)
+  }
+}
+
+async function doPy32Read() {
+  if (stcReading.value) return
+
+  const logId = `py32-${Date.now()}-${Math.floor(Math.random() * 1e6)}`
+  stcLogLines.value = []
+  stcLogOpen.value = true
+  stcLogBusy.value = true
+  const pollLog = () => $fetch<{ lines: string[] }>(`/api/mcu/stc/log`, { query: { logId } })
+    .then(lg => { stcLogLines.value = lg.lines.map(l => l.replace(/\x1b\[[0-9;]*m/g, '')) })
+    .catch(() => {})
+  const pollTimer = setInterval(pollLog, 300)
+
+  stcReading.value = true
+  stm32Matched.value = null
+  try {
+    const res = await $fetch<{
+      model: string, vendor: string | null, uid: string, uid_length: number, id64: string,
+      dev_id: string, flash_kb: number | null, package: string | null, matched_table: boolean
+    }>('/api/mcu/stm32/read', { method: 'POST', body: { logId } })
+
+    const hex = (res.uid || '').toUpperCase()
+    if (res.model) form.model = res.model
+    if (res.vendor) form.vendor = res.vendor
+    if (hex) {
+      form.uid = hex.replace(/(..)/g, '$1 ').trim()
+      form.uid_length = res.uid_length || hex.length / 2
+    }
+    if (hex) {
+      try {
+        const idres = await $fetch<IdentifyResult>('/api/identify', {
+          method: 'POST',
+          body: { jedec_id: '', uid: hex, uid_length: res.uid_length, chip_type: 'mcu' },
+        })
+        if (idres.matched && idres.chip) {
+          stm32Matched.value = idres.chip
+          toast.add({
+            title: `该芯片已入库：${idres.chip.model}`,
+            description: `UID ${hex} 命中已有档案`,
+            color: 'info',
+            timeout: 0,
+          })
+        }
+      } catch { /* 查库失败不影响填写 */ }
+    }
+    toast.add({
+      title: `读取成功：${res.model}`,
+      description: `UID ${hex || '未取得'}｜${res.flash_kb ? `${res.flash_kb}KB ${res.package || ''}` : '未入型号表（id64 已输出）'}`,
+      color: 'success',
+      timeout: 0,
+    })
+  } catch (e: any) {
+    toast.add({
+      title: 'PY32 读取失败',
       description: `${e?.data?.statusMessage || e?.message || '未知错误'}`,
       color: 'error',
       timeout: 0,
@@ -1357,6 +1423,28 @@ function resetForm() {
                   @click="doAt32Read()"
                 >
                   读取AT32信息
+                </UButton>
+                <UButton
+                  v-else-if="readerKind.includes('STM32')"
+                  icon="i-lucide-cpu"
+                  color="special"
+                  variant="soft"
+                  size="xs"
+                  :loading="stcReading"
+                  @click="doStm32Read()"
+                >
+                  读取STM32信息
+                </UButton>
+                <UButton
+                  v-else-if="readerKind.includes('PY32')"
+                  icon="i-lucide-cpu"
+                  color="special"
+                  variant="soft"
+                  size="xs"
+                  :loading="stcReading"
+                  @click="doPy32Read()"
+                >
+                  读取PY32信息
                 </UButton>
               </div>
               <div v-if="stcPanelOpen" class="space-y-3 border-t border-special-500/10 p-3">
