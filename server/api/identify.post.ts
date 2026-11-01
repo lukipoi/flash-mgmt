@@ -1,5 +1,5 @@
 import { db } from '../database/init'
-import { normalizeUid, normalizeJedecId } from '~~/utils/format'
+import { normalizeUid, normalizeJedecId, isNoUid } from '~~/utils/format'
 
 /**
  * 自动档案识别接口
@@ -26,8 +26,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 1) 按 UID 精确匹配（最可靠，每颗芯片唯一）
-  if (uid) {
+  // 1) 按 UID 精确匹配（最可靠，每颗芯片唯一；"/" 表示无 UID，跳过）
+  if (uid && !isNoUid(uid)) {
     const byUid = db.prepare('SELECT * FROM chips WHERE uid = ?').get(uid) as any
     if (byUid) {
       // 记录一次识别成功的日志

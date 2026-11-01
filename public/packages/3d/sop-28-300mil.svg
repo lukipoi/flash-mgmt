@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="148 47 525 315" width="525" height="315">
+  <!-- SOP-28 300mil 正俯视缩略图（不带尺寸标注；带标注的工程图见 sop-28-300mil-spec.svg） -->
+  <!-- 引脚：下排 Pin 1-14（Pin 1 靠本体凹点标识，引脚本身同色） -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="173.77" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="209.33" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="244.89" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="280.45" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="316.01" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="351.57" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="387.13" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="422.69" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="458.25" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="493.81" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="529.37" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="564.93" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="600.49" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="636.05" y="310" width="11.38" height="40.6" rx="1.5"/>
+  </g>
+
+  <!-- 引脚：上排 Pin 15-28 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="173.77" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="209.33" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="244.89" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="280.45" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="316.01" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="351.57" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="387.13" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="422.69" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="458.25" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="493.81" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="529.37" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="564.93" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="600.49" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="636.05" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+  </g>
+
+  <!-- 本体 -->
+  <rect x="160" y="100" width="501.2" height="210" rx="6" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 模具中心标记 Φ3.0 -->
+  <circle cx="410.6" cy="205" r="42" fill="none" stroke="#3a3a5c" stroke-width="1.1" stroke-dasharray="4 4"/>
+
+  <!-- Pin 1 凹点 Φ1.14（实心标称白） -->
+  <circle cx="190" cy="280" r="15.96" fill="#d9d9d9"/>
+</svg>

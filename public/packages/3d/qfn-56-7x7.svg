@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="140 90 440 440" width="440" height="440">
+  <!-- QFN-56 7x7 底视缩略图（无尺寸标注；带标注的工程图见 qfn-56-7x7-spec.svg）
+       ESP32-S3 技术规格书 v2.2 §7 Figure 7-1：D/E 7.00，D2/E2 4.00，e 0.40，b 0.20，L 0.40
+       56 脚 = 每边 14 脚；底视 Pin 1 在右上，用散热焊盘 C0.50 缺角标识 -->
+  <rect x="150" y="100" width="420" height="420" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2 4.00，右上角 C0.50 缺角即 Pin 1 标识 -->
+  <path d="M240 190 H450 L480 220 V430 H240 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- 56 个焊盘：每边 14 个，焊盘统一同色 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="198" y="100" width="12" height="24" rx="6"/>
+    <rect x="222" y="100" width="12" height="24" rx="6"/>
+    <rect x="246" y="100" width="12" height="24" rx="6"/>
+    <rect x="270" y="100" width="12" height="24" rx="6"/>
+    <rect x="294" y="100" width="12" height="24" rx="6"/>
+    <rect x="318" y="100" width="12" height="24" rx="6"/>
+    <rect x="342" y="100" width="12" height="24" rx="6"/>
+    <rect x="366" y="100" width="12" height="24" rx="6"/>
+    <rect x="390" y="100" width="12" height="24" rx="6"/>
+    <rect x="414" y="100" width="12" height="24" rx="6"/>
+    <rect x="438" y="100" width="12" height="24" rx="6"/>
+    <rect x="462" y="100" width="12" height="24" rx="6"/>
+    <rect x="486" y="100" width="12" height="24" rx="6"/>
+    <rect x="510" y="100" width="12" height="24" rx="6"/>
+
+    <rect x="198" y="496" width="12" height="24" rx="6"/>
+    <rect x="222" y="496" width="12" height="24" rx="6"/>
+    <rect x="246" y="496" width="12" height="24" rx="6"/>
+    <rect x="270" y="496" width="12" height="24" rx="6"/>
+    <rect x="294" y="496" width="12" height="24" rx="6"/>
+    <rect x="318" y="496" width="12" height="24" rx="6"/>
+    <rect x="342" y="496" width="12" height="24" rx="6"/>
+    <rect x="366" y="496" width="12" height="24" rx="6"/>
+    <rect x="390" y="496" width="12" height="24" rx="6"/>
+    <rect x="414" y="496" width="12" height="24" rx="6"/>
+    <rect x="438" y="496" width="12" height="24" rx="6"/>
+    <rect x="462" y="496" width="12" height="24" rx="6"/>
+    <rect x="486" y="496" width="12" height="24" rx="6"/>
+    <rect x="510" y="496" width="12" height="24" rx="6"/>
+
+    <rect x="150" y="148" width="24" height="12" rx="6"/>
+    <rect x="150" y="172" width="24" height="12" rx="6"/>
+    <rect x="150" y="196" width="24" height="12" rx="6"/>
+    <rect x="150" y="220" width="24" height="12" rx="6"/>
+    <rect x="150" y="244" width="24" height="12" rx="6"/>
+    <rect x="150" y="268" width="24" height="12" rx="6"/>
+    <rect x="150" y="292" width="24" height="12" rx="6"/>
+    <rect x="150" y="316" width="24" height="12" rx="6"/>
+    <rect x="150" y="340" width="24" height="12" rx="6"/>
+    <rect x="150" y="364" width="24" height="12" rx="6"/>
+    <rect x="150" y="388" width="24" height="12" rx="6"/>
+    <rect x="150" y="412" width="24" height="12" rx="6"/>
+    <rect x="150" y="436" width="24" height="12" rx="6"/>
+    <rect x="150" y="460" width="24" height="12" rx="6"/>
+
+    <rect x="546" y="148" width="24" height="12" rx="6"/>
+    <rect x="546" y="172" width="24" height="12" rx="6"/>
+    <rect x="546" y="196" width="24" height="12" rx="6"/>
+    <rect x="546" y="220" width="24" height="12" rx="6"/>
+    <rect x="546" y="244" width="24" height="12" rx="6"/>
+    <rect x="546" y="268" width="24" height="12" rx="6"/>
+    <rect x="546" y="292" width="24" height="12" rx="6"/>
+    <rect x="546" y="316" width="24" height="12" rx="6"/>
+    <rect x="546" y="340" width="24" height="12" rx="6"/>
+    <rect x="546" y="364" width="24" height="12" rx="6"/>
+    <rect x="546" y="388" width="24" height="12" rx="6"/>
+    <rect x="546" y="412" width="24" height="12" rx="6"/>
+    <rect x="546" y="436" width="24" height="12" rx="6"/>
+    <rect x="546" y="460" width="24" height="12" rx="6"/>
+  </g>
+</svg>

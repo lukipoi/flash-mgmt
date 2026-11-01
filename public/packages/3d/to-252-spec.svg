@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 502" width="720" height="502">
+  <!-- TO-252 (DPAK TO252-2) 正俯视工程图（BL1117「TO252-2」尺寸表核对定稿，2026-10-25）
+       要点：本体(D 6.5) 比散热片(D1 5.2) 宽；散热片伸出 L1 1.08；
+       凹坑圆心距本体顶边 L2 1.8mm；中间脚短 L3 0.8、两边脚 2.72；顶角小切角 0.6mm
+       尺寸（mm）：E 9.40-10.41 / E1 5.97-6.22 / D 6.35-6.73（本体宽）/ D1 4.95-5.46（散热片宽）
+       D2 4.70-4.90（正视图收窄部，顶视不画）/ e 2.286 BSC / b 0.65-0.85 / A2 2.18-2.39 / A1 0-0.13 / c 0.46-0.61 / θ 0-8°
+       比例 33.7 px/mm；E 总长 9.90 = 散热片 1.08 + 本体 6.10 + 引脚 2.72 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M272.38 95 V34 M447.62 95 V34"/>
+    <path d="M249.8 117.24 V54 M470.2 117.24 V54"/>
+    <path d="M322 60 H146 M270.32 393.67 H146"/>
+    <path d="M269.8 97.24 H201 M249.8 302.97 H201"/>
+    <path d="M282.96 393.67 V419 M360 329.97 V419"/>
+    <path d="M429.40 393.67 V419 M454.68 393.67 V419"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M272.38 38 H447.62" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M249.8 58 H470.2" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M150 393.67 V60" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M205 302.97 V97.24" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M282.96 415 H360" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M429.40 415 H454.68" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="30" text-anchor="middle">D1 5.20</text>
+    <text x="360" y="54" text-anchor="middle">D 6.50</text>
+    <text transform="translate(140 226.83) rotate(-90)" text-anchor="middle">E 9.90</text>
+    <text transform="translate(195 200.1) rotate(-90)" text-anchor="middle">E1 6.10</text>
+    <text x="321.48" y="433" text-anchor="middle">e 2.29</text>
+    <text x="442.04" y="433" text-anchor="middle">b 0.75</text>
+  </g>
+
+  <!-- 引脚：下排 3 脚（两边长 2.72、中间短 L3≈0.8mm） -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="270.32" y="302.97" width="25.28" height="90.7" rx="2"/>
+    <rect x="347.36" y="302.97" width="25.28" height="27" rx="2"/>
+    <rect x="429.40" y="302.97" width="25.28" height="90.7" rx="2"/>
+  </g>
+
+  <!-- 散热片（顶部居中，金属色，比本体窄；L1 伸出 1.08mm） -->
+  <path d="M272.38 97.24 V60 H447.62 V97.24 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8" stroke-linejoin="round"/>
+
+  <!-- 本体（顶视，塑料色，直筒矩形 + 顶角小切角 0.6mm） -->
+  <path d="M249.8 117.24 L269.8 97.24 H450.2 L470.2 117.24 V302.97 H249.8 Z" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- 顶面凹坑（不通孔，比塑料色深一档；圆心距本体顶边 L2 1.8mm） -->
+  <circle cx="360" cy="157.94" r="19" fill="#262c38"/>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="450" text-anchor="middle">3 脚 + 散热片 · 顶视 Top View · E 9.40–10.41 · E1 5.97–6.22 · L1 0.89–1.27（散热片伸出）</text>
+    <text x="360" y="465" text-anchor="middle">D 6.35–6.73（本体）· D1 4.95–5.46（散热片）· D2 4.70–4.90（正视图收窄部）· e 2.286 BSC · b 0.65–0.85</text>
+    <text x="360" y="480" text-anchor="middle">L2 1.70–1.90（本体顶→凹坑圆心）· L3 0.60–1.00（中间脚）· A2 2.18–2.39 · A1 0–0.13</text>
+    <text x="360" y="495" text-anchor="middle">A3 0.90–1.10 · c 0.46–0.61 · θ 0–8°</text>
+  </g>
+</svg>

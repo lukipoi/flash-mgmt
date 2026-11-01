@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="216 84 288 441" width="288" height="441">
+  <!-- FBGA-84 8x12.5 底视缩略图（无尺寸标注；带标注的工程图见 fbga-84-8x12_5-spec.svg）
+       84 球 = 6 列 × 15 行 − 6，A1 角在右上，焊球统一同色 -->
+  <rect x="224" y="92" width="272" height="425" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中央无球区：模封凸台（D2 2.05），上下贯通到本体边缘、无圆角 -->
+  <rect x="325.1" y="92" width="69.7" height="425" fill="#39404e"/>
+  <path d="M325.1 92 V517 M394.9 92 V517" stroke="#4b5464" stroke-width="1.2"/>
+
+  <!-- A1 角标（右上，直角贴本体角，斜边朝内，镀金） -->
+  <path d="M478 92 H496 V110 Z" fill="#d4af37" stroke="#b8912c" stroke-width="0.8"/>
+
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="1">
+    <g>
+      <circle cx="251.2" cy="114.1" r="7.7"/><circle cx="278.4" cy="114.1" r="7.7"/><circle cx="305.6" cy="114.1" r="7.7"/>
+      <circle cx="414.4" cy="114.1" r="7.7"/><circle cx="441.6" cy="114.1" r="7.7"/><circle cx="468.8" cy="114.1" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="141.3" r="7.7"/><circle cx="278.4" cy="141.3" r="7.7"/><circle cx="305.6" cy="141.3" r="7.7"/>
+      <circle cx="414.4" cy="141.3" r="7.7"/><circle cx="441.6" cy="141.3" r="7.7"/><circle cx="468.8" cy="141.3" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="168.5" r="7.7"/><circle cx="278.4" cy="168.5" r="7.7"/><circle cx="305.6" cy="168.5" r="7.7"/>
+      <circle cx="414.4" cy="168.5" r="7.7"/><circle cx="441.6" cy="168.5" r="7.7"/><circle cx="468.8" cy="168.5" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="195.7" r="7.7"/><circle cx="278.4" cy="195.7" r="7.7"/><circle cx="305.6" cy="195.7" r="7.7"/>
+      <circle cx="414.4" cy="195.7" r="7.7"/><circle cx="441.6" cy="195.7" r="7.7"/><circle cx="468.8" cy="195.7" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="222.9" r="7.7"/><circle cx="278.4" cy="222.9" r="7.7"/><circle cx="305.6" cy="222.9" r="7.7"/>
+      <circle cx="414.4" cy="222.9" r="7.7"/><circle cx="441.6" cy="222.9" r="7.7"/><circle cx="468.8" cy="222.9" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="250.1" r="7.7"/><circle cx="278.4" cy="250.1" r="7.7"/><circle cx="305.6" cy="250.1" r="7.7"/>
+      <circle cx="414.4" cy="250.1" r="7.7"/><circle cx="441.6" cy="250.1" r="7.7"/><circle cx="468.8" cy="250.1" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="277.3" r="7.7"/><circle cx="278.4" cy="277.3" r="7.7"/><circle cx="305.6" cy="277.3" r="7.7"/>
+      <circle cx="414.4" cy="277.3" r="7.7"/><circle cx="441.6" cy="277.3" r="7.7"/><circle cx="468.8" cy="277.3" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="304.5" r="7.7"/><circle cx="278.4" cy="304.5" r="7.7"/><circle cx="305.6" cy="304.5" r="7.7"/>
+      <circle cx="414.4" cy="304.5" r="7.7"/><circle cx="441.6" cy="304.5" r="7.7"/><circle cx="468.8" cy="304.5" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="331.7" r="7.7"/><circle cx="278.4" cy="331.7" r="7.7"/><circle cx="305.6" cy="331.7" r="7.7"/>
+      <circle cx="414.4" cy="331.7" r="7.7"/><circle cx="441.6" cy="331.7" r="7.7"/><circle cx="468.8" cy="331.7" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="358.9" r="7.7"/><circle cx="278.4" cy="358.9" r="7.7"/><circle cx="305.6" cy="358.9" r="7.7"/>
+      <circle cx="414.4" cy="358.9" r="7.7"/><circle cx="441.6" cy="358.9" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="278.4" cy="386.1" r="7.7"/><circle cx="305.6" cy="386.1" r="7.7"/>
+      <circle cx="414.4" cy="386.1" r="7.7"/><circle cx="441.6" cy="386.1" r="7.7"/><circle cx="468.8" cy="386.1" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="413.3" r="7.7"/><circle cx="278.4" cy="413.3" r="7.7"/><circle cx="305.6" cy="413.3" r="7.7"/>
+      <circle cx="414.4" cy="413.3" r="7.7"/><circle cx="441.6" cy="413.3" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="278.4" cy="440.5" r="7.7"/><circle cx="305.6" cy="440.5" r="7.7"/>
+      <circle cx="414.4" cy="440.5" r="7.7"/><circle cx="441.6" cy="440.5" r="7.7"/><circle cx="468.8" cy="440.5" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="467.7" r="7.7"/><circle cx="278.4" cy="467.7" r="7.7"/><circle cx="305.6" cy="467.7" r="7.7"/>
+      <circle cx="414.4" cy="467.7" r="7.7"/><circle cx="441.6" cy="467.7" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="278.4" cy="494.9" r="7.7"/><circle cx="305.6" cy="494.9" r="7.7"/>
+      <circle cx="414.4" cy="494.9" r="7.7"/><circle cx="441.6" cy="494.9" r="7.7"/><circle cx="468.8" cy="494.9" r="7.7"/>
+    </g>
+  </g>
+</svg>

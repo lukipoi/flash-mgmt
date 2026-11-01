@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 502" width="720" height="502">
+  <!-- SOD-882 (DFN1006-2) 底视工程图（2 脚无引脚封装，底视=焊盘面；比例 135 px/mm，小封装放大）
+       尺寸（mm）：D 0.95-1.05 / E 0.55-0.65 / e 0.65 BSC / b 0.45-0.55（焊盘高）/ L 0.20-0.30（焊盘宽）
+       h 0.07-0.17（pad1 切角）/ A 0.45-0.55 / A1 0-0.05 / c 0.12-0.18 / L1 0.05 REF
+       脚1 = 右侧带切角焊盘（底视） -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M292.5 189.5 V160 M427.5 189.5 V160"/>
+    <path d="M427.5 189.5 H480 M427.5 270.5 H480"/>
+    <path d="M299.25 196.25 H240 M299.25 263.75 H240"/>
+    <path d="M316.13 263.75 V330 M333 263.75 V330"/>
+    <path d="M316.13 263.75 V300 M403.38 263.75 V300"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M292.5 164 H427.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M476 270.5 V189.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M244 263.75 V196.25" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M316.13 326 H333" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M316.13 296 H403.38" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="156" text-anchor="middle">D 1.00</text>
+    <text transform="translate(490 230) rotate(-90)" text-anchor="middle">E 0.60</text>
+    <text transform="translate(234 230) rotate(-90)" text-anchor="middle">b 0.50</text>
+    <text x="324.56" y="344" text-anchor="middle">L 0.25</text>
+    <text x="359.75" y="314" text-anchor="middle">e 0.65</text>
+  </g>
+
+  <!-- 本体（底视，塑料色） -->
+  <rect x="292.5" y="189.5" width="135" height="81" rx="2" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 焊盘（金属色，pad1 右、pad2 左；pad1 右上角切角 h） -->
+  <rect x="299.25" y="196.25" width="33.75" height="67.5" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+  <path d="M386.625 196.25 H404.4 L420.375 212.2 V263.75 H386.625 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8" stroke-linejoin="round"/>
+
+  <!-- 脚号 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="316.13" y="285" text-anchor="middle">2</text>
+    <text x="403.38" y="285" text-anchor="middle">1</text>
+  </g>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="450" text-anchor="middle">SOD-882 · 2 脚无引脚 · 底视 Bottom View · D 0.95–1.05 · E 0.55–0.65 · 脚1 = 切角焊盘（右）</text>
+    <text x="360" y="465" text-anchor="middle">e 0.65 BSC · b 0.45–0.55（焊盘高）· L 0.20–0.30（焊盘宽）· h 0.07–0.17（切角）</text>
+    <text x="360" y="480" text-anchor="middle">A 0.45–0.55 · A1 0–0.05 · c 0.12–0.18 · L1 0.05 REF</text>
+  </g>
+</svg>

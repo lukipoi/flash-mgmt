@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="248 58 224 338" width="224" height="338">
+  <!-- TO-252 (DPAK TO252-2) 正俯视缩略图（无尺寸标注；带标注的工程图见 to-252-spec.svg）
+       依 BL1117「TO252-2」尺寸表核对（2026-10-25）：
+       本体 D 6.5 × E1 6.1（直筒矩形+顶角小切角 0.6mm），散热片 D1 5.2 × 伸出 L1 1.08
+       凹坑圆心距本体顶边 L2 1.8mm；引脚：两边长 2.72、中间短 L3 0.8 -->
+  <!-- 引脚：下排 3 脚（两边长、中间短 L3≈0.8mm） -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="270.32" y="302.97" width="25.28" height="90.7" rx="2"/>
+    <rect x="347.36" y="302.97" width="25.28" height="27" rx="2"/>
+    <rect x="429.40" y="302.97" width="25.28" height="90.7" rx="2"/>
+  </g>
+
+  <!-- 散热片（顶部居中，金属色，比本体窄；L1 伸出 1.08mm） -->
+  <path d="M272.38 97.24 V60 H447.62 V97.24 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8" stroke-linejoin="round"/>
+
+  <!-- 本体（顶视，塑料色，直筒矩形 + 顶角小切角 0.6mm） -->
+  <path d="M249.8 117.24 L269.8 97.24 H450.2 L470.2 117.24 V302.97 H249.8 Z" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- 顶面凹坑（不通孔，比塑料色深一档；圆心距本体顶边 L2 1.8mm） -->
+  <circle cx="360" cy="157.94" r="19" fill="#262c38"/>
+</svg>

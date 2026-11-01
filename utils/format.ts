@@ -23,7 +23,7 @@ export function normalizeJedecId(jedecId: string): string {
  * 输入 "DE AD BE EF 12 34 56 78" → "DEAD BEEF 1234 5678"
  * 输入 "DEADBEEF12345678" → "DEAD BEEF 1234 5678"
  */
-export function formatUid(uid: string): string {
+export function formatUid(uid: string | null | undefined): string {
   if (!uid) return ''
   const hex = normalizeUid(uid)
   return hex.replace(/(.{4})/g, '$1 ').trim()
@@ -55,7 +55,7 @@ export function formatDate(date: string): string {
  * 截断长 UID 显示
  * "DEADBEEF12345678DEADBEEF12345678" (maxLen=16) → "DEADBEEF1234567…"
  */
-export function truncateUid(uid: string, maxLen: number = 16): string {
+export function truncateUid(uid: string | null | undefined, maxLen: number = 16): string {
   if (!uid) return ''
   const hex = normalizeUid(uid)
   if (hex.length <= maxLen) return hex
@@ -74,10 +74,20 @@ export function isValidHex(hex: string): boolean {
 }
 
 /**
- * 校验 UID 合法性: 必须是合法十六进制，且长度匹配 uid_length
+ * 无 UID 占位符：出厂不带 UID 的芯片（如旺宏 MX25 系列）填 "/"，表示忽略 UID
+ */
+export const NO_UID = '/'
+
+export function isNoUid(uid: string | null | undefined): boolean {
+  return !!uid && uid.trim() === NO_UID
+}
+
+/**
+ * 校验 UID 合法性: 必须是合法十六进制，且长度匹配 uid_length；填 "/" 表示无 UID，直接通过
  */
 export function isValidUid(uid: string, uidLength: number): { valid: boolean; error?: string } {
-  if (!uid || !uid.trim()) return { valid: false, error: 'UID 为必填项' }
+  if (!uid || !uid.trim()) return { valid: false, error: 'UID 为必填项（无 UID 可填 /）' }
+  if (isNoUid(uid)) return { valid: true }
   if (!isValidHex(uid)) return { valid: false, error: 'UID 只能包含十六进制字符 (0-9, A-F)' }
   const clean = normalizeUid(uid)
   const expectedLen = uidLength * 2 // 每字节 2 个 hex 字符
@@ -350,11 +360,17 @@ export function jedecIdToVendor(jedecId: string, model?: string): string {
 
 /**
  * 计算过期日期
+ * 优先级：expiryDate（直接失效日期）> productionDate + shelfLife（时长）> shelfLife 本身是日期
  * @param productionDate 生产日期 "2026-10-17" / "2026-10" / "2026/10/17"
  * @param shelfLife      保质期 "24个月" / "24M" / "2年" / "2Y" / "2027-06"(直接到期)
+ * @param expiryDate     失效日期 "2027-08-20"（产品直接印刷的过期日，最高优先级）
  * @returns "YYYY-MM-DD" 或 null
  */
-export function calcExpiryDate(productionDate: string | null, shelfLife: string | null): string | null {
+export function calcExpiryDate(productionDate: string | null, shelfLife: string | null, expiryDate?: string | null): string | null {
+  if (expiryDate && expiryDate.trim()) {
+    const d = parseDateStr(expiryDate.trim())
+    if (d) return formatDateOnly(d)
+  }
   if (!productionDate || !shelfLife) return null
 
   const sl = shelfLife.trim()
@@ -403,4 +419,22 @@ function normalizeDateStr(s: string): string {
 function formatDateOnly(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/**
+ * 过期警告判断
+ * @param expiry 过期日期 "YYYY-MM-DD"（一般来自 calcExpiryDate）
+ * @param soonDays 临期阈值（默认 30 天内算临期）
+ * @returns expired=已过期 soon=临期；null=无需警告
+ */
+export function expiryWarning(expiry: string | null, soonDays = 30): { level: 'expired' | 'soon'; days: number } | null {
+  if (!expiry) return null
+  const exp = parseDateStr(expiry)
+  if (!exp) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const days = Math.round((exp.getTime() - today.getTime()) / 86400000)
+  if (days < 0) return { level: 'expired', days: -days }
+  if (days <= soonDays) return { level: 'soon', days }
+  return null
 }

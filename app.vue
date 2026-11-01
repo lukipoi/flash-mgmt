@@ -1,7 +1,8 @@
 <script setup lang="ts">
 useHead({
   htmlAttrs: {
-    class: 'dark'
+    class: 'dark',
+    'data-theme': 'dark'
   }
 })
 </script>

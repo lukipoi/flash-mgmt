@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 170 320 320" width="320" height="320">
+  <!-- QFN-16 3x3 底视缩略图（无尺寸标注；带标注的工程图见 qfn-16-3x3-spec.svg）
+       CH552 手册 19.2：D/E 3.00，e 0.50，b 0.25，L 0.40，散热焊盘 1.70；右下角缺角为 Pin 1 -->
+  <rect x="210" y="180" width="300" height="300" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2，右下角缺角作 Pin 1 标识 -->
+  <path d="M275 245 H445 V398 L428 415 H275 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- 16 个焊盘：每边 4 个，无外露引脚，焊盘统一同色 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="272.5" y="180" width="25" height="40" rx="12.5"/>
+    <rect x="322.5" y="180" width="25" height="40" rx="12.5"/>
+    <rect x="372.5" y="180" width="25" height="40" rx="12.5"/>
+    <rect x="422.5" y="180" width="25" height="40" rx="12.5"/>
+
+    <rect x="272.5" y="440" width="25" height="40" rx="12.5"/>
+    <rect x="322.5" y="440" width="25" height="40" rx="12.5"/>
+    <rect x="372.5" y="440" width="25" height="40" rx="12.5"/>
+    <rect x="422.5" y="440" width="25" height="40" rx="12.5"/>
+
+    <rect x="210" y="242.5" width="40" height="25" rx="12.5"/>
+    <rect x="210" y="292.5" width="40" height="25" rx="12.5"/>
+    <rect x="210" y="342.5" width="40" height="25" rx="12.5"/>
+    <rect x="210" y="392.5" width="40" height="25" rx="12.5"/>
+
+    <rect x="470" y="242.5" width="40" height="25" rx="12.5"/>
+    <rect x="470" y="292.5" width="40" height="25" rx="12.5"/>
+    <rect x="470" y="342.5" width="40" height="25" rx="12.5"/>
+    <rect x="470" y="392.5" width="40" height="25" rx="12.5"/>
+  </g>
+</svg>

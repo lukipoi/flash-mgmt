@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 640" width="720" height="640">
+  <!-- QFN-56 7x7 底视图工程图（ESP32-S3 技术规格书 v2.2 §7 Figure 7-1）
+       D/E 7.00±0.05 · D2/E2 4.00±0.05 · e 0.40 BSC · b 0.20±0.05 · L 0.40±0.05
+       A 0.85（0.80–0.90）· A1 0–0.05 · A3 0.203 Ref · 缺角 C0.50
+       56 脚 = 每边 14 脚；底视 Pin 1 在右上，用散热焊盘缺角标识，焊盘统一同色 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwEd" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#16202e"/>
+    </marker>
+    <marker id="arwSd" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#16202e"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M150 100 V44 M570 100 V44"/>
+    <path d="M570 100 H620 M570 520 H620"/>
+    <path d="M204 520 V550 M228 520 V550"/>
+    <path d="M162 220 L110 270"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M150 48 H570" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M614 520 V100" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M204 544 H228" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="40" text-anchor="middle">D 7.00</text>
+    <text transform="translate(632 310) rotate(-90)" text-anchor="middle">E 7.00</text>
+    <text x="216" y="568" text-anchor="middle">e 0.40</text>
+    <text x="104" y="274" text-anchor="end">b 0.20</text>
+  </g>
+
+  <!-- 本体（底视） -->
+  <rect x="150" y="100" width="420" height="420" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2 4.00，右上角 C0.50 缺角即 Pin 1 标识 -->
+  <path d="M240 190 H450 L480 220 V430 H240 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- D2 标注画在焊盘内（避开四周引脚焊盘） -->
+  <path d="M240 310 H480" fill="none" stroke="#16202e" stroke-width="1.2" marker-start="url(#arwSd)" marker-end="url(#arwEd)"/>
+  <text x="360" y="304" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#16202e" letter-spacing="0.3">D2 4.00</text>
+
+  <!-- 56 个焊盘：每边 14 个，焊盘统一同色，仅靠散热焊盘缺角标识 Pin 1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="198" y="100" width="12" height="24" rx="6"/>
+    <rect x="222" y="100" width="12" height="24" rx="6"/>
+    <rect x="246" y="100" width="12" height="24" rx="6"/>
+    <rect x="270" y="100" width="12" height="24" rx="6"/>
+    <rect x="294" y="100" width="12" height="24" rx="6"/>
+    <rect x="318" y="100" width="12" height="24" rx="6"/>
+    <rect x="342" y="100" width="12" height="24" rx="6"/>
+    <rect x="366" y="100" width="12" height="24" rx="6"/>
+    <rect x="390" y="100" width="12" height="24" rx="6"/>
+    <rect x="414" y="100" width="12" height="24" rx="6"/>
+    <rect x="438" y="100" width="12" height="24" rx="6"/>
+    <rect x="462" y="100" width="12" height="24" rx="6"/>
+    <rect x="486" y="100" width="12" height="24" rx="6"/>
+    <rect x="510" y="100" width="12" height="24" rx="6"/>
+
+    <rect x="198" y="496" width="12" height="24" rx="6"/>
+    <rect x="222" y="496" width="12" height="24" rx="6"/>
+    <rect x="246" y="496" width="12" height="24" rx="6"/>
+    <rect x="270" y="496" width="12" height="24" rx="6"/>
+    <rect x="294" y="496" width="12" height="24" rx="6"/>
+    <rect x="318" y="496" width="12" height="24" rx="6"/>
+    <rect x="342" y="496" width="12" height="24" rx="6"/>
+    <rect x="366" y="496" width="12" height="24" rx="6"/>
+    <rect x="390" y="496" width="12" height="24" rx="6"/>
+    <rect x="414" y="496" width="12" height="24" rx="6"/>
+    <rect x="438" y="496" width="12" height="24" rx="6"/>
+    <rect x="462" y="496" width="12" height="24" rx="6"/>
+    <rect x="486" y="496" width="12" height="24" rx="6"/>
+    <rect x="510" y="496" width="12" height="24" rx="6"/>
+
+    <rect x="150" y="148" width="24" height="12" rx="6"/>
+    <rect x="150" y="172" width="24" height="12" rx="6"/>
+    <rect x="150" y="196" width="24" height="12" rx="6"/>
+    <rect x="150" y="220" width="24" height="12" rx="6"/>
+    <rect x="150" y="244" width="24" height="12" rx="6"/>
+    <rect x="150" y="268" width="24" height="12" rx="6"/>
+    <rect x="150" y="292" width="24" height="12" rx="6"/>
+    <rect x="150" y="316" width="24" height="12" rx="6"/>
+    <rect x="150" y="340" width="24" height="12" rx="6"/>
+    <rect x="150" y="364" width="24" height="12" rx="6"/>
+    <rect x="150" y="388" width="24" height="12" rx="6"/>
+    <rect x="150" y="412" width="24" height="12" rx="6"/>
+    <rect x="150" y="436" width="24" height="12" rx="6"/>
+    <rect x="150" y="460" width="24" height="12" rx="6"/>
+
+    <rect x="546" y="148" width="24" height="12" rx="6"/>
+    <rect x="546" y="172" width="24" height="12" rx="6"/>
+    <rect x="546" y="196" width="24" height="12" rx="6"/>
+    <rect x="546" y="220" width="24" height="12" rx="6"/>
+    <rect x="546" y="244" width="24" height="12" rx="6"/>
+    <rect x="546" y="268" width="24" height="12" rx="6"/>
+    <rect x="546" y="292" width="24" height="12" rx="6"/>
+    <rect x="546" y="316" width="24" height="12" rx="6"/>
+    <rect x="546" y="340" width="24" height="12" rx="6"/>
+    <rect x="546" y="364" width="24" height="12" rx="6"/>
+    <rect x="546" y="388" width="24" height="12" rx="6"/>
+    <rect x="546" y="412" width="24" height="12" rx="6"/>
+    <rect x="546" y="436" width="24" height="12" rx="6"/>
+    <rect x="546" y="460" width="24" height="12" rx="6"/>
+  </g>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="596" text-anchor="middle">56 脚（每边 14 脚）· 底视 Bottom View · D/E 7.00 · D2/E2 4.00 · 缺角 C0.50</text>
+    <text x="360" y="614" text-anchor="middle">e 0.40 BSC · b 0.20 · L 0.40 · A 0.85（0.80–0.90）· A1 0–0.05 · A3 0.203 Ref</text>
+  </g>
+</svg>

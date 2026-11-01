@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="76 146 568 369" width="568" height="369">
+  <!-- TSOP-II 44（400mil）顶视缩略图（无尺寸标注；带标注的工程图见 tsop-ii-44-spec.svg）
+       ISSI 61-64WV25616 Rev F：D 18.41，E 11.76，E1 10.16，e 0.80，每边 22 脚
+       顶视 Pin 1 在左下，用本体上的实心圆点标识 -->
+  <rect x="83.85" y="177.6" width="552.3" height="304.8" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- Pin 1 标识：本体左下角实心圆点（与其他封装一致） -->
+  <circle cx="112" cy="454.4" r="10" fill="#d9d9d9"/>
+
+  <!-- 44 只鸥翼引脚：22 上 + 22 下，间距 0.80mm，向外伸出 E-E1 的一半 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="102.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="126.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="150.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="174.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="198.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="222.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="246.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="270.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="294.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="318.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="342.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="366.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="390.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="414.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="438.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="462.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="486.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="510.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="534.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="558.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="582.375" y="153.6" width="11.25" height="24" rx="2"/>
+    <rect x="606.375" y="153.6" width="11.25" height="24" rx="2"/>
+
+    <rect x="102.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="126.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="150.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="174.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="198.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="222.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="246.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="270.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="294.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="318.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="342.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="366.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="390.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="414.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="438.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="462.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="486.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="510.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="534.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="558.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="582.375" y="482.4" width="11.25" height="24" rx="2"/>
+    <rect x="606.375" y="482.4" width="11.25" height="24" rx="2"/>
+  </g>
+</svg>

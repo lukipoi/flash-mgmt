@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 640" font-family="Arial, 'Microsoft YaHei', sans-serif">
+  <!-- ESOP-8 顶视图工程图（datasheet §8.1 ESOP8 尺寸）
+       D 4.90 · E 3.90 · E1 6.00 · e 1.27 · b 0.42 · 焊盘 D1 3.30 × E2 2.40
+       8 脚 = 4 + 4；顶视 Pin 1 在左上，用本体实心圆点标识；
+       散热焊盘位于底面，顶视图以虚线框示出 -->
+  <defs>
+    <marker id="arwE" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,4 L0,8 Z" fill="#22d3ee"/></marker>
+    <marker id="arwS" markerWidth="8" markerHeight="8" refX="1" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M8,0 L0,4 L8,8 Z" fill="#22d3ee"/></marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M120 203 V94 M414 203 V94"/>
+    <path d="M394 140 H560 M394 500 H560"/>
+    <path d="M120 203 H55 M120 437 H55"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M120 100 H414" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M554 500 V140" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M61 203 V437" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="267" y="92" text-anchor="middle">D 4.90</text>
+    <text transform="translate(574 320) rotate(-90)" text-anchor="middle">E1 6.00</text>
+    <text transform="translate(43 320) rotate(-90)" text-anchor="middle">E 3.90</text>
+    <text x="435" y="124">b 0.42</text>
+  </g>
+
+  <!-- 8 只鸥翼引脚：4 上 + 4 下，间距 1.27mm，向外伸出至跨距 E1 6.00 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="140.1"  y="140" width="25.2" height="63"/>
+    <rect x="216.3"  y="140" width="25.2" height="63"/>
+    <rect x="292.5"  y="140" width="25.2" height="63"/>
+    <rect x="368.7"  y="140" width="25.2" height="63"/>
+    <rect x="140.1"  y="437" width="25.2" height="63"/>
+    <rect x="216.3"  y="437" width="25.2" height="63"/>
+    <rect x="292.5"  y="437" width="25.2" height="63"/>
+    <rect x="368.7"  y="437" width="25.2" height="63"/>
+  </g>
+
+  <!-- 本体（顶视）D 4.90 × E 3.90 -->
+  <rect x="120" y="203" width="294" height="234" rx="5" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 散热焊盘（底面隐藏轮廓）：D1 3.30 × E2 2.40，虚线示出 -->
+  <rect x="168" y="248" width="198" height="144" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="7 5"/>
+
+  <!-- D1 / E2 标注（画在本体与虚线框之上） -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M168 370 H366" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M340 248 V392" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+  <g font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="267" y="362" text-anchor="middle">D1 3.30</text>
+    <text transform="translate(328 320) rotate(-90)" text-anchor="middle">E2 2.40</text>
+  </g>
+
+  <!-- Pin 1 标识：本体左上角实心圆点 -->
+  <circle cx="145" cy="228" r="8" fill="#d9d9d9"/>
+
+  <!-- b 引线标注 -->
+  <line x1="241.5" y1="160" x2="430" y2="128" stroke="#22d3ee" stroke-width="0.9"/>
+
+  <!-- 说明行 -->
+  <text x="20" y="580" fill="#94a3b8" font-size="12">ESOP-8（带散热焊盘 SOP-8）：本体 D 4.90 × E 3.90，跨距 E1 6.00，e 1.27 BSC</text>
+  <text x="20" y="598" fill="#94a3b8" font-size="12">引脚宽 b 0.42（0.33~0.51），引脚厚 c 0.21（0.17~0.25），L 0.40~1.27，θ 0°~8°</text>
+  <text x="20" y="616" fill="#94a3b8" font-size="12">散热焊盘 D1 3.30 × E2 2.40（底面，顶视图虚线示出）；A 1.35~1.75，A1 0.05~0.15，A2 1.35~1.55　依 datasheet §8.1 绘制</text>
+</svg>

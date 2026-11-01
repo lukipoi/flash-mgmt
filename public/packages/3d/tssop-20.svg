@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="127 56 466 356.8" width="466" height="357">
+  <!-- TSSOP-20 正俯视缩略图（无尺寸标注；带标注的工程图见 tssop-20-spec.svg）
+       20 引脚，Pin 1 为本体左下凹点 -->
+  <!-- 本体（顶视） -->
+  <rect x="191" y="120" width="338" height="228.8" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 引脚：下排 Pin 1-10、上排 Pin 20-11 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="201.66" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="235.46" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="269.26" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="303.06" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="336.86" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="370.66" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="404.46" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="438.26" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="472.06" y="348.8" width="12.48" height="52" rx="1.5"/>
+    <rect x="505.86" y="348.8" width="12.48" height="52" rx="1.5"/>
+  </g>
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="201.66" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="235.46" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="269.26" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="303.06" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="336.86" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="370.66" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="404.46" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="438.26" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="472.06" y="68" width="12.48" height="52" rx="1.5"/>
+    <rect x="505.86" y="68" width="12.48" height="52" rx="1.5"/>
+  </g>
+
+  <!-- Pin 1 凹点（左下） -->
+  <circle cx="216" cy="324" r="13" fill="#d9d9d9"/>
+</svg>

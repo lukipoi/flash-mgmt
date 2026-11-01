@@ -51,8 +51,8 @@ const truncatedCount = computed(() => {
 </script>
 
 <template>
-  <div class="hex-viewer rounded-md bg-[#0d1117] ring-1 ring-white/5 p-3 overflow-x-auto">
-    <div v-if="lines.length === 0" class="py-4 text-center text-sm text-slate-500">
+  <div class="hex-viewer rounded-md bg-surface-sunken ring-1 ring-line p-3 overflow-x-auto">
+    <div v-if="lines.length === 0" class="py-4 text-center text-sm text-ink-tertiary">
       无数据
     </div>
     <div v-else>
@@ -65,7 +65,7 @@ const truncatedCount = computed(() => {
         <span class="hex-bytes">{{ line.hex }}</span>
         <span class="hex-ascii select-none">{{ line.ascii }}</span>
       </div>
-      <div v-if="truncatedCount > 0" class="mt-2 text-xs text-slate-500">
+      <div v-if="truncatedCount > 0" class="mt-2 text-xs text-ink-tertiary">
         … 还有 {{ truncatedCount }} 字节未显示
       </div>
     </div>

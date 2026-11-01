@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 580" width="720" height="580">
+  <!-- MSOP-10 顶视图工程图（CH552 手册 19.4）
+       D 3.00 · E1 3.00 · E 4.90 · e 0.50 · b 0.22 · A 1.0 · A1 0.16 · 脚厚 0.1 · 脚长 0.6
+       10 脚 = 5 + 5；顶视 Pin 1 在左上，用本体实心圆点标识 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M139.5 230.1 V148 M580.5 230.1 V148"/>
+    <path d="M495 195 H600 M495 465 H600"/>
+    <path d="M225 465 V505 M495 465 V505"/>
+    <path d="M139.5 240 H112 M139.5 285 H112"/>
+    <path d="M150 420 L104 470"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M139.5 154 H580.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M594 195 V465" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M225 499 H495" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M118 285 V240" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="146" text-anchor="middle">E 4.90</text>
+    <text transform="translate(612 330) rotate(-90)" text-anchor="middle">D 3.00</text>
+    <text x="360" y="491" text-anchor="middle">E1 3.00</text>
+    <text transform="translate(100 262.5) rotate(-90)" text-anchor="middle">e 0.50</text>
+    <text x="98" y="474" text-anchor="end">b 0.22</text>
+  </g>
+
+  <!-- 本体（顶视） -->
+  <rect x="225" y="195" width="270" height="270" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- Pin 1 标识：本体左上角实心圆点 -->
+  <circle cx="252" cy="222" r="11" fill="#d9d9d9"/>
+
+  <!-- 10 只鸥翼引脚：5 左 + 5 右，间距 0.50mm，向外伸出 E-E1 的一半 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="139.5" y="230.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="139.5" y="275.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="139.5" y="320.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="139.5" y="365.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="139.5" y="410.1" width="85.5" height="19.8" rx="3"/>
+
+    <rect x="495" y="230.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="495" y="275.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="495" y="320.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="495" y="365.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="495" y="410.1" width="85.5" height="19.8" rx="3"/>
+  </g>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="540" text-anchor="middle">10 脚（5 + 5）· 顶视 Top View · D 3.00 · E1 3.00 · E 4.90 · e 0.50</text>
+    <text x="360" y="558" text-anchor="middle">b 0.22 · A 1.0 · A1 0.16 · 脚厚 0.1 · 脚长 0.6</text>
+  </g>
+</svg>

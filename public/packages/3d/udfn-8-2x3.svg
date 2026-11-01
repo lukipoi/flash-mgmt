@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="291 128 138 205" width="138" height="205">
+  <!-- UDFN-8 2x3 (UT) 底视缩略图（无尺寸标注；带标注的工程图见 udfn-8-2x3-spec.svg）
+       无外露引脚 → 底视（焊盘面）。比例 67.4 px/mm
+       本体 D 2.0 × E 3.0；EP D2 1.4 × E2 1.3（圆角+右下角直切角=pin1）；两端各 4 焊盘 b0.25/L0.3 @e0.5 -->
+
+  <!-- 本体（底视，塑料色） -->
+  <rect x="292.6" y="128.9" width="134.8" height="202.2" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+  <!-- 焊盘：上排 4 + 下排 4（金属色，U 形槽圆头朝内，照 datasheet 底视图） -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <path d="M301.030 128.9 V140.695 A8.425 8.425 0 0 0 317.880 140.695 V128.9 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+    <path d="M334.730 128.9 V140.695 A8.425 8.425 0 0 0 351.580 140.695 V128.9 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+    <path d="M368.430 128.9 V140.695 A8.425 8.425 0 0 0 385.280 140.695 V128.9 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+    <path d="M402.130 128.9 V140.695 A8.425 8.425 0 0 0 418.980 140.695 V128.9 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+    <path d="M301.030 331.1 V319.305 A8.425 8.425 0 0 1 317.880 319.305 V331.1 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+    <path d="M334.730 331.1 V319.305 A8.425 8.425 0 0 1 351.580 319.305 V331.1 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+    <path d="M368.430 331.1 V319.305 A8.425 8.425 0 0 1 385.280 319.305 V331.1 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+    <path d="M402.130 331.1 V319.305 A8.425 8.425 0 0 1 418.980 319.305 V331.1 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+  </g>
+
+  <!-- EP 散热焊盘（金属色，四角小圆角，右下角直切角 = pin1） -->
+  <path d="M318.82 186.19 H401.18 Q407.18 186.19 407.18 192.19 V256.81 L390.18 273.81 H318.82 Q312.82 273.81 312.82 267.81 V192.19 Q312.82 186.19 318.82 186.19 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8" stroke-linejoin="round"/>
+</svg>

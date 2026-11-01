@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" width="720" height="480">
+  <!-- SOT-223 正俯视工程图（AMD DS1117「3 LEAD SOT-223 PLASTIC PACKAGE」，AMS DRAWING 042592）
+       尺寸（mm）：E 6.30-6.71 / D 6.71-7.29 / 本体高 3.30-3.71 / 散热片宽 2.95-3.15
+       e 2.29 / b 0.84-1.04 / e1 4.60 / A 1.80 max / A1 0.31 min / c 0.25-0.36 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M250.48 170 V56 M469.53 170 V56"/>
+    <path d="M308.61 116.08 V91 M411.39 116.08 V91"/>
+    <path d="M308.61 116.08 H146 M266.99 351.98 H146"/>
+    <path d="M250.48 170 H201 M250.48 287.95 H201"/>
+    <path d="M282.83 351.98 V381 M360 351.98 V381"/>
+    <path d="M421.33 351.98 V381 M453.01 351.98 V381"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M250.48 60 H469.53" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M308.61 95 H411.39" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M150 351.98 V116.08" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M205 287.95 V170" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M282.83 385 H360" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M421.33 385 H453.01" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="52" text-anchor="middle">E 6.50</text>
+    <text x="360" y="87" text-anchor="middle">3.05</text>
+    <text transform="translate(140 234.03) rotate(-90)" text-anchor="middle">D 7.00</text>
+    <text transform="translate(195 228.98) rotate(-90)" text-anchor="middle">3.50</text>
+    <text x="321.42" y="403" text-anchor="middle">e 2.29</text>
+    <text x="437.17" y="403" text-anchor="middle">b 0.94</text>
+  </g>
+
+  <!-- 引脚：下排 3 脚 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="266.99" y="287.95" width="31.68" height="64.03" rx="2"/>
+    <rect x="344.16" y="287.95" width="31.68" height="64.03" rx="2"/>
+    <rect x="421.33" y="287.95" width="31.68" height="64.03" rx="2"/>
+  </g>
+
+  <!-- 散热片（顶部居中，金属色，与引脚同色；仅上角圆角） -->
+  <path d="M308.61 170 V122.08 Q308.61 116.08 314.61 116.08 H405.39 Q411.39 116.08 411.39 122.08 V170 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8" stroke-linejoin="round"/>
+
+  <!-- 本体（顶视，塑料色） -->
+  <rect x="250.48" y="170" width="219.05" height="117.95" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="442" text-anchor="middle">3 脚 + 散热片 · 顶视 Top View · E 6.30–6.71 · D 6.71–7.29 · e1 4.60</text>
+    <text x="360" y="460" text-anchor="middle">e 2.29 · b 0.84–1.04 · A 1.80 max · A1 0.31 min · c 0.25–0.36</text>
+  </g>
+</svg>

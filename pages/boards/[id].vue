@@ -13,9 +13,9 @@ const STATUS_LABELS: Record<CircuitBoardStatus, string> = {
 }
 
 const STATUS_STYLES: Record<CircuitBoardStatus, string> = {
-  pending: 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
-  partial: 'bg-sky-500/15 text-sky-400 ring-1 ring-sky-500/30',
-  done: 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30'
+  pending: 'bg-notice-500/15 text-notice-400 ring-1 ring-notice-500/30',
+  partial: 'bg-data-500/15 text-data-400 ring-1 ring-data-500/30',
+  done: 'bg-gain-500/15 text-gain-400 ring-1 ring-gain-500/30'
 }
 
 // ---- 改备注 ----
@@ -111,12 +111,12 @@ const showPrintModal = ref(false)
         />
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-xl font-bold text-slate-100">
+            <h2 class="text-xl font-bold text-ink">
               {{ board?.model || '电路板详情' }}
             </h2>
             <UBadge
               v-if="board?.brand"
-              color="blue"
+              color="data"
               variant="subtle"
               size="xs"
             >
@@ -129,7 +129,7 @@ const showPrintModal = ref(false)
               {{ STATUS_LABELS[board.status] }}
             </span>
           </div>
-          <p v-if="board" class="mt-1 font-mono text-xs text-slate-500">
+          <p v-if="board" class="mt-1 font-mono text-xs text-ink-tertiary">
             ID: {{ board.id }}
           </p>
         </div>
@@ -148,7 +148,7 @@ const showPrintModal = ref(false)
         <UButton
           v-if="board"
           icon="i-lucide-activity"
-          color="amber"
+          color="notice"
           variant="outline"
           size="sm"
           @click="openStatusModal"
@@ -158,7 +158,7 @@ const showPrintModal = ref(false)
         <UButton
           v-if="board"
           icon="i-lucide-printer"
-          color="amber"
+          color="notice"
           variant="solid"
           size="sm"
           @click="showPrintModal = true"
@@ -191,15 +191,15 @@ const showPrintModal = ref(false)
 
     <!-- 加载中 -->
     <div v-if="pending" class="space-y-4">
-      <div class="h-32 animate-pulse rounded-lg bg-white/5" />
-      <div class="h-64 animate-pulse rounded-lg bg-white/5" />
+      <div class="h-32 animate-pulse rounded-lg bg-surface-muted" />
+      <div class="h-64 animate-pulse rounded-lg bg-surface-muted" />
     </div>
 
     <!-- 错误 / 404 -->
-    <div v-else-if="error || !board" class="rounded-lg bg-[#1e1e3a] p-12 text-center ring-1 ring-white/5">
-      <UIcon name="i-lucide-alert-octagon" class="mx-auto h-12 w-12 text-red-400" />
-      <h3 class="mt-4 text-lg font-semibold text-slate-200">电路板不存在</h3>
-      <p class="mt-1 text-sm text-slate-500">
+    <div v-else-if="error || !board" class="rounded-lg bg-surface-raised p-12 text-center ring-1 ring-line">
+      <UIcon name="i-lucide-alert-octagon" class="mx-auto h-12 w-12 text-alert-400" />
+      <h3 class="mt-4 text-lg font-semibold text-ink">电路板不存在</h3>
+      <p class="mt-1 text-sm text-ink-tertiary">
         {{ error?.message || '未找到该电路板记录' }}
       </p>
       <UButton to="/boards" icon="i-lucide-list" color="primary" variant="outline" size="sm" class="mt-4">
@@ -209,22 +209,22 @@ const showPrintModal = ref(false)
 
     <template v-else>
       <!-- 基本信息 -->
-      <div class="rounded-lg bg-[#1e1e3a] ring-1 ring-white/5">
-        <div class="flex items-center gap-2 border-b border-white/5 px-5 py-4">
-          <UIcon name="i-lucide-info" class="h-5 w-5 text-cyan-400" />
-          <h3 class="text-sm font-semibold text-slate-200">基本信息</h3>
+      <div class="rounded-lg bg-surface-raised ring-1 ring-line">
+        <div class="flex items-center gap-2 border-b border-line px-5 py-4">
+          <UIcon name="i-lucide-info" class="h-5 w-5 text-action" />
+          <h3 class="text-sm font-semibold text-ink">基本信息</h3>
         </div>
         <div class="grid grid-cols-2 gap-x-6 gap-y-4 p-5 md:grid-cols-3">
           <div>
-            <dt class="text-xs text-slate-500">品牌</dt>
-            <dd class="mt-1 text-slate-200">{{ board.brand || '-' }}</dd>
+            <dt class="text-xs text-ink-tertiary">品牌</dt>
+            <dd class="mt-1 text-ink">{{ board.brand || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">型号</dt>
-            <dd class="mt-1 font-medium text-slate-200">{{ board.model }}</dd>
+            <dt class="text-xs text-ink-tertiary">型号</dt>
+            <dd class="mt-1 font-medium text-ink">{{ board.model }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">拆解状态</dt>
+            <dt class="text-xs text-ink-tertiary">拆解状态</dt>
             <dd class="mt-1">
               <span
                 :class="[STATUS_STYLES[board.status], 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium']"
@@ -234,38 +234,38 @@ const showPrintModal = ref(false)
             </dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">序列号</dt>
-            <dd class="mt-1 font-mono text-slate-300">{{ board.serial_number || '-' }}</dd>
+            <dt class="text-xs text-ink-tertiary">序列号</dt>
+            <dd class="mt-1 font-mono text-ink-secondary">{{ board.serial_number || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">创建时间</dt>
-            <dd class="mt-1 font-mono text-xs text-slate-400">{{ formatDate(board.created_at) }}</dd>
+            <dt class="text-xs text-ink-tertiary">创建时间</dt>
+            <dd class="mt-1 font-mono text-xs text-ink-secondary">{{ formatDate(board.created_at) }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">更新时间</dt>
-            <dd class="mt-1 font-mono text-xs text-slate-400">{{ formatDate(board.updated_at) }}</dd>
+            <dt class="text-xs text-ink-tertiary">更新时间</dt>
+            <dd class="mt-1 font-mono text-xs text-ink-secondary">{{ formatDate(board.updated_at) }}</dd>
           </div>
 
           <!-- 板载芯片（全宽，chip 徽章列表） -->
           <div class="md:col-span-3">
-            <dt class="text-xs text-slate-500">板载主要芯片</dt>
+            <dt class="text-xs text-ink-tertiary">板载主要芯片</dt>
             <dd class="mt-2">
               <div v-if="board.chips?.length" class="flex flex-wrap gap-1.5">
                 <span
                   v-for="(c, i) in board.chips"
                   :key="i"
-                  class="rounded-md bg-cyan-500/15 px-2 py-1 font-mono text-xs text-cyan-300 ring-1 ring-cyan-500/30"
+                  class="rounded-md bg-data-500/15 px-2 py-1 font-mono text-xs text-data-300 ring-1 ring-action/30"
                 >
                   {{ c }}
                 </span>
               </div>
-              <span v-else class="text-slate-500">未记录</span>
+              <span v-else class="text-ink-tertiary">未记录</span>
             </dd>
           </div>
 
           <div v-if="board.note" class="md:col-span-3">
-            <dt class="text-xs text-slate-500">备注</dt>
-            <dd class="mt-1 rounded-md bg-white/5 p-3 text-sm text-slate-300 whitespace-pre-wrap">{{ board.note }}</dd>
+            <dt class="text-xs text-ink-tertiary">备注</dt>
+            <dd class="mt-1 rounded-md bg-surface-muted p-3 text-sm text-ink-secondary whitespace-pre-wrap">{{ board.note }}</dd>
           </div>
         </div>
       </div>
@@ -280,7 +280,7 @@ const showPrintModal = ref(false)
             placeholder="输入备注内容..."
             :rows="4"
           />
-          <div v-if="noteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="noteError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ noteError }}
           </div>
         </div>
@@ -310,7 +310,7 @@ const showPrintModal = ref(false)
             ]"
             class="w-full"
           />
-          <div v-if="statusError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="statusError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ statusError }}
           </div>
         </div>
@@ -331,15 +331,15 @@ const showPrintModal = ref(false)
     <UModal v-model:open="showDeleteModal" :title="`删除 ${board?.model || '电路板'}？`">
       <template #body>
         <div class="space-y-3">
-          <p class="text-sm text-slate-300">此操作不可恢复。</p>
-          <div v-if="board" class="rounded-md bg-white/5 p-3 font-mono text-xs text-slate-400">
+          <p class="text-sm text-ink-secondary">此操作不可恢复。</p>
+          <div v-if="board" class="rounded-md bg-surface-muted p-3 font-mono text-xs text-ink-secondary">
             <div>品牌：{{ board.brand || '-' }}</div>
             <div>型号：{{ board.model }}</div>
             <div>序列号：{{ board.serial_number || '-' }}</div>
             <div>状态：{{ STATUS_LABELS[board.status] }}</div>
             <div v-if="board.chips?.length">芯片：{{ board.chips.join(', ') }}</div>
           </div>
-          <div v-if="deleteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="deleteError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ deleteError }}
           </div>
         </div>

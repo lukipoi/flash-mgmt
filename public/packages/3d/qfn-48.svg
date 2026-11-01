@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="152 102 416 416" width="416" height="416">
+  <!-- QFN-48 5x5 底视缩略图（无尺寸标注；带标注的工程图见 qfn-48-spec.svg）
+       CH579M：D/E 5.00，e 0.35，b 0.18，L 0.40，散热焊盘 3.70；右下角缺角为 Pin 1 -->
+  <rect x="160" y="110" width="400" height="400" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2，右下角缺角作 Pin 1 标识 -->
+  <path d="M212 162 H508 V430 L480 458 H212 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- 48 个焊盘：无外露引脚，焊盘统一同色，仅靠散热焊盘缺角标识 Pin 1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="198.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="226.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="254.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="282.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="310.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="338.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="366.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="394.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="422.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="450.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="478.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="506.8" y="110" width="14.4" height="32" rx="7"/>
+
+    <rect x="198.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="226.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="254.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="282.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="310.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="338.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="366.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="394.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="422.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="450.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="478.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="506.8" y="478" width="14.4" height="32" rx="7"/>
+
+    <rect x="160" y="148.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="176.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="204.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="232.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="260.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="288.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="316.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="344.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="372.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="400.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="428.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="456.8" width="32" height="14.4" rx="7"/>
+
+    <rect x="528" y="148.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="176.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="204.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="232.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="260.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="288.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="316.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="344.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="372.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="400.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="428.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="456.8" width="32" height="14.4" rx="7"/>
+  </g>
+</svg>

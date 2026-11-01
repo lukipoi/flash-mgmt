@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="158 88 440 336" width="440" height="336">
+  <!-- WSON-8 6x8 底视缩略图（无尺寸标注；带标注的工程图见 wson-8-6x8-spec.svg）
+       8 个焊盘 + 中心散热焊盘，左上焊盘为 Pin 1 -->
+  <!-- 本体（底视） -->
+  <rect x="170" y="100" width="416" height="312" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2，左上倒角 C0.4 作 Pin 1 标识 -->
+  <path d="M313 144.2 H458.4 A8 8 0 0 1 466.4 152.2 V359.8 A8 8 0 0 1 458.4 367.8 H297.6 A8 8 0 0 1 289.6 359.8 V167.6 Z"
+        fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- 8 个焊盘：无引脚封装靠散热焊盘缺角标识 Pin 1，焊盘统一同色 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="170" y="146.54" width="26" height="20.8" rx="7"/>
+    <rect x="170" y="212.58" width="26" height="20.8" rx="7"/>
+    <rect x="170" y="278.62" width="26" height="20.8" rx="7"/>
+    <rect x="170" y="344.66" width="26" height="20.8" rx="7"/>
+    <rect x="560" y="146.54" width="26" height="20.8" rx="7"/>
+    <rect x="560" y="212.58" width="26" height="20.8" rx="7"/>
+    <rect x="560" y="278.62" width="26" height="20.8" rx="7"/>
+    <rect x="560" y="344.66" width="26" height="20.8" rx="7"/>
+  </g>
+</svg>

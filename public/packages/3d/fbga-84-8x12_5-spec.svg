@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 620" width="720" height="620">
+  <!-- FBGA-84 8x12.5 底视图工程图（EtronTech EM68B16CWQH 规格书 Figure 48）
+       尺寸表：A(max 1.20) / A1 0.25-0.40 / A2 0.70-0.80 / D 8.0 / E 12.5 / D1 6.40 / E1 11.2 / F 3.2 / e 0.80 / b 0.40-0.50 / 单位 mm
+       阵列：左 3 列 + 右 3 列（组内间距 e，组间 F），15 行；共 84 球（第 10/12/14 行缺右外列，第 11/13/15 行缺左外列）
+       A1 角在右上（底视镜像），用角标三角标识，焊球统一同色 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M224 92 V26 M496 92 V26"/>
+    <path d="M251.2 92 V50 M468.8 92 V50"/>
+    <path d="M305.6 92 V76 M414.4 92 V76"/>
+    <path d="M496 92 H566 M496 517 H566"/>
+    <path d="M496 114.1 H530 M496 494.9 H530"/>
+    <path d="M251.2 358.9 L214 396"/>
+    <path d="M325.1 517 V551 M394.9 517 V551"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M224 30 H496" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M251.2 56 H468.8" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M305.6 82 H414.4" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M560 517 V92" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M524 494.9 V114.1" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M325.1 545 H394.9" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="22" text-anchor="middle">D 8.00</text>
+    <text x="360" y="48" text-anchor="middle">D1 6.40</text>
+    <text x="360" y="74" text-anchor="middle">F 3.20</text>
+    <text transform="translate(570 304.5) rotate(-90)" text-anchor="middle">E 12.50</text>
+    <text transform="translate(534 304.5) rotate(-90)" text-anchor="middle">E1 11.20</text>
+    <text x="206" y="400" text-anchor="end">b 0.45</text>
+    <text x="360" y="539" text-anchor="middle">D2 2.05</text>
+  </g>
+
+  <!-- 本体（底视） -->
+  <rect x="224" y="92" width="272" height="425" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中央无球区：模封凸台，宽度按 D2 2.05（图中 D2 标注范围），上下贯通、无圆角 -->
+  <rect x="325.1" y="92" width="69.7" height="425" fill="#39404e"/>
+  <path d="M325.1 92 V517 M394.9 92 V517" stroke="#4b5464" stroke-width="1.2"/>
+
+  <!-- A1 角标（右上，直角贴本体角，斜边朝内，镀金） -->
+  <path d="M478 92 H496 V110 Z" fill="#d4af37" stroke="#b8912c" stroke-width="0.8"/>
+
+  <!-- 84 颗焊球：6 列 × 15 行，缺 6 颗 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="1">
+    <!-- 第 1-9 行：整排 6 球 -->
+    <g>
+      <circle cx="251.2" cy="114.1" r="7.7"/><circle cx="278.4" cy="114.1" r="7.7"/><circle cx="305.6" cy="114.1" r="7.7"/>
+      <circle cx="414.4" cy="114.1" r="7.7"/><circle cx="441.6" cy="114.1" r="7.7"/><circle cx="468.8" cy="114.1" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="141.3" r="7.7"/><circle cx="278.4" cy="141.3" r="7.7"/><circle cx="305.6" cy="141.3" r="7.7"/>
+      <circle cx="414.4" cy="141.3" r="7.7"/><circle cx="441.6" cy="141.3" r="7.7"/><circle cx="468.8" cy="141.3" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="168.5" r="7.7"/><circle cx="278.4" cy="168.5" r="7.7"/><circle cx="305.6" cy="168.5" r="7.7"/>
+      <circle cx="414.4" cy="168.5" r="7.7"/><circle cx="441.6" cy="168.5" r="7.7"/><circle cx="468.8" cy="168.5" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="195.7" r="7.7"/><circle cx="278.4" cy="195.7" r="7.7"/><circle cx="305.6" cy="195.7" r="7.7"/>
+      <circle cx="414.4" cy="195.7" r="7.7"/><circle cx="441.6" cy="195.7" r="7.7"/><circle cx="468.8" cy="195.7" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="222.9" r="7.7"/><circle cx="278.4" cy="222.9" r="7.7"/><circle cx="305.6" cy="222.9" r="7.7"/>
+      <circle cx="414.4" cy="222.9" r="7.7"/><circle cx="441.6" cy="222.9" r="7.7"/><circle cx="468.8" cy="222.9" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="250.1" r="7.7"/><circle cx="278.4" cy="250.1" r="7.7"/><circle cx="305.6" cy="250.1" r="7.7"/>
+      <circle cx="414.4" cy="250.1" r="7.7"/><circle cx="441.6" cy="250.1" r="7.7"/><circle cx="468.8" cy="250.1" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="277.3" r="7.7"/><circle cx="278.4" cy="277.3" r="7.7"/><circle cx="305.6" cy="277.3" r="7.7"/>
+      <circle cx="414.4" cy="277.3" r="7.7"/><circle cx="441.6" cy="277.3" r="7.7"/><circle cx="468.8" cy="277.3" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="304.5" r="7.7"/><circle cx="278.4" cy="304.5" r="7.7"/><circle cx="305.6" cy="304.5" r="7.7"/>
+      <circle cx="414.4" cy="304.5" r="7.7"/><circle cx="441.6" cy="304.5" r="7.7"/><circle cx="468.8" cy="304.5" r="7.7"/>
+    </g>
+    <g>
+      <circle cx="251.2" cy="331.7" r="7.7"/><circle cx="278.4" cy="331.7" r="7.7"/><circle cx="305.6" cy="331.7" r="7.7"/>
+      <circle cx="414.4" cy="331.7" r="7.7"/><circle cx="441.6" cy="331.7" r="7.7"/><circle cx="468.8" cy="331.7" r="7.7"/>
+    </g>
+    <!-- 第 10 行：缺右外列 -->
+    <g>
+      <circle cx="251.2" cy="358.9" r="7.7"/><circle cx="278.4" cy="358.9" r="7.7"/><circle cx="305.6" cy="358.9" r="7.7"/>
+      <circle cx="414.4" cy="358.9" r="7.7"/><circle cx="441.6" cy="358.9" r="7.7"/>
+    </g>
+    <!-- 第 11 行：缺左外列 -->
+    <g>
+      <circle cx="278.4" cy="386.1" r="7.7"/><circle cx="305.6" cy="386.1" r="7.7"/>
+      <circle cx="414.4" cy="386.1" r="7.7"/><circle cx="441.6" cy="386.1" r="7.7"/><circle cx="468.8" cy="386.1" r="7.7"/>
+    </g>
+    <!-- 第 12 行：缺右外列 -->
+    <g>
+      <circle cx="251.2" cy="413.3" r="7.7"/><circle cx="278.4" cy="413.3" r="7.7"/><circle cx="305.6" cy="413.3" r="7.7"/>
+      <circle cx="414.4" cy="413.3" r="7.7"/><circle cx="441.6" cy="413.3" r="7.7"/>
+    </g>
+    <!-- 第 13 行：缺左外列 -->
+    <g>
+      <circle cx="278.4" cy="440.5" r="7.7"/><circle cx="305.6" cy="440.5" r="7.7"/>
+      <circle cx="414.4" cy="440.5" r="7.7"/><circle cx="441.6" cy="440.5" r="7.7"/><circle cx="468.8" cy="440.5" r="7.7"/>
+    </g>
+    <!-- 第 14 行：缺右外列 -->
+    <g>
+      <circle cx="251.2" cy="467.7" r="7.7"/><circle cx="278.4" cy="467.7" r="7.7"/><circle cx="305.6" cy="467.7" r="7.7"/>
+      <circle cx="414.4" cy="467.7" r="7.7"/><circle cx="441.6" cy="467.7" r="7.7"/>
+    </g>
+    <!-- 第 15 行：缺左外列 -->
+    <g>
+      <circle cx="278.4" cy="494.9" r="7.7"/><circle cx="305.6" cy="494.9" r="7.7"/>
+      <circle cx="414.4" cy="494.9" r="7.7"/><circle cx="441.6" cy="494.9" r="7.7"/><circle cx="468.8" cy="494.9" r="7.7"/>
+    </g>
+  </g>
+
+  <!-- 参数说明 -->
+  <text x="360" y="566" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">e 0.80 · b 0.40–0.50（nom 0.45）· 共 84 球 · Pb-free</text>
+</svg>

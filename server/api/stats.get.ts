@@ -7,6 +7,7 @@ export default defineEventHandler(() => {
 
   const flashCount = (db.prepare("SELECT COUNT(*) as count FROM chips WHERE chip_type = 'flash'").get() as any)?.count ?? 0
   const mcuCount = (db.prepare("SELECT COUNT(*) as count FROM chips WHERE chip_type = 'mcu'").get() as any)?.count ?? 0
+  const otherCount = (db.prepare("SELECT COUNT(*) as count FROM chips WHERE chip_type = 'other'").get() as any)?.count ?? 0
 
   // 设备总数（表可能不存在，try 包裹）
   let equipmentTotal = 0
@@ -35,7 +36,7 @@ export default defineEventHandler(() => {
   return {
     total,
     models: modelStats,
-    by_type: { flash: flashCount, mcu: mcuCount },
+    by_type: { flash: flashCount, mcu: mcuCount, other: otherCount },
     equipment_total: equipmentTotal,
     consumables_total: consumablesTotal,
     boards_total: boardsTotal

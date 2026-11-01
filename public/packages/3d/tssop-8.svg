@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="271 40 179 375" width="179" height="375">
+  <!-- TSSOP-8 正俯视缩略图（无尺寸标注；带标注的工程图见 tssop-8-spec.svg）
+       8 脚有外露引脚 → 顶视。比例 58 px/mm
+       本体 D 3.0 × E1 4.4，上下各 4 脚（e 0.65，b 0.25，伸出 L1 1.0），pin1 点右上 -->
+  <!-- 引脚：上排 4 脚（右起 1→4）+ 下排 4 脚 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="296.2"  y="42" width="14.5" height="58" rx="2"/>
+    <rect x="333.9"  y="42" width="14.5" height="58" rx="2"/>
+    <rect x="371.6"  y="42" width="14.5" height="58" rx="2"/>
+    <rect x="409.3"  y="42" width="14.5" height="58" rx="2"/>
+    <rect x="296.2"  y="355.2" width="14.5" height="58" rx="2"/>
+    <rect x="333.9"  y="355.2" width="14.5" height="58" rx="2"/>
+    <rect x="371.6"  y="355.2" width="14.5" height="58" rx="2"/>
+    <rect x="409.3"  y="355.2" width="14.5" height="58" rx="2"/>
+  </g>
+
+
+  <!-- 本体（顶视，塑料色） -->
+  <rect x="273" y="100" width="174" height="255.2" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+  <!-- pin1 定位点（右上角） -->
+  <circle cx="425" cy="120" r="10" fill="#d9d9d9"/>
+</svg>

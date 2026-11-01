@@ -1,0 +1,596 @@
+/*
+ * endfield-ui 设计令牌（本地副本，已适配 Nuxt/Tailwind v4 叠加式接入）
+ *
+ * 来源：https://github.com/icaruszezen/endfield-ui  (MIT License, 原创内容)
+ * 原文件：packages/ui/src/styles/theme.css
+ *
+ * 与原版差异（仅为接入本项目而改动，令牌取值不变）：
+ *   - 删除了 `@theme` 中的 `--color-*: initial` / `--font-*: initial` /
+ *     `--text-*: initial` / `--radius-*: initial` / `--shadow-*: initial` /
+ *     `--animate-*: initial` 等"清空 Tailwind 默认"指令，
+ *     改为叠加式：Tailwind 默认色板 / 字阶 / 圆角 / 阴影保留，
+ *     Endfield 令牌作为补充加入，避免搞挂 @nuxt/ui 与既有页面。
+ *   - 末尾追加了 `--color-action-50..950` 完整色阶，供 @nuxt/ui 的
+ *     primary 映射到信号黄（原版 action 只有单值，@nuxt/ui 需要完整色阶）。
+ *   - 为减小体积，未引入原版的 --animate-* 动画与 @keyframes（本项目暂不需要）。
+ *
+ * 用法（在 main.css 中）：
+ *   @import "./endfield/theme.css";
+ *   @import "./endfield/utilities.css";
+ *
+ * 主题切换：<html data-theme="dark|light|inverse">（见 docs/design）
+ */
+
+/* ------------------------------------------------------------------ */
+/* 1. 语义变量                                                         */
+/* ------------------------------------------------------------------ */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* 表面 */
+  --ef-surface: #ffffff;
+  --ef-surface-raised: #fafafa;
+  --ef-surface-sunken: #f2f2f2;
+  --ef-surface-muted: #e6e6e6;
+  --ef-surface-inverse: #191919;
+
+  /* 文字 */
+  --ef-ink: #191919;
+  --ef-ink-secondary: #626262;
+  --ef-ink-tertiary: #8a8a8a;
+  --ef-ink-disabled: #b3b3b3;
+  --ef-ink-inverse: #ffffff;
+
+  /* 线 */
+  --ef-line: #d9d9d9;
+  --ef-line-strong: #b3b3b3;
+
+  /* 行动与选中 */
+  --ef-action: #fffa00;
+  --ef-action-pressed: #eeea00;
+  --ef-on-action: #191919;
+  --ef-accent-ink: #6b5d00;
+  --ef-accent-ink-inverse: var(--ef-action);
+
+  /* 中性控件 */
+  --ef-control: #383838;
+  --ef-control-hover: #484848;
+  --ef-control-pressed: #282828;
+  --ef-on-control: #eeeeee;
+
+  --ef-button: #383838;
+  --ef-button-hover: #484848;
+  --ef-button-pressed: #282828;
+  --ef-on-button: #eeeeee;
+
+  /* 禁用控件的填充与其上的文字 */
+  --ef-disabled: #b3b3b3;
+  --ef-on-disabled: #626262;
+
+  /* 焦点与遮罩 */
+  --ef-focus: #191919;
+  --ef-scrim: rgb(0 0 0 / 0.5);
+
+  /* 状态（文字级，在亮色表面上 ≥ 4.5:1） */
+  --ef-danger: #de0909;
+  --ef-success: #007f43;
+  --ef-warning: #b74e00;
+  --ef-info: #25759f;
+
+  --ef-x-scheme: dark;
+  --ef-x-surface-raised: #1f1f1f;
+  --ef-x-surface-sunken: #000000;
+  --ef-x-surface-muted: #282828;
+  --ef-x-ink-secondary: #b3b3b3;
+  --ef-x-ink-disabled: #626262;
+  --ef-x-line: #383838;
+  --ef-x-line-strong: #626262;
+  --ef-x-button: rgb(255 255 255 / 0.2);
+  --ef-x-button-hover: rgb(255 255 255 / 0.3);
+  --ef-x-button-pressed: rgb(255 255 255 / 0.15);
+  --ef-x-on-button: #d9d9d9;
+  --ef-x-disabled: #282828;
+  --ef-x-focus: #fffa00;
+  --ef-x-scrim: rgb(0 0 0 / 0.7);
+  --ef-x-danger: #f74040;
+  --ef-x-success: #00d872;
+  --ef-x-warning: #fc6c00;
+  --ef-x-info: #2d8fc2;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ef-surface: #141414;
+  --ef-surface-raised: #1f1f1f;
+  --ef-surface-sunken: #000000;
+  --ef-surface-muted: #282828;
+  --ef-surface-inverse: #fafafa;
+
+  --ef-ink: #fafafa;
+  --ef-ink-secondary: #b3b3b3;
+  --ef-ink-tertiary: #8a8a8a;
+  --ef-ink-disabled: #626262;
+  --ef-ink-inverse: #191919;
+
+  --ef-line: #383838;
+  --ef-line-strong: #626262;
+
+  --ef-action: #fffa00;
+  --ef-action-pressed: #eeea00;
+  --ef-on-action: #191919;
+  --ef-accent-ink: #fffa00;
+  --ef-accent-ink-inverse: #6b5d00;
+
+  --ef-control: #383838;
+  --ef-control-hover: #484848;
+  --ef-control-pressed: #282828;
+  --ef-on-control: #eeeeee;
+
+  --ef-button: rgb(255 255 255 / 0.2);
+  --ef-button-hover: rgb(255 255 255 / 0.3);
+  --ef-button-pressed: rgb(255 255 255 / 0.15);
+  --ef-on-button: #d9d9d9;
+
+  --ef-disabled: #282828;
+  --ef-on-disabled: #626262;
+
+  --ef-focus: #fffa00;
+  --ef-scrim: rgb(0 0 0 / 0.7);
+
+  --ef-danger: #f74040;
+  --ef-success: #00d872;
+  --ef-warning: #fc6c00;
+  --ef-info: #2d8fc2;
+
+  --ef-x-scheme: light;
+  --ef-x-surface-raised: #fafafa;
+  --ef-x-surface-sunken: #f2f2f2;
+  --ef-x-surface-muted: #e6e6e6;
+  --ef-x-ink-secondary: #626262;
+  --ef-x-ink-disabled: #b3b3b3;
+  --ef-x-line: #d9d9d9;
+  --ef-x-line-strong: #b3b3b3;
+  --ef-x-button: #383838;
+  --ef-x-button-hover: #484848;
+  --ef-x-button-pressed: #282828;
+  --ef-x-on-button: #eeeeee;
+  --ef-x-disabled: #b3b3b3;
+  --ef-x-focus: #191919;
+  --ef-x-scrim: rgb(0 0 0 / 0.5);
+  --ef-x-danger: #de0909;
+  --ef-x-success: #007f43;
+  --ef-x-warning: #b74e00;
+  --ef-x-info: #25759f;
+}
+
+:has(> [data-theme="inverse"]):not(
+  [data-theme="inverse"],
+  [data-theme="inverse"] *
+) {
+  --ef-x-surface: var(--ef-surface-inverse);
+  --ef-x-surface-inverse: var(--ef-surface);
+  --ef-x-ink: var(--ef-ink-inverse);
+  --ef-x-ink-inverse: var(--ef-ink);
+  --ef-x-accent-ink: var(--ef-accent-ink-inverse);
+  --ef-x-accent-ink-inverse: var(--ef-accent-ink);
+}
+
+[data-theme="inverse"] {
+  color-scheme: var(--ef-x-scheme);
+
+  --ef-surface: var(--ef-x-surface);
+  --ef-surface-raised: var(--ef-x-surface-raised);
+  --ef-surface-sunken: var(--ef-x-surface-sunken);
+  --ef-surface-muted: var(--ef-x-surface-muted);
+  --ef-surface-inverse: var(--ef-x-surface-inverse);
+
+  --ef-ink: var(--ef-x-ink);
+  --ef-ink-secondary: var(--ef-x-ink-secondary);
+  --ef-ink-disabled: var(--ef-x-ink-disabled);
+  --ef-ink-inverse: var(--ef-x-ink-inverse);
+
+  --ef-line: var(--ef-x-line);
+  --ef-line-strong: var(--ef-x-line-strong);
+
+  --ef-accent-ink: var(--ef-x-accent-ink);
+  --ef-accent-ink-inverse: var(--ef-x-accent-ink-inverse);
+
+  --ef-button: var(--ef-x-button);
+  --ef-button-hover: var(--ef-x-button-hover);
+  --ef-button-pressed: var(--ef-x-button-pressed);
+  --ef-on-button: var(--ef-x-on-button);
+
+  --ef-disabled: var(--ef-x-disabled);
+
+  --ef-focus: var(--ef-x-focus);
+  --ef-scrim: var(--ef-x-scrim);
+
+  --ef-danger: var(--ef-x-danger);
+  --ef-success: var(--ef-x-success);
+  --ef-warning: var(--ef-x-warning);
+  --ef-info: var(--ef-x-info);
+}
+
+/* ------------------------------------------------------------------ */
+/* 2. 原始令牌（叠加式：不清除 Tailwind 默认）                         */
+/* ------------------------------------------------------------------ */
+
+@theme {
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* 中性阶 */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f2f2f2;
+  --color-neutral-200: #e6e6e6;
+  --color-neutral-300: #d9d9d9;
+  --color-neutral-400: #b3b3b3;
+  --color-neutral-500: #8a8a8a;
+  --color-neutral-600: #626262;
+  --color-neutral-700: #484848;
+  --color-neutral-800: #383838;
+  --color-neutral-850: #282828;
+  --color-neutral-900: #191919;
+  --color-neutral-950: #141414;
+
+  /* 信号黄 */
+  --color-signal: #fffa00;
+  --color-signal-pressed: #eeea00;
+  --color-signal-deep: #e6de01;
+  --color-signal-ink: #6b5d00;
+
+  /* 角色色（扩展为完整色阶：DEFAULT + 50..950，供 @nuxt/ui 的 color 属性与 /opacity
+     工具类共用；cyan/blue→data、amber→notice、purple→special、red→alert 的统一映射） */
+  --color-notice: #fc6c00;
+  --color-notice-50: #fff0e0;
+  --color-notice-100: #ffdbbe;
+  --color-notice-200: #ffc085;
+  --color-notice-300: #ff9d4d;
+  --color-notice-400: #ff8220;
+  --color-notice-500: #fc6c00;
+  --color-notice-600: #d45900;
+  --color-notice-700: #a84300;
+  --color-notice-800: #7c3200;
+  --color-notice-900: #512000;
+  --color-notice-950: #2c1100;
+
+  --color-gain: #bce41d;
+  --color-gain-50: #f4fbe0;
+  --color-gain-100: #e8f7c2;
+  --color-gain-200: #d2ef85;
+  --color-gain-300: #bce41d;
+  --color-gain-400: #a3c914;
+  --color-gain-500: #8aaa10;
+  --color-gain-600: #6c8a0d;
+  --color-gain-700: #50670a;
+  --color-gain-800: #384707;
+  --color-gain-900: #202804;
+  --color-gain-950: #111402;
+
+  --color-data: #2a84b4;
+  --color-data-50: #e8f2f8;
+  --color-data-100: #cfe5f1;
+  --color-data-200: #9ecbe3;
+  --color-data-300: #6cb1d5;
+  --color-data-400: #3f97c7;
+  --color-data-500: #2a84b4;
+  --color-data-600: #216a91;
+  --color-data-700: #19506d;
+  --color-data-800: #123849;
+  --color-data-900: #0b1f29;
+  --color-data-950: #061116;
+
+  --color-region: #06a2a2;
+  --color-region-50: #e0f7f7;
+  --color-region-100: #b3eeee;
+  --color-region-200: #7ddddd;
+  --color-region-300: #45c8c8;
+  --color-region-400: #1bb0b0;
+  --color-region-500: #06a2a2;
+  --color-region-600: #058282;
+  --color-region-700: #046363;
+  --color-region-800: #034343;
+  --color-region-900: #022424;
+  --color-region-950: #011313;
+
+  --color-alert: #f62a2a;
+  --color-alert-50: #fee5e5;
+  --color-alert-100: #fdcbcb;
+  --color-alert-200: #fb9797;
+  --color-alert-300: #f86363;
+  --color-alert-400: #f63f3f;
+  --color-alert-500: #f62a2a;
+  --color-alert-600: #d41d1d;
+  --color-alert-700: #ab1414;
+  --color-alert-800: #810f0f;
+  --color-alert-900: #560a0a;
+  --color-alert-950: #2e0505;
+
+  --color-alert-fill: #de0909;
+  --color-alert-fill-hover: #c40808;
+  --color-alert-fill-pressed: #a80707;
+  --color-confirm: #00d872;
+
+  --color-special: #904ef0;
+  --color-special-50: #f3e9fe;
+  --color-special-100: #e6d2fd;
+  --color-special-200: #cda6fb;
+  --color-special-300: #b47af9;
+  --color-special-400: #a15ef7;
+  --color-special-500: #904ef0;
+  --color-special-600: #7a35d4;
+  --color-special-700: #641fb0;
+  --color-special-800: #4d188a;
+  --color-special-900: #35115f;
+  --color-special-950: #1f0a37;
+
+  /* 稀有度色阶 */
+  --color-rarity-1: #24bafc;
+  --color-rarity-2: #904ef6;
+  --color-rarity-3: #fcba00;
+  --color-rarity-4: #fc6c00;
+
+  /* 注册色条 */
+  --color-reg-magenta: #ec008c;
+  --color-reg-cyan: #00aeef;
+  --color-reg-yellow: #fff200;
+
+  /* 字体 */
+  --font-sans:
+    "HarmonyOS Sans SC", "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
+    "Microsoft YaHei", system-ui, sans-serif;
+  --font-display: "Archivo", "Montserrat", "HarmonyOS Sans SC", sans-serif;
+  --font-display--font-variation-settings: "wdth" 125;
+  --font-latin: "Outfit", "Urbanist", "HarmonyOS Sans SC", sans-serif;
+  --font-tech: "Space Grotesk", "HarmonyOS Sans SC", sans-serif;
+  --font-tech--font-feature-settings: "tnum" 1;
+  --font-mono:
+    "JetBrains Mono", "Cascadia Code", ui-monospace, "SF Mono", Consolas,
+    monospace;
+
+  /* 字阶（正文 = 1，落到 16px 基准） */
+  --text-micro: 0.625rem;
+  --text-micro--line-height: 1;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.25;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.4;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.2;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.1;
+  --text-2xl: 2rem;
+  --text-2xl--line-height: 1.1;
+  --text-3xl: 2.5rem;
+  --text-3xl--line-height: 1;
+  --text-4xl: 3.25rem;
+  --text-4xl--line-height: 1;
+  --text-5xl: 4.5rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 6rem;
+  --text-6xl--line-height: 1;
+  --text-ghost: clamp(5rem, 10.4vw, 12.5rem);
+  --text-ghost--line-height: 1;
+  --text-ghost--letter-spacing: -0.04em;
+
+  --tracking-ghost: -0.04em;
+  --tracking-label: 0.05em;
+
+  /* 圆角：默认直角，另有两档微圆角 */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  /* 阴影：零偏移的环境阴影 */
+  --shadow-xs: 0 0 4px rgb(0 0 0 / 0.25);
+  --shadow-sm: 0 0 8px rgb(0 0 0 / 0.25);
+  --shadow-md: 0 0 12px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 0 24px rgb(0 0 0 / 0.3);
+  --shadow-rail: 0 0 12px rgb(0 0 0 / 0.1);
+
+  /* 缓动与时长 */
+  --ease-standard: ease;
+  --ease-emphasis: ease-in-out;
+  --ease-exit: ease-out;
+
+  --duration-instant: 50ms;
+  --duration-fast: 200ms;
+  --duration-base: 300ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+
+  --motion-shift: 4px;
+  --motion-shift-lg: 8px;
+
+  /* 母题尺寸 */
+  --cut-sm: 6px;
+  --cut-md: 10px;
+  --cut-lg: 16px;
+  --hatch-size: 6px;
+
+  /* 层叠 */
+  --z-float: 100;
+  --z-nav: 200;
+  --z-overlay: 300;
+  --z-toast: 400;
+  --z-loader: 1000;
+}
+
+/* ------------------------------------------------------------------ */
+/* 3. 语义颜色 → Tailwind 工具类                                       */
+/* ------------------------------------------------------------------ */
+
+@theme inline {
+  --color-surface: var(--ef-surface);
+  --color-surface-raised: var(--ef-surface-raised);
+  --color-surface-sunken: var(--ef-surface-sunken);
+  --color-surface-muted: var(--ef-surface-muted);
+  --color-surface-inverse: var(--ef-surface-inverse);
+
+  --color-ink: var(--ef-ink);
+  --color-ink-secondary: var(--ef-ink-secondary);
+  --color-ink-tertiary: var(--ef-ink-tertiary);
+  --color-ink-disabled: var(--ef-ink-disabled);
+  --color-ink-inverse: var(--ef-ink-inverse);
+
+  --color-line: var(--ef-line);
+  --color-line-strong: var(--ef-line-strong);
+
+  --color-action: var(--ef-action);
+  --color-action-pressed: var(--ef-action-pressed);
+  --color-on-action: var(--ef-on-action);
+  --color-accent-ink: var(--ef-accent-ink);
+  --color-accent-ink-inverse: var(--ef-accent-ink-inverse);
+
+  --color-control: var(--ef-control);
+  --color-control-hover: var(--ef-control-hover);
+  --color-control-pressed: var(--ef-control-pressed);
+  --color-on-control: var(--ef-on-control);
+
+  --color-button: var(--ef-button);
+  --color-button-hover: var(--ef-button-hover);
+  --color-button-pressed: var(--ef-button-pressed);
+  --color-on-button: var(--ef-on-button);
+
+  --color-disabled: var(--ef-disabled);
+  --color-on-disabled: var(--ef-on-disabled);
+
+  --color-focus: var(--ef-focus);
+  --color-scrim: var(--ef-scrim);
+
+  --color-danger: var(--ef-danger);
+  --color-success: var(--ef-success);
+  --color-warning: var(--ef-warning);
+  --color-info: var(--ef-info);
+}
+
+/* ------------------------------------------------------------------ */
+/* 4. 追加：action 完整色阶（供 @nuxt/ui primary 使用）                */
+/* ------------------------------------------------------------------ */
+
+@theme {
+  --color-action-50: #fffde6;
+  --color-action-100: #fffbc2;
+  --color-action-200: #fff680;
+  --color-action-300: #fff23d;
+  --color-action-400: #fffc00;
+  --color-action-500: var(--ef-action);
+  --color-action-600: #e6de01;
+  --color-action-700: #b8b100;
+  --color-action-800: #8a8600;
+  --color-action-900: #5c5900;
+  --color-action-950: #2e2d00;
+}
+
+/* 减少动态效果 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 5. @nuxt/ui 组件色桥接（关键修复：按钮“消失”问题）                 */
+/*                                                                    */
+/* @nuxt/ui v3 在生成组件色变量时，直接用 ui.colors 的“键名”当        */
+/* Tailwind 颜色名：                                                  */
+/*   --ui-color-primary-500: var(--color-primary-500, )              */
+/* 但本项目只定义了 Endfield 角色色（action/alert/data/...），           */
+/* 并没有 primary/secondary/danger/info/success/warning 这些名字。    */
+/* 于是这些 --ui-color-* 全部落到空回退值，导致 solid 按钮背景透明、   */
+/* 看起来“没了”（含弹窗里默认的 primary 按钮、删除确认 error 按钮等）。*/
+/* 下面把 @nuxt/ui 需要的键名别名到 Endfield 角色色（全部 var 引用，  */
+/* 单一来源仍是上面的角色色阶），让所有按钮正常上色。                  */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* primary -> action（信号黄，明暗同值 #fffa00） */
+  --color-primary-50: var(--color-action-50);
+  --color-primary-100: var(--color-action-100);
+  --color-primary-200: var(--color-action-200);
+  --color-primary-300: var(--color-action-300);
+  --color-primary-400: var(--color-action-400);
+  --color-primary-500: var(--color-action-500);
+  --color-primary-600: var(--color-action-600);
+  --color-primary-700: var(--color-action-700);
+  --color-primary-800: var(--color-action-800);
+  --color-primary-900: var(--color-action-900);
+  --color-primary-950: var(--color-action-950);
+
+  /* secondary -> neutral */
+  --color-secondary-50: var(--color-neutral-50);
+  --color-secondary-100: var(--color-neutral-100);
+  --color-secondary-200: var(--color-neutral-200);
+  --color-secondary-300: var(--color-neutral-300);
+  --color-secondary-400: var(--color-neutral-400);
+  --color-secondary-500: var(--color-neutral-500);
+  --color-secondary-600: var(--color-neutral-600);
+  --color-secondary-700: var(--color-neutral-700);
+  --color-secondary-800: var(--color-neutral-800);
+  --color-secondary-900: var(--color-neutral-900);
+  --color-secondary-950: var(--color-neutral-950);
+
+  /* error(->danger) -> alert（红） */
+  --color-danger-50: var(--color-alert-50);
+  --color-danger-100: var(--color-alert-100);
+  --color-danger-200: var(--color-alert-200);
+  --color-danger-300: var(--color-alert-300);
+  --color-danger-400: var(--color-alert-400);
+  --color-danger-500: var(--color-alert-500);
+  --color-danger-600: var(--color-alert-600);
+  --color-danger-700: var(--color-alert-700);
+  --color-danger-800: var(--color-alert-800);
+  --color-danger-900: var(--color-alert-900);
+  --color-danger-950: var(--color-alert-950);
+
+  /* info -> data（蓝） */
+  --color-info-50: var(--color-data-50);
+  --color-info-100: var(--color-data-100);
+  --color-info-200: var(--color-data-200);
+  --color-info-300: var(--color-data-300);
+  --color-info-400: var(--color-data-400);
+  --color-info-500: var(--color-data-500);
+  --color-info-600: var(--color-data-600);
+  --color-info-700: var(--color-data-700);
+  --color-info-800: var(--color-data-800);
+  --color-info-900: var(--color-data-900);
+  --color-info-950: var(--color-data-950);
+
+  /* success -> gain（绿） */
+  --color-success-50: var(--color-gain-50);
+  --color-success-100: var(--color-gain-100);
+  --color-success-200: var(--color-gain-200);
+  --color-success-300: var(--color-gain-300);
+  --color-success-400: var(--color-gain-400);
+  --color-success-500: var(--color-gain-500);
+  --color-success-600: var(--color-gain-600);
+  --color-success-700: var(--color-gain-700);
+  --color-success-800: var(--color-gain-800);
+  --color-success-900: var(--color-gain-900);
+  --color-success-950: var(--color-gain-950);
+
+  /* warning -> notice（橙） */
+  --color-warning-50: var(--color-notice-50);
+  --color-warning-100: var(--color-notice-100);
+  --color-warning-200: var(--color-notice-200);
+  --color-warning-300: var(--color-notice-300);
+  --color-warning-400: var(--color-notice-400);
+  --color-warning-500: var(--color-notice-500);
+  --color-warning-600: var(--color-notice-600);
+  --color-warning-700: var(--color-notice-700);
+  --color-warning-800: var(--color-notice-800);
+  --color-warning-900: var(--color-notice-900);
+  --color-warning-950: var(--color-notice-950);
+}

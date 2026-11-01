@@ -9,8 +9,13 @@ definePageMeta({
 
 const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
+const ULink = resolveComponent('ULink')
+const BrandLogo = resolveComponent('BrandLogo')
+const PackageImage = resolveComponent('PackageImage')
 
-const search = ref('')
+const route = useRoute()
+// 容器标签二维码会带 ?search=容器名，进入列表时自动按该关键字筛选
+const search = ref(String(route.query.search || ''))
 const modelFilter = ref<string | undefined>(undefined)
 const typeFilter = ref<string | undefined>(undefined)
 const chips = ref<Chip[]>([])
@@ -65,7 +70,8 @@ const modelItems = computed(() => [
 const typeItems = computed(() => [
   { label: '全部类型', value: 'all' },
   { label: 'Flash 存储', value: 'flash' },
-  { label: 'MCU 单片机', value: 'mcu' }
+  { label: 'MCU 单片机', value: 'mcu' },
+  { label: '其他', value: 'other' }
 ])
 
 function onModelChange(val: string | undefined) {
@@ -92,12 +98,21 @@ watch(search, () => {
 })
 
 function chipTypeBadge(type: string) {
-  const isMcu = type === 'mcu'
+  const meta: Record<string, { color: any; label: string }> = {
+    flash: { color: 'data', label: 'Flash' },
+    mcu: { color: 'special', label: 'MCU' },
+    other: { color: 'neutral', label: '其他' }
+  }
+  const m = meta[type] ?? meta.flash
   return h(UBadge, {
-    color: isMcu ? 'purple' : 'cyan',
+    color: m.color,
     variant: 'subtle',
     size: 'xs'
-  }, () => isMcu ? 'MCU' : 'Flash')
+  }, () => m.label)
+}
+
+function chipTypeLabel(type?: string | null) {
+  return type === 'mcu' ? 'MCU' : type === 'other' ? '其他' : 'Flash'
 }
 
 function formatLocation(a?: string | null, b?: string | null, c?: string | null): string {
@@ -109,45 +124,99 @@ const columns: TableColumn<Chip>[] = [
   {
     accessorKey: 'vendor',
     header: '厂商',
-    cell: ({ row }) => h('span', { class: 'text-xs text-amber-400' }, row.getValue('vendor') || '-')
+    cell: ({ row }) => {
+      const v = row.getValue('vendor') as string | null
+      const name = normalizeVendor(v)
+      if (!name) return h('span', { class: 'text-xs text-ink-tertiary' }, '-')
+      // logo + 规范名，点击进品牌详情页
+      return h('a', {
+        href: `/brands/${encodeURIComponent(name)}`,
+        class: 'inline-flex items-center gap-1.5 text-xs text-notice-400 hover:text-notice-300',
+        onClick: (e: Event) => e.stopPropagation()
+      }, [
+        h(BrandLogo, { vendor: v }),
+        h('span', name)
+      ])
+    }
   },
   {
     accessorKey: 'model',
     header: '型号',
-    cell: ({ row }) => h('span', { class: 'font-medium text-slate-200' }, row.getValue('model') || '(未知)')
+    cell: ({ row }) => h('div', { class: 'flex items-center gap-2' }, [
+      h(ULink, {
+        to: `/chips/${row.original.id}`,
+        class: 'font-medium text-action hover:text-data-300'
+      }, () => row.getValue('model') || '(未知)')
+    ])
   },
   {
     accessorKey: 'chip_type',
     header: '类型',
-    cell: ({ row }) => chipTypeBadge(row.getValue('chip_type') || 'flash')
+    cell: ({ row }) => {
+      const type = (row.getValue('chip_type') || 'flash') as string
+      // chip_category 不是独立列，row.getValue 取不到，需从原始行数据取
+      const cat = (row.original as Chip).chip_category
+      // 已选二级分类的「其他」芯片，直接显示分类路径，不再显示「其他」
+      if (type === 'other' && cat) {
+        const qty = (row.original as Chip).qty_per_bag ?? 1
+        return h('span', { class: 'text-xs text-ink-secondary' }, [
+          categoryPath(cat),
+          qty > 1 ? h('span', { class: 'ml-1 text-notice-400' }, `×${qty}`) : null
+        ])
+      }
+      return chipTypeBadge(type)
+    }
   },
   {
     accessorKey: 'uid',
     header: 'UID',
-    cell: ({ row }) => h('span', {
-      class: 'font-mono text-xs text-cyan-400',
-      title: row.getValue('uid')
-    }, truncateUid(row.getValue('uid') || '', 16))
+    cell: ({ row }) => {
+      const uid = row.getValue('uid') as string | null
+      // Flash / MCU 无 UID 时显示 "/"（出厂无 UID，如旺宏 MX25）；其他类型 UID 可选，留空
+      const text = uid ? truncateUid(uid, 16) : ((row.original as Chip).chip_type !== 'other' ? '/' : '')
+      return h('span', {
+        class: 'font-mono text-xs text-action',
+        title: uid ?? undefined
+      }, text)
+    }
   },
   {
     accessorKey: 'jedec_id',
     header: 'JEDEC ID',
-    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-slate-400' }, formatJedecId(row.getValue('jedec_id')) || '-')
+    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-ink-secondary' }, formatJedecId(row.getValue('jedec_id')) || '-')
   },
   {
     accessorKey: 'capacity',
     header: '容量',
     cell: ({ row }) => {
       const type = row.getValue('chip_type')
-      const cap = row.getValue('capacity')
-      const val = type === 'mcu' ? '/' : (cap || '-')
-      return h('span', { class: 'text-slate-400' }, val)
+      const cap = row.getValue('capacity') as string | null
+      const val = (type === 'mcu' || type === 'other') ? '/' : (cap || '-')
+      return h('span', { class: 'text-ink-secondary' }, val)
+    }
+  },
+  {
+    accessorKey: 'package',
+    header: '封装',
+    cell: ({ row }) => {
+      const p = row.getValue('package') as string | null
+      const name = normalizePackage(p)
+      if (!name) return h('span', { class: 'text-xs text-ink-tertiary' }, '-')
+      // 封装图 + 规范名，点击进封装详情页
+      return h('a', {
+        href: `/packages/${encodeURIComponent(name)}`,
+        class: 'inline-flex items-center gap-1.5 text-xs text-region-400 hover:text-region-300',
+        onClick: (e: Event) => e.stopPropagation()
+      }, [
+        h(PackageImage, { pkg: p }),
+        h('span', name)
+      ])
     }
   },
   {
     accessorKey: 'location_a',
     header: '库位',
-    cell: ({ row }) => h('span', { class: 'text-xs text-slate-400' },
+    cell: ({ row }) => h('span', { class: 'text-xs text-ink-secondary' },
       formatLocation(row.getValue('location_a'), row.getValue('location_b'), row.getValue('location_c')))
   },
   {
@@ -155,14 +224,6 @@ const columns: TableColumn<Chip>[] = [
     header: '操作',
     meta: { class: { th: 'text-right', td: 'text-right' } },
     cell: ({ row }) => h('div', { class: 'flex justify-end gap-1' }, [
-      h(UButton, {
-        icon: 'i-lucide-eye',
-        color: 'neutral',
-        variant: 'ghost',
-        size: 'xs',
-        label: '查看',
-        onClick: (e: Event) => { e.stopPropagation(); navigateTo(`/chips/${row.original.id}`) }
-      }),
       h(UButton, {
         icon: 'i-lucide-pencil',
         color: 'neutral',
@@ -255,7 +316,65 @@ async function identifyChip() {
 const showEditModal = ref(false)
 const editing = ref(false)
 const editError = ref<string | null>(null)
-const editForm = reactive<Partial<Chip>>({})
+const editForm = reactive<Record<string, any>>({})
+
+// 品牌选项：内置 + 手动添加的品牌；编辑回显时当前值不在列表则前置兜底
+const { data: brandList } = await useFetch<{ name: string }[]>('/api/brands')
+const brandOptions = computed(() => {
+  const names = (brandList.value ?? []).map(b => b.name)
+  const cur = editForm.vendor?.trim()
+  if (cur && !names.includes(cur)) names.unshift(cur)
+  return names
+})
+
+// 封装选项：内置 + 手动添加的封装；编辑回显时当前值不在列表则前置兜底
+const { data: packageList } = await useFetch<{ name: string }[]>('/api/packages')
+const packageOptions = computed(() => {
+  const names = (packageList.value ?? []).map(p => p.name)
+  const cur = editForm.package?.trim()
+  if (cur && !names.includes(cur)) names.unshift(cur)
+  return names
+})
+
+// 芯片类型（两级，仅「其他」使用）
+interface CategoryItem { id: number, name: string, parent_id: number | null, chip_count: number }
+const { data: categoryList } = await useFetch<CategoryItem[]>('/api/chip-categories')
+const categoryRoots = computed(() =>
+  (categoryList.value ?? [])
+    .filter(c => c.parent_id === null)
+    .sort((a, b) => a.name.localeCompare(b.name, 'zh'))
+)
+const rootOptions = computed(() => categoryRoots.value.map(c => c.name))
+
+// 编辑时选中的一级分类（只用于筛二级，不入库）
+const editRoot = ref('')
+const categoryOptions = computed(() => {
+  const root = categoryRoots.value.find(c => c.name === editRoot.value)
+  if (!root) return []
+  const names = (categoryList.value ?? [])
+    .filter(c => c.parent_id === root.id)
+    .map(c => c.name)
+    .sort((a, b) => a.localeCompare(b, 'zh'))
+  const cur = String(editForm.chip_category ?? '').trim()
+  if (cur && !names.includes(cur)) names.unshift(cur)
+  return names
+})
+
+// 列表展示：二级分类 → “一级 / 二级”
+const categoryById = computed(() => new Map((categoryList.value ?? []).map(c => [c.id, c])))
+function categoryPath(name: string | null) {
+  const leaf = (categoryList.value ?? []).find(c => c.name === name)
+  if (!leaf) return name || ''
+  const parent = leaf.parent_id ? categoryById.value.get(leaf.parent_id) : null
+  return parent ? `${parent.name} / ${leaf.name}` : leaf.name
+}
+
+// 切换一级分类时，已选二级不在新范围则清空
+watch(editRoot, () => {
+  if (editForm.chip_category && !categoryOptions.value.includes(editForm.chip_category)) {
+    editForm.chip_category = ''
+  }
+})
 const editId = ref<number | null>(null)
 
 // 库位自动序号（大箱+小箱填齐、序号为空时触发）
@@ -283,13 +402,28 @@ watch(() => [editForm.location_a, editForm.location_b] as const, () => tryEditAu
 
 function openEditModal(chip: Chip) {
   editId.value = chip.id
+  const leaf = (categoryList.value ?? []).find(c => c.name === chip.chip_category)
+  editRoot.value = leaf?.parent_id
+    ? categoryById.value.get(leaf.parent_id)?.name ?? ''
+    : ''
   Object.assign(editForm, chip)
+  editForm.qty_per_bag = chip.qty_per_bag ?? 1
   editError.value = null
   showEditModal.value = true
 }
 
 async function confirmEdit() {
   if (!editId.value) return
+  if (editForm.chip_type === 'other') {
+    if (!editRoot.value) {
+      editError.value = '请选择一级分类'
+      return
+    }
+    if (!String(editForm.chip_category ?? '').trim()) {
+      editError.value = '请选择二级分类'
+      return
+    }
+  }
   editing.value = true
   editError.value = null
   try {
@@ -307,6 +441,19 @@ async function confirmEdit() {
       const v = editForm.capacity
       body.capacity = (v == null || v === '') ? null : v
     }
+    if (editForm.package !== undefined) {
+      const v = editForm.package
+      body.package = (v == null || v === '') ? null : v.trim()
+    }
+    if (editForm.chip_category !== undefined || editForm.chip_type !== undefined) {
+      body.chip_category = editForm.chip_type === 'other'
+        ? String(editForm.chip_category ?? '').trim()
+        : null
+    }
+    // 单包颗数：仅「其他」类型 + 无 UID 有效，服务端也会兜底
+    body.qty_per_bag = editForm.chip_type === 'other' && (!String(editForm.uid ?? '').trim() || isNoUid(String(editForm.uid)))
+      ? (Number(editForm.qty_per_bag) || 1)
+      : 1
     if (editForm.location_a !== undefined) {
       const v = editForm.location_a
       body.location_a = (v == null || v === '') ? null : v.trim()
@@ -410,13 +557,13 @@ async function applyVendorAutoFill() {
 
 function vendorStatusBadge(status: string) {
   const map: Record<string, { text: string; cls: string }> = {
-    ok:        { text: '✓ 已正确', cls: 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20' },
-    ok_manual: { text: '✓ 手动值', cls: 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20' },
-    auto_fill: { text: '可自动填', cls: 'bg-cyan-500/10 text-cyan-300 ring-cyan-500/20' },
-    conflict:  { text: '⚠ 冲突',  cls: 'bg-amber-500/10 text-amber-300 ring-amber-500/20' },
-    unknown:   { text: '✗ 未知',  cls: 'bg-red-500/10 text-red-300 ring-red-500/20' },
+    ok:        { text: '✓ 已正确', cls: 'bg-gain-500/10 text-gain-300 ring-gain-500/20' },
+    ok_manual: { text: '✓ 手动值', cls: 'bg-gain-500/10 text-gain-300 ring-gain-500/20' },
+    auto_fill: { text: '可自动填', cls: 'bg-action/10 text-data-300 ring-data-500/20' },
+    conflict:  { text: '⚠ 冲突',  cls: 'bg-notice-500/10 text-notice-300 ring-notice-500/20' },
+    unknown:   { text: '✗ 未知',  cls: 'bg-alert-500/10 text-alert-300 ring-alert-500/20' },
   }
-  const m = map[status] || { text: status, cls: 'bg-slate-500/10 text-slate-300' }
+  const m = map[status] || { text: status, cls: 'bg-surface-muted/10 text-ink-secondary' }
   return h('span', {
     class: ['inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ring-1', m.cls]
   }, m.text)
@@ -450,15 +597,15 @@ async function confirmDelete() {
     <!-- 页头 -->
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h2 class="text-xl font-bold text-slate-100">芯片列表</h2>
-        <p class="mt-1 text-sm text-slate-500">
+        <h2 class="text-xl font-bold text-ink">芯片列表</h2>
+        <p class="mt-1 text-sm text-ink-tertiary">
           共 {{ chips?.length ?? 0 }} 条记录
         </p>
       </div>
       <div class="flex gap-2">
         <UButton
           icon="i-lucide-scan"
-          color="cyan"
+          color="data"
           variant="solid"
           size="sm"
           :loading="identifying"
@@ -468,7 +615,7 @@ async function confirmDelete() {
         </UButton>
         <UButton
           icon="i-lucide-sparkles"
-          color="cyan"
+          color="data"
           variant="outline"
           size="sm"
           :loading="vendorChecking"
@@ -478,7 +625,7 @@ async function confirmDelete() {
         </UButton>
         <UButton
           icon="i-lucide-printer"
-          color="amber"
+          color="notice"
           variant="outline"
           size="sm"
           @click="openContainerPrint"
@@ -497,7 +644,7 @@ async function confirmDelete() {
         <a
           href="/api/export/database"
           download
-          class="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-white/5"
+          class="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink-secondary transition-colors hover:bg-surface-muted"
         >
           <UIcon name="i-lucide-download" class="h-3.5 w-3.5" />
           导出数据库
@@ -506,7 +653,7 @@ async function confirmDelete() {
     </div>
 
     <!-- 搜索筛选栏 -->
-    <div class="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-[#1e1e3a] p-4 ring-1 ring-white/5">
+    <div class="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-surface-raised p-4 ring-1 ring-line">
       <UInput
         v-model="search"
         icon="i-lucide-search"
@@ -543,20 +690,20 @@ async function confirmDelete() {
     <!-- 识别结果提示 -->
     <div
       v-if="identifyResult && identifyResult.matched && identifyResult.chip"
-      class="mb-4 rounded-md bg-cyan-500/5 p-4 ring-1 ring-cyan-500/30"
+      class="mb-4 rounded-md bg-data-500/5 p-4 ring-1 ring-action/30"
     >
       <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-fingerprint" class="h-5 w-5 text-cyan-400" />
-        <span class="text-sm font-semibold text-cyan-300">已识别档案</span>
+        <UIcon name="i-lucide-fingerprint" class="h-5 w-5 text-action" />
+        <span class="text-sm font-semibold text-data-300">已识别档案</span>
         <UBadge color="info" variant="subtle" size="xs" class="font-mono">
           by {{ identifyResult.match_by }}
         </UBadge>
       </div>
-      <div class="mt-3 space-y-1 rounded-md bg-white/5 p-3 font-mono text-xs text-slate-300">
-        <div>型号：<span class="text-cyan-400">{{ identifyResult.chip.model }}</span></div>
-        <div>类型：<span class="text-cyan-400">{{ identifyResult.chip.chip_type === 'mcu' ? 'MCU' : 'Flash' }}</span></div>
-        <div>JEDEC ID：<span class="text-cyan-400">{{ formatJedecId(identifyResult.chip.jedec_id) }}</span></div>
-        <div>容量：<span class="text-cyan-400">{{ identifyResult.chip.capacity || '-' }}</span></div>
+      <div class="mt-3 space-y-1 rounded-md bg-surface-muted p-3 font-mono text-xs text-ink-secondary">
+        <div>型号：<span class="text-action">{{ identifyResult.chip.model }}</span></div>
+        <div>类型：<span class="text-action">{{ chipTypeLabel(identifyResult.chip.chip_type) }}</span></div>
+        <div>JEDEC ID：<span class="text-action">{{ formatJedecId(identifyResult.chip.jedec_id) }}</span></div>
+        <div>容量：<span class="text-action">{{ identifyResult.chip.capacity || '-' }}</span></div>
       </div>
       <div class="mt-3 flex justify-end gap-2">
         <UButton color="neutral" variant="ghost" size="sm" @click="userDismissedIdentify = true; identifyResult = null">
@@ -577,25 +724,25 @@ async function confirmDelete() {
     <!-- 识别结果提示（未命中时显示） -->
     <div
       v-else-if="identifyResult && !identifyResult.matched"
-      class="mb-4 rounded-md bg-amber-500/5 p-4 ring-1 ring-amber-500/30"
+      class="mb-4 rounded-md bg-notice-500/5 p-4 ring-1 ring-notice-500/30"
     >
       <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-package-plus" class="h-5 w-5 text-amber-400" />
-        <span class="text-sm font-semibold text-amber-300">未识别到档案</span>
+        <UIcon name="i-lucide-package-plus" class="h-5 w-5 text-notice-400" />
+        <span class="text-sm font-semibold text-notice-300">未识别到档案</span>
       </div>
-      <p class="mt-2 text-sm text-slate-300">{{ identifyResult.reason }}</p>
+      <p class="mt-2 text-sm text-ink-secondary">{{ identifyResult.reason }}</p>
       <div v-if="identifyResult.candidates?.length" class="mt-3 space-y-2">
-        <p class="text-xs text-slate-500">同 JEDEC ID 的已存在芯片：</p>
+        <p class="text-xs text-ink-tertiary">同 JEDEC ID 的已存在芯片：</p>
         <div
           v-for="c in identifyResult.candidates"
           :key="c.id"
-          class="flex items-center justify-between rounded-md bg-white/5 p-2 text-xs"
+          class="flex items-center justify-between rounded-md bg-surface-muted p-2 text-xs"
         >
-          <div class="font-mono text-slate-300">
-            <span class="text-slate-500">#{{ c.id }}</span>
-            <span class="ml-2 text-cyan-400">{{ c.model }}</span>
-            <span v-if="c.chip_type" class="ml-1" :class="c.chip_type === 'mcu' ? 'text-purple-400' : 'text-cyan-400'">[{{ c.chip_type === 'mcu' ? 'MCU' : 'Flash' }}]</span>
-            <span class="ml-2 text-slate-500">UID: {{ truncateUid(c.uid, 12) }}</span>
+          <div class="font-mono text-ink-secondary">
+            <span class="text-ink-tertiary">#{{ c.id }}</span>
+            <span class="ml-2 text-action">{{ c.model }}</span>
+            <span v-if="c.chip_type" class="ml-1" :class="c.chip_type === 'mcu' ? 'text-region' : 'text-action'">[{{ chipTypeLabel(c.chip_type) }}]</span>
+            <span class="ml-2 text-ink-tertiary">UID: {{ truncateUid(c.uid, 12) }}</span>
           </div>
           <UButton
             :to="`/chips/${c.id}`"
@@ -620,23 +767,23 @@ async function confirmDelete() {
     <!-- 错误提示 -->
     <div
       v-if="fetchError"
-      class="mb-4 flex items-center gap-3 rounded-lg bg-red-500/10 p-4 ring-1 ring-red-500/20"
+      class="mb-4 flex items-center gap-3 rounded-lg bg-alert-500/10 p-4 ring-1 ring-alert-500/20"
     >
-      <UIcon name="i-lucide-alert-circle" class="h-5 w-5 text-red-400" />
-      <span class="text-sm text-red-300">加载失败: {{ fetchError?.message }}</span>
+      <UIcon name="i-lucide-alert-circle" class="h-5 w-5 text-alert-400" />
+      <span class="text-sm text-alert-300">加载失败: {{ fetchError?.message }}</span>
     </div>
 
     <!-- 数据表格 -->
-    <div class="rounded-lg bg-[#1e1e3a] ring-1 ring-white/5">
+    <div class="rounded-lg bg-surface-raised ring-1 ring-line">
       <div v-if="pending" class="p-8">
         <div class="animate-pulse space-y-3">
-          <div v-for="i in 6" :key="i" class="h-10 rounded bg-white/5" />
+          <div v-for="i in 6" :key="i" class="h-10 rounded bg-surface-muted" />
         </div>
       </div>
 
       <div v-else-if="!chips?.length" class="px-5 py-16 text-center">
-        <UIcon name="i-lucide-search-x" class="mx-auto h-10 w-10 text-slate-600" />
-        <p class="mt-3 text-sm text-slate-500">
+        <UIcon name="i-lucide-search-x" class="mx-auto h-10 w-10 text-ink-tertiary" />
+        <p class="mt-3 text-sm text-ink-tertiary">
           {{ search || modelFilter || typeFilter ? '没有匹配的芯片' : '暂无芯片数据' }}
         </p>
         <UButton
@@ -657,7 +804,7 @@ async function confirmDelete() {
           :data="chips"
           :columns="columns"
           class="w-full"
-          :ui="{ tr: 'cursor-pointer hover:bg-white/5 transition-colors' }"
+          :ui="{ tr: 'cursor-pointer hover:bg-surface-muted transition-colors' }"
           @row-click="(row: any) => handleRowClick(row.original)"
         />
       </div>
@@ -667,52 +814,86 @@ async function confirmDelete() {
     <UModal v-model:open="showEditModal" :title="`编辑芯片 - ${editForm.model ?? ''}`">
       <template #body>
         <div class="space-y-3">
-          <div v-if="editError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="editError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ editError }}
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="mb-1 block text-xs text-slate-500">厂商</label>
-              <UInput v-model="editForm.vendor" placeholder="如: Winbond / STMic" class="w-full" />
+              <label class="mb-1 block text-xs text-ink-tertiary">厂商</label>
+              <UInputMenu v-model="editForm.vendor" :items="brandOptions" placeholder="选择品牌（可输入过滤）" class="w-full" />
             </div>
             <div>
-              <label class="mb-1 block text-xs text-slate-500">型号</label>
+              <label class="mb-1 block text-xs text-ink-tertiary">型号</label>
               <UInput v-model="editForm.model" class="w-full" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="mb-1 block text-xs text-slate-500">类型</label>
+              <label class="mb-1 block text-xs text-ink-tertiary">类型</label>
               <USelect
                 v-model="editForm.chip_type"
                 :items="[
                   { label: 'NOR Flash', value: 'flash' },
-                  { label: 'MCU 单片机', value: 'mcu' }
+                  { label: 'MCU 单片机', value: 'mcu' },
+                  { label: '其他', value: 'other' }
                 ]"
                 class="w-full"
               />
             </div>
-            <div>
-              <label class="mb-1 block text-xs text-slate-500">容量</label>
+            <div v-if="editForm.chip_type !== 'other'">
+              <label class="mb-1 block text-xs text-ink-tertiary">容量</label>
               <UInput v-model="editForm.capacity" placeholder="如: 16Mbit / 2MB" class="w-full" />
+            </div>
+            <div v-if="editForm.chip_type === 'other'">
+              <label class="mb-1 block text-xs text-ink-tertiary">一级分类 *</label>
+              <UInputMenu v-model="editRoot" :items="rootOptions" placeholder="选择一级分类（可输入过滤）" class="w-full" />
+            </div>
+            <div v-if="editForm.chip_type === 'other'">
+              <label class="mb-1 block text-xs text-ink-tertiary">二级分类 *</label>
+              <UInputMenu
+                v-model="editForm.chip_category"
+                :items="categoryOptions"
+                :disabled="!editRoot"
+                placeholder="选择二级分类（可输入过滤）"
+                class="w-full"
+              />
+            </div>
+            <div v-if="editForm.chip_type === 'other'">
+              <label class="mb-1 block text-xs text-ink-tertiary">
+                单包颗数
+                <span v-if="String(editForm.uid ?? '').trim() && !isNoUid(String(editForm.uid))" class="text-ink-tertiary">（有 UID，锁定 1）</span>
+              </label>
+              <UInput
+                v-model.number="editForm.qty_per_bag"
+                type="number"
+                min="1"
+                step="1"
+                :disabled="!!String(editForm.uid ?? '').trim() && !isNoUid(String(editForm.uid))"
+                placeholder="1"
+                class="w-full"
+              />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs text-ink-tertiary">封装</label>
+              <UInputMenu v-model="editForm.package" :items="packageOptions" placeholder="选择封装（可输入过滤）" class="w-full" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="mb-1 block text-xs text-slate-500">JEDEC ID</label>
+            <div v-if="editForm.chip_type !== 'other'">
+              <label class="mb-1 block text-xs text-ink-tertiary">JEDEC ID</label>
               <UInput v-model="editForm.jedec_id" class="w-full font-mono" />
             </div>
             <div>
-              <label class="mb-1 block text-xs text-slate-500">UID 长度 (字节)</label>
+              <label class="mb-1 block text-xs text-ink-tertiary">UID 长度 (字节)</label>
               <UInput v-model.number="editForm.uid_length" type="number" class="w-full" />
             </div>
           </div>
 
           <div>
-            <label class="mb-1 block text-xs text-slate-500">库位</label>
+            <label class="mb-1 block text-xs text-ink-tertiary">库位</label>
             <div class="grid grid-cols-3 gap-2">
               <UInput v-model="editForm.location_a" placeholder="大箱" class="w-full" />
               <UInput v-model="editForm.location_b" placeholder="小箱" class="w-full" />
@@ -721,7 +902,7 @@ async function confirmDelete() {
           </div>
 
           <div>
-            <label class="mb-1 block text-xs text-slate-500">备注</label>
+            <label class="mb-1 block text-xs text-ink-tertiary">备注</label>
             <UTextarea v-model="editForm.note" :rows="3" class="w-full" />
           </div>
         </div>
@@ -742,16 +923,16 @@ async function confirmDelete() {
     <UModal v-model:open="showDeleteModal" :title="`销毁 ${chipToDelete?.model || '芯片'}？`">
       <template #body>
         <div class="space-y-3">
-          <p class="text-sm text-slate-300">
+          <p class="text-sm text-ink-secondary">
             此操作将永久删除该芯片档案及其所有操作历史，且不可恢复。
           </p>
-          <div v-if="chipToDelete" class="rounded-md bg-white/5 p-3 font-mono text-xs text-slate-400">
+          <div v-if="chipToDelete" class="rounded-md bg-surface-muted p-3 font-mono text-xs text-ink-secondary">
             <div>型号：{{ chipToDelete.model }}</div>
-            <div>类型：{{ chipToDelete.chip_type === 'mcu' ? 'MCU' : 'Flash' }}</div>
-            <div>JEDEC ID：{{ formatJedecId(chipToDelete.jedec_id) }}</div>
-            <div>UID：{{ truncateUid(chipToDelete.uid, 20) }}</div>
+            <div>类型：{{ chipTypeLabel(chipToDelete.chip_type) }}</div>
+            <div>JEDEC ID：{{ formatJedecId(chipToDelete.jedec_id) || '-' }}</div>
+            <div>UID：{{ truncateUid(chipToDelete.uid, 20) || '-' }}</div>
           </div>
-          <div v-if="deleteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="deleteError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ deleteError }}
           </div>
         </div>
@@ -773,7 +954,7 @@ async function confirmDelete() {
       <template #body>
         <div class="space-y-3">
           <div>
-            <label class="mb-1 block text-xs text-slate-500">容器类型</label>
+            <label class="mb-1 block text-xs text-ink-tertiary">容器类型</label>
             <USelect
               v-model="containerForm.kind"
               :items="[
@@ -784,7 +965,7 @@ async function confirmDelete() {
             />
           </div>
           <div>
-            <label class="mb-1 block text-xs text-slate-500">名称</label>
+            <label class="mb-1 block text-xs text-ink-tertiary">名称</label>
             <UInput
               v-model="containerForm.name"
               :placeholder="containerForm.kind === 'big' ? '如: A / B / C' : '如: A-1 / B-2'"
@@ -792,7 +973,7 @@ async function confirmDelete() {
             />
           </div>
           <div>
-            <label class="mb-1 block text-xs text-slate-500">副标题（可选）</label>
+            <label class="mb-1 block text-xs text-ink-tertiary">副标题（可选）</label>
             <UInput
               v-model="containerForm.subtitle"
               placeholder="如: 12 颗芯片"
@@ -831,28 +1012,28 @@ async function confirmDelete() {
     <UModal v-model:open="showVendorModal" title="厂商核查结果">
       <template #body>
         <div v-if="vendorCheckSummary" class="mb-4 grid grid-cols-4 gap-3">
-          <div class="rounded-md bg-white/5 p-3 ring-1 ring-white/10">
-            <div class="text-xs text-slate-400">总数</div>
-            <div class="mt-1 text-lg font-semibold text-slate-100">{{ vendorCheckSummary.total }}</div>
+          <div class="rounded-md bg-surface-muted p-3 ring-1 ring-line">
+            <div class="text-xs text-ink-secondary">总数</div>
+            <div class="mt-1 text-lg font-semibold text-ink">{{ vendorCheckSummary.total }}</div>
           </div>
-          <div class="rounded-md bg-cyan-500/10 p-3 ring-1 ring-cyan-500/20">
-            <div class="text-xs text-cyan-300">可自动填</div>
-            <div class="mt-1 text-lg font-semibold text-cyan-200">{{ vendorCheckSummary.autoFillCount }}</div>
+          <div class="rounded-md bg-action/10 p-3 ring-1 ring-data-500/20">
+            <div class="text-xs text-data-300">可自动填</div>
+            <div class="mt-1 text-lg font-semibold text-data-200">{{ vendorCheckSummary.autoFillCount }}</div>
           </div>
-          <div class="rounded-md bg-amber-500/10 p-3 ring-1 ring-amber-500/20">
-            <div class="text-xs text-amber-300">冲突</div>
-            <div class="mt-1 text-lg font-semibold text-amber-200">{{ vendorCheckSummary.conflictCount }}</div>
+          <div class="rounded-md bg-notice-500/10 p-3 ring-1 ring-notice-500/20">
+            <div class="text-xs text-notice-300">冲突</div>
+            <div class="mt-1 text-lg font-semibold text-notice-200">{{ vendorCheckSummary.conflictCount }}</div>
           </div>
-          <div class="rounded-md bg-red-500/10 p-3 ring-1 ring-red-500/20">
-            <div class="text-xs text-red-300">未知</div>
-            <div class="mt-1 text-lg font-semibold text-red-200">{{ vendorCheckSummary.unknownCount }}</div>
+          <div class="rounded-md bg-alert-500/10 p-3 ring-1 ring-alert-500/20">
+            <div class="text-xs text-alert-300">未知</div>
+            <div class="mt-1 text-lg font-semibold text-alert-200">{{ vendorCheckSummary.unknownCount }}</div>
           </div>
         </div>
 
-        <div class="max-h-[400px] overflow-y-auto rounded-md bg-black/20 ring-1 ring-white/5">
+        <div class="max-h-[400px] overflow-y-auto rounded-md bg-surface-sunken/30 ring-1 ring-line">
           <table class="w-full text-sm">
-            <thead class="sticky top-0 bg-slate-800/80 backdrop-blur">
-              <tr class="border-b border-white/10 text-left text-xs text-slate-400">
+            <thead class="sticky top-0 bg-surface-raised/80 backdrop-blur">
+              <tr class="border-b border-line text-left text-xs text-ink-secondary">
                 <th class="px-3 py-2">型号</th>
                 <th class="px-3 py-2">JEDEC</th>
                 <th class="px-3 py-2">当前厂商</th>
@@ -864,17 +1045,17 @@ async function confirmDelete() {
               <tr
                 v-for="r in vendorCheckResults"
                 :key="r.id"
-                class="border-b border-white/5 hover:bg-white/5"
+                class="border-b border-line hover:bg-surface-muted"
               >
-                <td class="px-3 py-2 text-slate-200">{{ r.model }}</td>
-                <td class="px-3 py-2 font-mono text-xs text-slate-500">{{ r.jedec_id || '-' }}</td>
+                <td class="px-3 py-2 text-ink">{{ r.model }}</td>
+                <td class="px-3 py-2 font-mono text-xs text-ink-tertiary">{{ r.jedec_id || '-' }}</td>
                 <td class="px-3 py-2">
-                  <span :class="r.current_vendor ? 'text-slate-200' : 'text-slate-500 italic'">
+                  <span :class="r.current_vendor ? 'text-ink' : 'text-ink-tertiary italic'">
                     {{ r.current_vendor || '(空)' }}
                   </span>
                 </td>
                 <td class="px-3 py-2">
-                  <span :class="r.suggested_vendor ? 'text-cyan-300' : 'text-slate-500 italic'">
+                  <span :class="r.suggested_vendor ? 'text-data-300' : 'text-ink-tertiary italic'">
                     {{ r.suggested_vendor || '—' }}
                   </span>
                 </td>
@@ -888,14 +1069,14 @@ async function confirmDelete() {
       </template>
       <template #footer>
         <div class="flex justify-between items-center w-full">
-          <div class="text-xs text-slate-500">
+          <div class="text-xs text-ink-tertiary">
             冲突条目不自动覆盖，未知的需要手动填
           </div>
           <div class="flex gap-2">
             <UButton color="neutral" variant="ghost" @click="showVendorModal = false">关闭</UButton>
             <UButton
               v-if="vendorCheckSummary && vendorCheckSummary.autoFillCount > 0"
-              color="cyan"
+              color="data"
               variant="solid"
               :loading="vendorChecking"
               @click="applyVendorAutoFill"

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="175 115 370 370" width="370" height="370">
+  <!-- QFN-32 5x5 底视缩略图（无尺寸标注；带标注的工程图见 qfn-32-5x5-spec.svg）
+       ESP32-C3 技术规格书 v2.4 §7 Figure 7-1：D/E 5.00，D2/E2 3.70，e 0.50，b 0.25，L 0.40
+       32 脚 = 每边 8 脚；底视 Pin 1 在右上，用散热焊盘 C0.30 缺角标识 -->
+  <rect x="185" y="125" width="350" height="350" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2 3.70，右上角 C0.30 缺角即 Pin 1 标识 -->
+  <path d="M230.5 170.5 H468.5 L489.5 191.5 V429.5 H230.5 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- 32 个焊盘：每边 8 个，焊盘统一同色 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="228.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="263.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="298.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="333.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="368.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="403.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="438.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="473.75" y="125" width="17.5" height="28" rx="8.75"/>
+
+    <rect x="228.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="263.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="298.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="333.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="368.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="403.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="438.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="473.75" y="447" width="17.5" height="28" rx="8.75"/>
+
+    <rect x="185" y="168.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="203.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="238.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="273.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="308.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="343.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="378.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="413.75" width="28" height="17.5" rx="8.75"/>
+
+    <rect x="507" y="168.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="203.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="238.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="273.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="308.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="343.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="378.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="413.75" width="28" height="17.5" rx="8.75"/>
+  </g>
+</svg>

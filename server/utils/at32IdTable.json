@@ -1,0 +1,410 @@
+{
+  "source": "Artery AN0016_Recognize_AT32_MCU_ZH_V2.0.1 表2（官方 PID/UID 对照表）+ 各系列 Get Started 指南；F425 两条来自 AN0129 AT32F425入门指南 V2.0.6（该系列公开文档仅此 2 条，其余被官方截断）；AT32F425F8P7 为真机首读采集",
+  "algorithm": {
+    "part_byte_addr": "0x1FFFF7F3",
+    "pid_addr": "0xE0042000",
+    "uid_base_addr": "0x1FFFF7E8",
+    "uid_bits": 96,
+    "combine": "AT_device_id = (part_byte << 32) | PID_u32（PID 为 0xE0042000 处的 u32 小端）"
+  },
+  "count": 66,
+  "chips": [
+    {
+      "id": "0x0000000770050242",
+      "model": "AT32F403ACCT7",
+      "flash_kb": 256,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x0000000770050243",
+      "model": "AT32F403ACCU7",
+      "flash_kb": 256,
+      "package": "QFN48"
+    },
+    {
+      "id": "0x00000007700503CF",
+      "model": "AT32F403ACET7",
+      "flash_kb": 512,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x00000007700503D0",
+      "model": "AT32F403ACEU7",
+      "flash_kb": 512,
+      "package": "QFN48"
+    },
+    {
+      "id": "0x0000000770050346",
+      "model": "AT32F403ACGT7",
+      "flash_kb": 1024,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x0000000770050347",
+      "model": "AT32F403ACGU7",
+      "flash_kb": 1024,
+      "package": "QFN48"
+    },
+    {
+      "id": "0x0000000770050241",
+      "model": "AT32F403ARCT7",
+      "flash_kb": 256,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x00000007700502CE",
+      "model": "AT32F403ARET7",
+      "flash_kb": 512,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000770050345",
+      "model": "AT32F403ARGT7",
+      "flash_kb": 1024,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000770050240",
+      "model": "AT32F403AVCT7",
+      "flash_kb": 256,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x00000007700502CD",
+      "model": "AT32F403AVET7",
+      "flash_kb": 512,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x0000000770050344",
+      "model": "AT32F403AVGT7",
+      "flash_kb": 1024,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x0000000270050243",
+      "model": "AT32F403CCT6",
+      "flash_kb": 256,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x000000027005024E",
+      "model": "AT32F403CCU6",
+      "flash_kb": 256,
+      "package": "QFN48"
+    },
+    {
+      "id": "0x00000002700502CB",
+      "model": "AT32F403CET6",
+      "flash_kb": 512,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x00000002700502CD",
+      "model": "AT32F403CEU6",
+      "flash_kb": 512,
+      "package": "QFN48"
+    },
+    {
+      "id": "0x0000000270050347",
+      "model": "AT32F403CGT6",
+      "flash_kb": 1024,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x000000027005034C",
+      "model": "AT32F403CGU6",
+      "flash_kb": 1024,
+      "package": "QFN48"
+    },
+    {
+      "id": "0x0000000270050242",
+      "model": "AT32F403RCT6",
+      "flash_kb": 256,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x00000002700502CA",
+      "model": "AT32F403RET6",
+      "flash_kb": 512,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000270050346",
+      "model": "AT32F403RGT6",
+      "flash_kb": 1024,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000270050241",
+      "model": "AT32F403VCT6",
+      "flash_kb": 256,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x00000002700502C9",
+      "model": "AT32F403VET6",
+      "flash_kb": 512,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x0000000270050345",
+      "model": "AT32F403VGT6",
+      "flash_kb": 1024,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x0000000270050240",
+      "model": "AT32F403ZCT6",
+      "flash_kb": 256,
+      "package": "LQFP144"
+    },
+    {
+      "id": "0x00000002700502C8",
+      "model": "AT32F403ZET6",
+      "flash_kb": 512,
+      "package": "LQFP144"
+    },
+    {
+      "id": "0x0000000270050344",
+      "model": "AT32F403ZGT6",
+      "flash_kb": 1024,
+      "package": "LQFP144"
+    },
+    {
+      "id": "0x000000087005024A",
+      "model": "AT32F407RCT7",
+      "flash_kb": 256,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x00000008700502D2",
+      "model": "AT32F407RET7",
+      "flash_kb": 512,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x000000087005034C",
+      "model": "AT32F407RGT7",
+      "flash_kb": 1024,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000870050249",
+      "model": "AT32F407VCT7",
+      "flash_kb": 256,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x00000008700502D1",
+      "model": "AT32F407VET7",
+      "flash_kb": 512,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x000000087005034B",
+      "model": "AT32F407VGT7",
+      "flash_kb": 1024,
+      "package": "LQFP100"
+    },
+    {
+      "id": "0x0000000470030106",
+      "model": "AT32F413C8T7",
+      "flash_kb": 64,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x00000004700301C3",
+      "model": "AT32F413CBT7",
+      "flash_kb": 128,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x00000004700301C0",
+      "model": "AT32F413CBU7",
+      "flash_kb": 128,
+      "package": "QFN48"
+    },
+    {
+      "id": "0x0000000470030242",
+      "model": "AT32F413CCT7",
+      "flash_kb": 256,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x0000000470030247",
+      "model": "AT32F413CCU7",
+      "flash_kb": 256,
+      "package": "QFN48"
+    },
+    {
+      "id": "0x00000004700301C1",
+      "model": "AT32F413RBT7",
+      "flash_kb": 128,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000470030240",
+      "model": "AT32F413RCT7",
+      "flash_kb": 256,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000570030109",
+      "model": "AT32F415C8T7",
+      "flash_kb": 64,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x00000005700301C5",
+      "model": "AT32F415CBT7",
+      "flash_kb": 128,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x0000000570030241",
+      "model": "AT32F415CCT7",
+      "flash_kb": 256,
+      "package": "LQFP48"
+    },
+    {
+      "id": "0x0000000570030108",
+      "model": "AT32F415R8T7",
+      "flash_kb": 64,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x00000005700301C4",
+      "model": "AT32F415RBT7",
+      "flash_kb": 128,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000570030240",
+      "model": "AT32F415RCT7",
+      "flash_kb": 256,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000950010011",
+      "model": "AT32F421F4P7",
+      "flash_kb": 16,
+      "package": "TSSOP20"
+    },
+    {
+      "id": "0x0000000950010010",
+      "model": "AT32F421F4U7",
+      "flash_kb": 16,
+      "package": "QFN20"
+    },
+    {
+      "id": "0x000000095002008B",
+      "model": "AT32F421F6P7",
+      "flash_kb": 32,
+      "package": "TSSOP20"
+    },
+    {
+      "id": "0x000000095002008A",
+      "model": "AT32F421F6U7",
+      "flash_kb": 32,
+      "package": "QFN20"
+    },
+    {
+      "id": "0x0000000950020105",
+      "model": "AT32F421F8P7",
+      "flash_kb": 64,
+      "package": "TSSOP20"
+    },
+    {
+      "id": "0x0000000950020104",
+      "model": "AT32F421F8U7",
+      "flash_kb": 64,
+      "package": "QFN20"
+    },
+    {
+      "id": "0x0000000950010014",
+      "model": "AT32F421G4U7",
+      "flash_kb": 16,
+      "package": "QFN28"
+    },
+    {
+      "id": "0x0000000950020093",
+      "model": "AT32F421G6U7",
+      "flash_kb": 32,
+      "package": "QFN28"
+    },
+    {
+      "id": "0x0000000950020112",
+      "model": "AT32F421G8U7",
+      "flash_kb": 64,
+      "package": "QFN28"
+    },
+    {
+      "id": "0x000000095001000D",
+      "model": "AT32F421K4T7",
+      "flash_kb": 16,
+      "package": "LQFP32"
+    },
+    {
+      "id": "0x000000095001000E",
+      "model": "AT32F421K4U7",
+      "flash_kb": 16,
+      "package": "QFN32"
+    },
+    {
+      "id": "0x0000000950020087",
+      "model": "AT32F421K6T7",
+      "flash_kb": 32,
+      "package": "LQFP32"
+    },
+    {
+      "id": "0x0000000950020088",
+      "model": "AT32F421K6U7",
+      "flash_kb": 32,
+      "package": "QFN32"
+    },
+    {
+      "id": "0x0000000950020101",
+      "model": "AT32F421K8T7",
+      "flash_kb": 64,
+      "package": "LQFP32"
+    },
+    {
+      "id": "0x0000000950020102",
+      "model": "AT32F421K8U7",
+      "flash_kb": 64,
+      "package": "QFN32"
+    },
+    {
+      "id": "0x0000000950010016",
+      "model": "AT32F421PF4P7",
+      "flash_kb": 16,
+      "package": "TSSOP20"
+    },
+    {
+      "id": "0x0000000950020115",
+      "model": "AT32F421PF8P7",
+      "flash_kb": 64,
+      "package": "TSSOP20"
+    },
+    {
+      "id": "0x0000010050092081",
+      "model": "AT32F425R6T7",
+      "flash_kb": 64,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000010050092100",
+      "model": "AT32F425R8T7",
+      "flash_kb": 64,
+      "package": "LQFP64"
+    },
+    {
+      "id": "0x0000000F50092112",
+      "model": "AT32F425F8P7",
+      "flash_kb": 64,
+      "package": "TSSOP20",
+      "note": "2026-11-01 真机首读采集（SWD）"
+    }
+  ]
+}

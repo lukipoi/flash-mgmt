@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="192 122 336 336" width="336" height="336">
+  <!-- QFN-28 4x4 底视缩略图（无尺寸标注；带标注的工程图见 qfn-28-spec.svg）
+       CH579F：D/E 4.00，e 0.40，b 0.20，L 0.40，散热焊盘 2.80；右下角缺角为 Pin 1 -->
+  <rect x="200" y="130" width="320" height="320" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2，右下角缺角作 Pin 1 标识 -->
+  <path d="M248 178 H472 V374 L444 402 H248 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- 28 个焊盘：无外露引脚，焊盘统一同色，仅靠散热焊盘缺角标识 Pin 1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="256" y="130" width="16" height="32" rx="7"/>
+    <rect x="288" y="130" width="16" height="32" rx="7"/>
+    <rect x="320" y="130" width="16" height="32" rx="7"/>
+    <rect x="352" y="130" width="16" height="32" rx="7"/>
+    <rect x="384" y="130" width="16" height="32" rx="7"/>
+    <rect x="416" y="130" width="16" height="32" rx="7"/>
+    <rect x="448" y="130" width="16" height="32" rx="7"/>
+
+    <rect x="256" y="418" width="16" height="32" rx="7"/>
+    <rect x="288" y="418" width="16" height="32" rx="7"/>
+    <rect x="320" y="418" width="16" height="32" rx="7"/>
+    <rect x="352" y="418" width="16" height="32" rx="7"/>
+    <rect x="384" y="418" width="16" height="32" rx="7"/>
+    <rect x="416" y="418" width="16" height="32" rx="7"/>
+    <rect x="448" y="418" width="16" height="32" rx="7"/>
+
+    <rect x="200" y="186" width="32" height="16" rx="7"/>
+    <rect x="200" y="218" width="32" height="16" rx="7"/>
+    <rect x="200" y="250" width="32" height="16" rx="7"/>
+    <rect x="200" y="282" width="32" height="16" rx="7"/>
+    <rect x="200" y="314" width="32" height="16" rx="7"/>
+    <rect x="200" y="346" width="32" height="16" rx="7"/>
+    <rect x="200" y="378" width="32" height="16" rx="7"/>
+
+    <rect x="488" y="186" width="32" height="16" rx="7"/>
+    <rect x="488" y="218" width="32" height="16" rx="7"/>
+    <rect x="488" y="250" width="32" height="16" rx="7"/>
+    <rect x="488" y="282" width="32" height="16" rx="7"/>
+    <rect x="488" y="314" width="32" height="16" rx="7"/>
+    <rect x="488" y="346" width="32" height="16" rx="7"/>
+    <rect x="488" y="378" width="32" height="16" rx="7"/>
+  </g>
+</svg>

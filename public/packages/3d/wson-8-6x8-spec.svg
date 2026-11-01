@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 524" width="720" height="524">
+  <!-- WSON-8 6x8（8-Pad WSON 8x6-mm，Winbond Package Code ZE）底视图工程图
+       依据 W25N01GV 规格书 P63 尺寸表：D 8.00 / E 6.00 / D2 3.40 / E2 4.30 / e 1.27 / b 0.40 / L 0.50，单位 mm -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M140 156.94 H164 M140 222.98 H164"/>
+    <path d="M289.6 367.8 V442 M466.4 367.8 V442"/>
+    <path d="M170 412 V476 M586 412 V476"/>
+    <path d="M466.4 144.2 H612 M466.4 367.8 H612"/>
+    <path d="M586 100 H652 M586 412 H652"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M140 156.94 V222.98" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M289.6 436 H466.4" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M170 470 H586" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M606 144.2 V367.8" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M646 412 V100" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text transform="translate(131 190) rotate(-90)" text-anchor="middle">e 1.27</text>
+    <text x="378" y="452" text-anchor="middle">D2 3.40</text>
+    <text x="378" y="486" text-anchor="middle">D 8.00</text>
+    <text transform="translate(617 256) rotate(-90)" text-anchor="middle">E2 4.30</text>
+    <text transform="translate(657 256) rotate(-90)" text-anchor="middle">E 6.00</text>
+  </g>
+
+  <!-- 本体（底视） -->
+  <rect x="170" y="100" width="416" height="312" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2，左上倒角 C0.4 作 Pin 1 标识 -->
+  <path d="M313 144.2 H458.4 A8 8 0 0 1 466.4 152.2 V359.8 A8 8 0 0 1 458.4 367.8 H297.6 A8 8 0 0 1 289.6 359.8 V167.6 Z"
+        fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- 8 个焊盘：无引脚封装靠散热焊盘缺角标识 Pin 1，焊盘统一同色 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="170" y="146.54" width="26" height="20.8" rx="7"/>
+    <rect x="170" y="212.58" width="26" height="20.8" rx="7"/>
+    <rect x="170" y="278.62" width="26" height="20.8" rx="7"/>
+    <rect x="170" y="344.66" width="26" height="20.8" rx="7"/>
+    <rect x="560" y="146.54" width="26" height="20.8" rx="7"/>
+    <rect x="560" y="212.58" width="26" height="20.8" rx="7"/>
+    <rect x="560" y="278.62" width="26" height="20.8" rx="7"/>
+    <rect x="560" y="344.66" width="26" height="20.8" rx="7"/>
+  </g>
+
+  <!-- 焊盘尺寸说明 -->
+  <text x="378" y="508" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">b 0.40 × L 0.50 · 共 8 焊盘</text>
+</svg>

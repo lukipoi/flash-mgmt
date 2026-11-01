@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" width="720" height="480">
+  <!-- SOP-8 208mil 正俯视工程图（BY25Q128A 规格书 9.1 节）
+       尺寸表（mm）：D 5.23 / E 7.90 / E1 5.28 / e 1.27 / b 0.41 / L 0.65，单位 mm -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M271.1 130 V60 M448.9 130 V60"/>
+    <path d="M493.4 85.5 H566 M493.4 354 H566"/>
+    <path d="M448.9 130 H530 M448.9 309.5 H530"/>
+    <path d="M295.2 354 V406 M338.4 354 V406"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M271.1 64 H448.9" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M560 354 V85.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M524 309.5 V130" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M295.2 400 H338.4" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="56" text-anchor="middle">D 5.23</text>
+    <text transform="translate(570 219.75) rotate(-90)" text-anchor="middle">E 7.90</text>
+    <text transform="translate(534 219.75) rotate(-90)" text-anchor="middle">E1 5.28</text>
+    <text x="316.8" y="418" text-anchor="middle">e 1.27</text>
+  </g>
+
+  <!-- 本体（顶视） -->
+  <rect x="271.1" y="130" width="177.8" height="179.5" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 引脚：下排 Pin 1-4、上排 Pin 8-5（Pin 1 靠本体凹点标识，引脚本身同色） -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="288.25" y="309.5" width="13.9" height="44.5" rx="1.5"/>
+    <rect x="331.45" y="309.5" width="13.9" height="44.5" rx="1.5"/>
+    <rect x="374.65" y="309.5" width="13.9" height="44.5" rx="1.5"/>
+    <rect x="417.85" y="309.5" width="13.9" height="44.5" rx="1.5"/>
+  </g>
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="288.25" y="85.5" width="13.9" height="44.5" rx="1.5"/>
+    <rect x="331.45" y="85.5" width="13.9" height="44.5" rx="1.5"/>
+    <rect x="374.65" y="85.5" width="13.9" height="44.5" rx="1.5"/>
+    <rect x="417.85" y="85.5" width="13.9" height="44.5" rx="1.5"/>
+  </g>
+
+  <!-- Pin 1 凹点（左下，实心标称白） -->
+  <circle cx="285" cy="297" r="11" fill="#d9d9d9"/>
+
+  <!-- 引脚尺寸说明 -->
+  <text x="360" y="456" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">b 0.41 × L 0.65 · 共 8 引脚</text>
+</svg>

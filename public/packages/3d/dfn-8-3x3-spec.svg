@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 502" width="720" height="502">
+  <!-- DFN-8 3x3 底视工程图（8 脚无引脚，底视=焊盘面；比例 67.4 px/mm）
+       尺寸（mm）：D 2.89-3.11 / E 2.89-3.11 / EP：D2 1.65-1.75 · E2 2.35-2.45 · 四角 R 0.125
+       e 0.50 BSC / b 0.175-0.225 / L 0.381-0.419 / K 0.25 REF（焊盘↔EP 间距）
+       A 0.70-0.80 / A1 0-0.05 / A2 0.50-0.60 / A3 0.203 REF
+       几何 nom：本体 3.0×3.0；焊盘 b 0.2 × L 0.4 @e 0.5（左右两列各 4）；EP 1.7×2.4 居中 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M258.9 128.9 V104 M461.1 128.9 V104"/>
+    <path d="M302.71 149.12 V136 M417.29 149.12 V136"/>
+    <path d="M302.71 149.12 H222 M302.71 310.88 H222"/>
+    <path d="M461.1 128.9 H500 M461.1 331.1 H500"/>
+    <path d="M258.9 246.85 H244 M258.9 280.55 H244"/>
+    <path d="M461.1 172.71 H540 M461.1 186.19 H540"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M258.9 108 H461.1" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M302.71 140 H417.29" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M226 310.88 V149.12" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M496 331.1 V128.9" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M248 280.55 V246.85" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M536 186.19 V172.71" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="100" text-anchor="middle">D 3.00</text>
+    <text x="360" y="132" text-anchor="middle">D2 1.70</text>
+    <text transform="translate(214 230) rotate(-90)" text-anchor="middle">E2 2.40</text>
+    <text transform="translate(508 230) rotate(-90)" text-anchor="middle">E 3.00</text>
+    <text transform="translate(238 263.7) rotate(-90)" text-anchor="middle">e 0.50</text>
+    <text transform="translate(548 179.45) rotate(-90)" text-anchor="middle">b 0.20</text>
+  </g>
+
+  <!-- 本体（底视，塑料色） -->
+  <rect x="258.9" y="128.9" width="202.2" height="202.2" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 焊盘：左右两列各 4 个 U 形槽（金属色，圆头朝内） -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <path d="M258.9 172.71 H279.12 A6.74 6.74 0 0 1 279.12 186.19 H258.9 Z"/>
+    <path d="M258.9 206.41 H279.12 A6.74 6.74 0 0 1 279.12 219.89 H258.9 Z"/>
+    <path d="M258.9 240.11 H279.12 A6.74 6.74 0 0 1 279.12 253.59 H258.9 Z"/>
+    <path d="M258.9 273.81 H279.12 A6.74 6.74 0 0 1 279.12 287.29 H258.9 Z"/>
+    <path d="M461.1 172.71 H440.88 A6.74 6.74 0 0 0 440.88 186.19 H461.1 Z"/>
+    <path d="M461.1 206.41 H440.88 A6.74 6.74 0 0 0 440.88 219.89 H461.1 Z"/>
+    <path d="M461.1 240.11 H440.88 A6.74 6.74 0 0 0 440.88 253.59 H461.1 Z"/>
+    <path d="M461.1 273.81 H440.88 A6.74 6.74 0 0 0 440.88 287.29 H461.1 Z"/>
+  </g>
+
+  <!-- EP 散热焊盘（金属色，四角 R 0.125 圆角） -->
+  <path d="M311.135 149.12 H408.865 Q417.29 149.12 417.29 157.545 V302.455 Q417.29 310.88 408.865 310.88 H311.135 Q302.71 310.88 302.71 302.455 V157.545 Q302.71 149.12 311.135 149.12 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8"/>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="450" text-anchor="middle">DFN-8 3x3 · 8 脚无引脚 · 底视 Bottom View · D 2.89–3.11 · E 2.89–3.11</text>
+    <text x="360" y="465" text-anchor="middle">EP：D2 1.65–1.75 · E2 2.35–2.45 · 四角 R 0.125 圆角</text>
+    <text x="360" y="480" text-anchor="middle">e 0.50 BSC · b 0.175–0.225 · L 0.381–0.419 · K 0.25 REF（焊盘↔EP 间距）</text>
+    <text x="360" y="495" text-anchor="middle">A 0.70–0.80 · A1 0–0.05 · A2 0.50–0.60 · A3 0.203 REF · 顶视 pin1 点左上（底视为镜像）</text>
+  </g>
+</svg>

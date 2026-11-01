@@ -21,9 +21,12 @@ const form = reactive({
   status: 'in_stock' as ConsumableStatus,
   shelf_life: '',
   production_date: '',
+  expiry_date: '',
+  batch_number: '',
   exec_standard: '',
   net_content: '',
-  note: ''
+  note: '',
+  quantity: 1
 })
 
 // 库位：大箱 + 小箱填齐后，序号自动取同组最大 + 1
@@ -50,6 +53,8 @@ watch(() => [form.location_a, form.location_b] as const, () => tryAutoSeq())
 
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
+const showScanner = ref(false)
+const showPhoneScan = ref(false)
 
 const errors = computed(() => {
   const e: Record<string, string> = {}
@@ -77,9 +82,12 @@ async function submit() {
         status: form.status,
         shelf_life: form.shelf_life.trim() || null,
         production_date: form.production_date.trim() || null,
+        expiry_date: form.expiry_date.trim() || null,
+        batch_number: form.batch_number.trim() || null,
         exec_standard: form.exec_standard.trim() || null,
         net_content: form.net_content.trim() || null,
-        note: form.note.trim() || null
+        note: form.note.trim() || null,
+        quantity: form.quantity
       }
     })
     navigateTo(`/consumables`)
@@ -101,9 +109,12 @@ function resetForm() {
   form.status = 'in_stock'
   form.shelf_life = ''
   form.production_date = ''
+  form.expiry_date = ''
+  form.batch_number = ''
   form.exec_standard = ''
   form.net_content = ''
   form.note = ''
+  form.quantity = 1
   submitError.value = null
 }
 </script>
@@ -120,18 +131,18 @@ function resetForm() {
         size="sm"
       />
       <div>
-        <h2 class="text-xl font-bold text-slate-100">录入耗材</h2>
-        <p class="mt-1 text-sm text-slate-500">耗材库存登记</p>
+        <h2 class="text-xl font-bold text-ink">录入耗材</h2>
+        <p class="mt-1 text-sm text-ink-tertiary">耗材库存登记</p>
       </div>
     </div>
 
     <!-- 表单 -->
-    <div class="max-w-2xl rounded-lg bg-[#1e1e3a] p-6 ring-1 ring-white/5">
+    <div class="max-w-2xl rounded-lg bg-surface-raised p-6 ring-1 ring-line">
       <div class="space-y-5">
         <!-- 品牌 + 型号 -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">品牌</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">品牌</label>
             <UInput
               v-model="form.brand"
               placeholder="如: 3M / 得力 / 安捷伦"
@@ -139,23 +150,23 @@ function resetForm() {
             />
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">
-              型号 <span class="text-red-400">*</span>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">
+              型号 <span class="text-alert-400">*</span>
             </label>
             <UInput
               v-model="form.model"
               placeholder="如: 9768 双面胶 / 0.5mm 焊锡丝"
               class="w-full"
-              :class="{ 'ring-1 ring-red-500/50': errors.model }"
+              :class="{ 'ring-1 ring-alert-500/50': errors.model }"
             />
-            <p v-if="errors.model" class="mt-1 text-xs text-red-400">{{ errors.model }}</p>
+            <p v-if="errors.model" class="mt-1 text-xs text-alert-400">{{ errors.model }}</p>
           </div>
         </div>
 
         <!-- 序列号 + 商品条码 -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">序列号</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">序列号</label>
             <UInput
               v-model="form.serial_number"
               placeholder="可留空"
@@ -163,31 +174,68 @@ function resetForm() {
             />
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">商品条码</label>
-            <UInput
-              v-model="form.barcode"
-              placeholder="EAN-13 / UPC / CODE128 等"
-              class="w-full font-mono"
-            />
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">商品条码</label>
+            <div class="flex gap-2">
+              <UInput
+                v-model="form.barcode"
+                placeholder="EAN-13 / UPC / CODE128 等"
+                class="w-full font-mono"
+              />
+              <UButton
+                icon="i-lucide-scan-line"
+                color="neutral"
+                variant="outline"
+                title="摄像头扫码"
+                @click="() => { showScanner = true }"
+              />
+              <UButton
+                icon="i-lucide-smartphone"
+                color="neutral"
+                variant="outline"
+                title="手机扫码回传"
+                @click="() => { showPhoneScan = true }"
+              />
+            </div>
           </div>
         </div>
 
-        <!-- 生产日期 / 保质期 -->
+        <!-- 生产日期 / 失效日期 -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">生产日期</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">生产日期</label>
             <UInput
               v-model="form.production_date"
-              placeholder="如: 2025-01-15"
+              type="date"
               class="w-full font-mono"
             />
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">保质期</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">失效日期</label>
+            <UInput
+              v-model="form.expiry_date"
+              type="date"
+              class="w-full font-mono"
+            />
+            <p class="mt-1 text-xs text-ink-tertiary">填了失效日期则保质期仅作备注</p>
+          </div>
+        </div>
+
+        <!-- 保质期 / 批号 -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">保质期</label>
             <UInput
               v-model="form.shelf_life"
               placeholder="如: 24个月 / 2027-06"
               class="w-full"
+            />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">批号</label>
+            <UInput
+              v-model="form.batch_number"
+              placeholder="医药/化工产品批号，可留空"
+              class="w-full font-mono"
             />
           </div>
         </div>
@@ -195,7 +243,7 @@ function resetForm() {
         <!-- 执行标准 / 净含量 -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">执行标准</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">执行标准</label>
             <UInput
               v-model="form.exec_standard"
               placeholder="如: GB/T 2423.1"
@@ -203,7 +251,7 @@ function resetForm() {
             />
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">净含量</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">净含量</label>
             <UInput
               v-model="form.net_content"
               placeholder="如: 100g / 500ml"
@@ -212,21 +260,34 @@ function resetForm() {
           </div>
         </div>
 
-        <!-- 状态 -->
-        <div class="grid grid-cols-1 gap-4">
+        <!-- 状态 + 数量 -->
+        <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">状态</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">状态</label>
             <USelect
               v-model="form.status"
               :items="STATUS_OPTIONS"
               class="w-full"
             />
           </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">数量</label>
+            <UInput
+              v-model.number="form.quantity"
+              type="number"
+              min="1"
+              max="200"
+              class="w-full"
+            />
+            <p v-if="form.quantity > 1" class="mt-1 text-xs text-action">
+              批量录入 {{ form.quantity }} 件，库位序号自动递增
+            </p>
+          </div>
         </div>
 
         <!-- 库位（三级） -->
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-slate-300">库位</label>
+          <label class="mb-1.5 block text-sm font-medium text-ink-secondary">库位</label>
           <div class="grid grid-cols-3 gap-2">
             <UInput
               v-model="form.location_a"
@@ -244,12 +305,12 @@ function resetForm() {
               class="w-full"
             />
           </div>
-          <p class="mt-1 text-xs text-slate-500">可选，三级容器定位：大箱 / 小箱 / 序号</p>
+          <p class="mt-1 text-xs text-ink-tertiary">可选，三级容器定位：大箱 / 小箱 / 序号</p>
         </div>
 
         <!-- 备注 -->
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-slate-300">备注</label>
+          <label class="mb-1.5 block text-sm font-medium text-ink-secondary">备注</label>
           <UTextarea
             v-model="form.note"
             placeholder="可选备注信息..."
@@ -261,10 +322,10 @@ function resetForm() {
         <!-- 提交错误 -->
         <div
           v-if="submitError"
-          class="flex items-center gap-2 rounded-md bg-red-500/10 p-3 ring-1 ring-red-500/20"
+          class="flex items-center gap-2 rounded-md bg-alert-500/10 p-3 ring-1 ring-alert-500/20"
         >
-          <UIcon name="i-lucide-alert-circle" class="h-5 w-5 shrink-0 text-red-400" />
-          <span class="text-sm text-red-300">{{ submitError }}</span>
+          <UIcon name="i-lucide-alert-circle" class="h-5 w-5 shrink-0 text-alert-400" />
+          <span class="text-sm text-alert-300">{{ submitError }}</span>
         </div>
 
         <!-- 操作按钮 -->
@@ -291,5 +352,11 @@ function resetForm() {
         </div>
       </div>
     </div>
+
+    <!-- 条码扫描弹窗 -->
+    <BarcodeScannerModal v-model:open="showScanner" @scanned="(v: string) => (form.barcode = v)" />
+
+    <!-- 手机扫码回传弹窗 -->
+    <PhoneScanModal v-model:open="showPhoneScan" @scanned="(v: string) => (form.barcode = v)" />
   </div>
 </template>

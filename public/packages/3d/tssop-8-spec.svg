@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 502" width="720" height="502">
+  <!-- TSSOP-8 正俯视工程图（8 脚，顶视；比例 58 px/mm）
+       尺寸（mm）：D 2.90-3.10 / E1 4.30-4.50 / E 6.20-6.60 / e 0.65 BSC / b 0.21-0.30
+       L 0.45-0.75 / L1 1.00 REF / A 1.20 max / A2 0.90-1.05
+       几何 nom：本体 D 3.0 × E1 4.4；上下各 4 脚，伸出 L1 1.0 → E 6.4；pin1 点右上（顶排右起 1→4） -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M273 100 V20 M447 100 V20"/>
+    <path d="M409.3 42 V26 M423.8 42 V26"/>
+    <path d="M447 100 H486 M447 355.2 H486"/>
+    <path d="M423.8 42 H530 M423.8 413.2 H530"/>
+    <path d="M378.85 413.2 V437 M416.55 413.2 V437"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M273 24 H447" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M416.55 30 H423.8" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M482 355.2 V100" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M526 413.2 V42" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M378.85 433 H416.55" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="18" text-anchor="middle">D 3.00</text>
+    <text x="420" y="22" text-anchor="middle">b 0.25</text>
+    <text transform="translate(494 227.6) rotate(-90)" text-anchor="middle">E1 4.40</text>
+    <text transform="translate(538 227.6) rotate(-90)" text-anchor="middle">E 6.40</text>
+    <text x="397.7" y="451" text-anchor="middle">e 0.65</text>
+  </g>
+
+  <!-- 引脚：上排 4 脚（右起 1→4）+ 下排 4 脚 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="296.2"  y="42" width="14.5" height="58" rx="2"/>
+    <rect x="333.9"  y="42" width="14.5" height="58" rx="2"/>
+    <rect x="371.6"  y="42" width="14.5" height="58" rx="2"/>
+    <rect x="409.3"  y="42" width="14.5" height="58" rx="2"/>
+    <rect x="296.2"  y="355.2" width="14.5" height="58" rx="2"/>
+    <rect x="333.9"  y="355.2" width="14.5" height="58" rx="2"/>
+    <rect x="371.6"  y="355.2" width="14.5" height="58" rx="2"/>
+    <rect x="409.3"  y="355.2" width="14.5" height="58" rx="2"/>
+  </g>
+
+
+  <!-- 本体（顶视，塑料色） -->
+  <rect x="273" y="100" width="174" height="255.2" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+  <!-- pin1 定位点（右上角） -->
+  <circle cx="425" cy="120" r="10" fill="#d9d9d9"/>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="465" text-anchor="middle">TSSOP-8 · 8 脚 · 顶视 Top View · D 2.90–3.10 · E1 4.30–4.50 · E 6.20–6.60 · pin1 点右上</text>
+    <text x="360" y="480" text-anchor="middle">e 0.65 BSC · b 0.21–0.30 · L 0.45–0.75 · L1 1.00 REF · A 1.20 max · A2 0.90–1.05</text>
+    <text x="360" y="495" text-anchor="middle">顶排右起 1→4，底排左起 5→8</text>
+  </g>
+</svg>

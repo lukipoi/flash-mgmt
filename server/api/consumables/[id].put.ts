@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
 
   const fields: string[] = []
   const params: any[] = []
-  const allowedFields = ['brand', 'model', 'serial_number', 'barcode', 'location_a', 'location_b', 'location_c', 'status', 'shelf_life', 'production_date', 'exec_standard', 'net_content', 'note']
+  const allowedFields = ['brand', 'model', 'serial_number', 'barcode', 'location_a', 'location_b', 'location_c', 'status', 'shelf_life', 'production_date', 'expiry_date', 'batch_number', 'exec_standard', 'net_content', 'note']
   const locationFields = new Set(['location_a', 'location_b', 'location_c'])
 
   for (const field of allowedFields) {

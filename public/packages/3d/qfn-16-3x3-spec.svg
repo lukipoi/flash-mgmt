@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 600" width="720" height="600">
+  <!-- QFN-16 3x3 底视图工程图（CH552 手册 19.2）
+       D/E 3.0±0.1 · 散热焊盘 D2/E2 1.7±0.1 · e 0.50 · b 0.25±0.07 · L 0.40±0.05
+       A 0.75±0.05 · A1 0.02±0.025 · A3 0.20±0.05
+       16 脚 = 每边 4 脚；底视 Pin 1 在右下，用散热焊盘缺角标识，焊盘统一同色 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwEd" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#16202e"/>
+    </marker>
+    <marker id="arwSd" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#16202e"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M210 180 V122 M510 180 V122"/>
+    <path d="M510 180 H570 M510 480 H570"/>
+    <path d="M285 480 V510 M335 480 V510"/>
+    <path d="M225 305 L150 358"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M210 126 H510" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M564 480 V180" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M285 504 H335" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="118" text-anchor="middle">D 3.00</text>
+    <text transform="translate(582 330) rotate(-90)" text-anchor="middle">E 3.00</text>
+    <text x="310" y="525" text-anchor="middle">e 0.50</text>
+    <text x="144" y="362" text-anchor="end">b 0.25</text>
+  </g>
+
+  <!-- 本体（底视） -->
+  <rect x="210" y="180" width="300" height="300" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2，右下角缺角作 Pin 1 标识 -->
+  <path d="M275 245 H445 V398 L428 415 H275 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- D2 标注画在焊盘内（同数据手册画法，避开下方引脚焊盘） -->
+  <path d="M275 330 H445" fill="none" stroke="#16202e" stroke-width="1.2" marker-start="url(#arwSd)" marker-end="url(#arwEd)"/>
+  <text x="360" y="324" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#16202e" letter-spacing="0.3">D2 1.70</text>
+
+  <!-- 16 个焊盘：每边 4 个，焊盘统一同色，仅靠散热焊盘缺角标识 Pin 1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="272.5" y="180" width="25" height="40" rx="12.5"/>
+    <rect x="322.5" y="180" width="25" height="40" rx="12.5"/>
+    <rect x="372.5" y="180" width="25" height="40" rx="12.5"/>
+    <rect x="422.5" y="180" width="25" height="40" rx="12.5"/>
+
+    <rect x="272.5" y="440" width="25" height="40" rx="12.5"/>
+    <rect x="322.5" y="440" width="25" height="40" rx="12.5"/>
+    <rect x="372.5" y="440" width="25" height="40" rx="12.5"/>
+    <rect x="422.5" y="440" width="25" height="40" rx="12.5"/>
+
+    <rect x="210" y="242.5" width="40" height="25" rx="12.5"/>
+    <rect x="210" y="292.5" width="40" height="25" rx="12.5"/>
+    <rect x="210" y="342.5" width="40" height="25" rx="12.5"/>
+    <rect x="210" y="392.5" width="40" height="25" rx="12.5"/>
+
+    <rect x="470" y="242.5" width="40" height="25" rx="12.5"/>
+    <rect x="470" y="292.5" width="40" height="25" rx="12.5"/>
+    <rect x="470" y="342.5" width="40" height="25" rx="12.5"/>
+    <rect x="470" y="392.5" width="40" height="25" rx="12.5"/>
+  </g>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="556" text-anchor="middle">16 脚（每边 4 脚）· 底视 Bottom View · D/E 3.00±0.10 · D2/E2 1.70±0.10</text>
+    <text x="360" y="574" text-anchor="middle">e 0.50 · b 0.25±0.07 · L 0.40±0.05 · A 0.75±0.05 · A1 0.02±0.025</text>
+  </g>
+</svg>

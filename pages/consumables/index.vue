@@ -16,8 +16,8 @@ const STATUS_LABELS: Record<ConsumableStatus, string> = {
 }
 
 const STATUS_STYLES: Record<ConsumableStatus, string> = {
-  in_use: 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
-  in_stock: 'bg-cyan-500/15 text-cyan-400 ring-1 ring-cyan-500/30'
+  in_use: 'bg-notice-500/15 text-notice-400 ring-1 ring-notice-500/30',
+  in_stock: 'bg-data-500/15 text-action ring-1 ring-action/30'
 }
 
 function statusBadge(status: ConsumableStatus) {
@@ -34,6 +34,38 @@ const statusFilter = ref<string | undefined>(undefined)
 const consumables = ref<Consumable[]>([])
 const pending = ref(false)
 const fetchError = ref<any>(null)
+
+// 行选择（批量打印）
+const rowSelection = ref<Record<string, boolean>>({})
+const selectedCount = computed(() => Object.values(rowSelection.value).filter(Boolean).length)
+const selectedConsumables = computed(() =>
+  consumables.value.filter(c => rowSelection.value[String(c.id)])
+)
+const showBatchPrintModal = ref(false)
+function openBatchPrint() {
+  if (!selectedConsumables.value.length) return
+  showBatchPrintModal.value = true
+}
+function clearSelection() {
+  rowSelection.value = {}
+}
+
+// 过期/临期置顶：已过期（按过期天数降序）→ 临期（按剩余天数升序）→ 其他
+const sortedConsumables = computed(() => {
+  const withWarn = consumables.value.map(c => ({
+    c,
+    warn: expiryWarning(calcExpiryDate(c.production_date, c.shelf_life, c.expiry_date))
+  }))
+  return withWarn.sort((a, b) => {
+    const rank = (w: typeof a.warn) => (w?.level === 'expired' ? 0 : w?.level === 'soon' ? 1 : 2)
+    const ra = rank(a.warn)
+    const rb = rank(b.warn)
+    if (ra !== rb) return ra - rb
+    if (ra === 0) return b.warn!.days - a.warn!.days
+    if (ra === 1) return a.warn!.days - b.warn!.days
+    return 0
+  }).map(x => x.c)
+})
 
 async function fetchConsumables() {
   pending.value = true
@@ -80,27 +112,54 @@ function formatLocation(a?: string | null, b?: string | null, c?: string | null)
 
 const columns: TableColumn<Consumable>[] = [
   {
+    id: 'select',
+    header: ({ table }: any) => h('input', {
+      type: 'checkbox',
+      checked: table.getIsAllRowsSelected(),
+      indeterminate: table.getIsSomeRowsSelected(),
+      onChange: table.getToggleAllRowsSelectedHandler(),
+      class: 'h-4 w-4 cursor-pointer accent-data-500'
+    }),
+    cell: ({ row }: any) => h('input', {
+      type: 'checkbox',
+      checked: row.getIsSelected(),
+      onChange: row.getToggleSelectedHandler(),
+      class: 'h-4 w-4 cursor-pointer accent-data-500'
+    }),
+    meta: { class: { th: 'w-10 text-center', td: 'w-10 text-center' } }
+  },
+  {
     accessorKey: 'brand',
     header: '品牌',
-    cell: ({ row }) => h('span', { class: 'text-slate-400' }, row.getValue('brand') || '-')
+    cell: ({ row }) => h('span', { class: 'text-ink-secondary' }, row.getValue('brand') || '-')
   },
   {
     accessorKey: 'model',
     header: '型号',
-    cell: ({ row }) => h(ULink, {
-      to: `/consumables/${row.original.id}`,
-      class: 'font-medium text-cyan-400 hover:text-cyan-300'
-    }, () => row.getValue('model'))
+    cell: ({ row }) => {
+      const warn = expiryWarning(calcExpiryDate(row.original.production_date, row.original.shelf_life, row.original.expiry_date))
+      return h('div', { class: 'flex items-center gap-2' }, [
+        h(ULink, {
+          to: `/consumables/${row.original.id}`,
+          class: 'font-medium text-action hover:text-data-300'
+        }, () => row.getValue('model')),
+        warn
+          ? h('span', {
+              class: 'inline-flex animate-pulse items-center rounded-md bg-alert-500 px-1.5 py-0.5 text-xs font-bold text-on-button ring-1 ring-alert-400'
+            }, warn.level === 'expired' ? `已过期${warn.days}天` : `${warn.days}天到期`)
+          : null
+      ])
+    }
   },
   {
     accessorKey: 'serial_number',
     header: '序列号',
-    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-slate-400' }, row.getValue('serial_number') || '-')
+    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-ink-secondary' }, row.getValue('serial_number') || '-')
   },
   {
     accessorKey: 'barcode',
     header: '商品条码',
-    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-amber-400' }, row.getValue('barcode') || '-')
+    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-notice-400' }, row.getValue('barcode') || '-')
   },
   {
     accessorKey: 'status',
@@ -110,18 +169,18 @@ const columns: TableColumn<Consumable>[] = [
   {
     accessorKey: 'location_a',
     header: '库位',
-    cell: ({ row }) => h('span', { class: 'text-xs text-slate-400' },
+    cell: ({ row }) => h('span', { class: 'text-xs text-ink-secondary' },
       formatLocation(row.getValue('location_a'), row.getValue('location_b'), row.getValue('location_c')))
   },
   {
     accessorKey: 'note',
     header: '备注',
-    cell: ({ row }) => h('span', { class: 'text-slate-500' }, row.getValue('note') || '-')
+    cell: ({ row }) => h('span', { class: 'text-ink-tertiary' }, row.getValue('note') || '-')
   },
   {
     accessorKey: 'created_at',
     header: '录入时间',
-    cell: ({ row }) => h('span', { class: 'text-xs text-slate-500' }, formatDate(row.getValue('created_at')))
+    cell: ({ row }) => h('span', { class: 'text-xs text-ink-tertiary' }, formatDate(row.getValue('created_at')))
   },
   {
     id: 'actions',
@@ -257,13 +316,33 @@ async function confirmDelete() {
     <!-- 页头 -->
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h2 class="text-xl font-bold text-slate-100">耗材列表</h2>
-        <p class="mt-1 text-sm text-slate-500">共 {{ consumables?.length ?? 0 }} 条记录</p>
+        <h2 class="text-xl font-bold text-ink">耗材列表</h2>
+        <p class="mt-1 text-sm text-ink-tertiary">共 {{ consumables?.length ?? 0 }} 条记录</p>
       </div>
       <div class="flex gap-2">
         <UButton
+          v-if="selectedCount > 0"
           icon="i-lucide-printer"
-          color="amber"
+          color="data"
+          variant="solid"
+          size="sm"
+          @click="openBatchPrint"
+        >
+          批量打标 ({{ selectedCount }})
+        </UButton>
+        <UButton
+          v-if="selectedCount > 0"
+          icon="i-lucide-x"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          @click="clearSelection"
+        >
+          取消选择
+        </UButton>
+        <UButton
+          icon="i-lucide-printer"
+          color="notice"
           variant="outline"
           size="sm"
           @click="openContainerPrint"
@@ -283,7 +362,7 @@ async function confirmDelete() {
     </div>
 
     <!-- 搜索筛选栏 -->
-    <div class="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-[#1e1e3a] p-4 ring-1 ring-white/5">
+    <div class="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-surface-raised p-4 ring-1 ring-line">
       <UInput
         v-model="search"
         icon="i-lucide-search"
@@ -313,23 +392,23 @@ async function confirmDelete() {
     <!-- 错误提示 -->
     <div
       v-if="fetchError"
-      class="mb-4 flex items-center gap-3 rounded-lg bg-red-500/10 p-4 ring-1 ring-red-500/20"
+      class="mb-4 flex items-center gap-3 rounded-lg bg-alert-500/10 p-4 ring-1 ring-alert-500/20"
     >
-      <UIcon name="i-lucide-alert-circle" class="h-5 w-5 text-red-400" />
-      <span class="text-sm text-red-300">加载失败: {{ fetchError?.message }}</span>
+      <UIcon name="i-lucide-alert-circle" class="h-5 w-5 text-alert-400" />
+      <span class="text-sm text-alert-300">加载失败: {{ fetchError?.message }}</span>
     </div>
 
     <!-- 数据表格 -->
-    <div class="rounded-lg bg-[#1e1e3a] ring-1 ring-white/5">
+    <div class="rounded-lg bg-surface-raised ring-1 ring-line">
       <div v-if="pending" class="p-8">
         <div class="animate-pulse space-y-3">
-          <div v-for="i in 5" :key="i" class="h-10 rounded bg-white/5" />
+          <div v-for="i in 5" :key="i" class="h-10 rounded bg-surface-muted" />
         </div>
       </div>
 
       <div v-else-if="!consumables?.length" class="px-5 py-16 text-center">
-        <UIcon name="i-lucide-search-x" class="mx-auto h-10 w-10 text-slate-600" />
-        <p class="mt-3 text-sm text-slate-500">
+        <UIcon name="i-lucide-search-x" class="mx-auto h-10 w-10 text-ink-tertiary" />
+        <p class="mt-3 text-sm text-ink-tertiary">
           {{ search || statusFilter ? '没有匹配的耗材' : '暂无耗材数据' }}
         </p>
         <UButton
@@ -346,7 +425,14 @@ async function confirmDelete() {
       </div>
 
       <div v-else class="p-2">
-        <UTable :data="consumables" :columns="columns" class="w-full" />
+        <UTable
+          :data="sortedConsumables"
+          :columns="columns"
+          :row-selection-options="{ enableRowSelection: true }"
+          :get-row-id="(row: Consumable) => String(row.id)"
+          v-model:row-selection="rowSelection"
+          class="w-full"
+        />
       </div>
     </div>
 
@@ -354,34 +440,34 @@ async function confirmDelete() {
     <UModal v-model:open="showEditModal" :title="`编辑耗材 - ${editForm.model ?? ''}`">
       <template #body>
         <div class="space-y-4">
-          <div v-if="editError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="editError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ editError }}
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">品牌</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">品牌</label>
               <UInput v-model="editForm.brand" class="w-full" />
             </div>
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">型号</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">型号</label>
               <UInput v-model="editForm.model" class="w-full" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">序列号</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">序列号</label>
               <UInput v-model="editForm.serial_number" class="w-full font-mono" />
             </div>
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">商品条码</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">商品条码</label>
               <UInput v-model="editForm.barcode" class="w-full font-mono" />
             </div>
           </div>
 
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">库位</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">库位</label>
             <div class="grid grid-cols-3 gap-2">
               <UInput v-model="editForm.location_a" placeholder="大箱" class="w-full" />
               <UInput v-model="editForm.location_b" placeholder="小箱" class="w-full" />
@@ -391,7 +477,7 @@ async function confirmDelete() {
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">状态</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">状态</label>
               <USelect
                 v-model="editForm.status"
                 :items="Object.entries(STATUS_LABELS).map(([v, l]) => ({ label: l, value: v }))"
@@ -401,7 +487,7 @@ async function confirmDelete() {
           </div>
 
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">备注</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">备注</label>
             <UTextarea v-model="editForm.note" :rows="3" class="w-full" />
           </div>
         </div>
@@ -422,14 +508,14 @@ async function confirmDelete() {
     <UModal v-model:open="showDeleteModal" :title="`删除 ${consumableToDelete?.model || '耗材'}？`">
       <template #body>
         <div class="space-y-3">
-          <p class="text-sm text-slate-300">此操作不可恢复。</p>
-          <div v-if="consumableToDelete" class="rounded-md bg-white/5 p-3 font-mono text-xs text-slate-400">
+          <p class="text-sm text-ink-secondary">此操作不可恢复。</p>
+          <div v-if="consumableToDelete" class="rounded-md bg-surface-muted p-3 font-mono text-xs text-ink-secondary">
             <div>品牌：{{ consumableToDelete.brand || '-' }}</div>
             <div>型号：{{ consumableToDelete.model }}</div>
             <div>序列号：{{ consumableToDelete.serial_number || '-' }}</div>
             <div>状态：{{ STATUS_LABELS[consumableToDelete.status] }}</div>
           </div>
-          <div v-if="deleteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="deleteError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ deleteError }}
           </div>
         </div>
@@ -451,7 +537,7 @@ async function confirmDelete() {
       <template #body>
         <div class="space-y-3">
           <div>
-            <label class="mb-1 block text-xs text-slate-500">容器类型</label>
+            <label class="mb-1 block text-xs text-ink-tertiary">容器类型</label>
             <USelect
               v-model="containerForm.kind"
               :items="[
@@ -462,7 +548,7 @@ async function confirmDelete() {
             />
           </div>
           <div>
-            <label class="mb-1 block text-xs text-slate-500">名称</label>
+            <label class="mb-1 block text-xs text-ink-tertiary">名称</label>
             <UInput
               v-model="containerForm.name"
               :placeholder="containerForm.kind === 'big' ? '如: A / B / C' : '如: A-1 / B-2'"
@@ -470,7 +556,7 @@ async function confirmDelete() {
             />
           </div>
           <div>
-            <label class="mb-1 block text-xs text-slate-500">副标题（可选）</label>
+            <label class="mb-1 block text-xs text-ink-tertiary">副标题（可选）</label>
             <UInput
               v-model="containerForm.subtitle"
               placeholder="如: 12 颗耗材"
@@ -503,6 +589,13 @@ async function confirmDelete() {
       :container-kind="containerForm.kind"
       :container-name="containerForm.name.trim()"
       :container-subtitle="containerForm.subtitle.trim() || null"
+    />
+
+    <!-- 批量耗材打印 -->
+    <PrintLabelModal
+      v-model:open="showBatchPrintModal"
+      mode="consumable"
+      :consumables="selectedConsumables"
     />
   </div>
 </template>

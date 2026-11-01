@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 620" width="720" height="620">
+  <!-- QFN-48 5x5 底视图工程图（CH579 数据手册 第 21 章 封装，V2.1）
+       D/E 5.0±0.1 · 散热焊盘 D2/E2 3.7±0.1 · e 0.35 · b 0.18±0.05 · L 0.40±0.05 · 厚度默认 0.55
+       48 脚 = 每边 12 脚；底视 Pin 1 在右下，用散热焊盘缺角标识，焊盘统一同色 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwEd" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#16202e"/>
+    </marker>
+    <marker id="arwSd" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#16202e"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M160 110 V56 M560 110 V56"/>
+    <path d="M560 110 H650 M560 510 H650"/>
+    <path d="M318 510 V526 M346 510 V526"/>
+    <path d="M192 344.8 L138 378"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M160 60 H560" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M644 510 V110" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M318 520 H346" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="52" text-anchor="middle">D 5.00</text>
+    <text transform="translate(662 310) rotate(-90)" text-anchor="middle">E 5.00</text>
+    <text x="332" y="536" text-anchor="middle">e 0.35</text>
+    <text x="132" y="382" text-anchor="end">b 0.18</text>
+  </g>
+
+  <!-- 本体（底视） -->
+  <rect x="160" y="110" width="400" height="400" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2，右下角缺角作 Pin 1 标识 -->
+  <path d="M212 162 H508 V430 L480 458 H212 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- D2 标注画在焊盘内（同数据手册画法，避开下方引脚焊盘） -->
+  <path d="M212 310 H508" fill="none" stroke="#16202e" stroke-width="1.2" marker-start="url(#arwSd)" marker-end="url(#arwEd)"/>
+  <text x="360" y="304" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#16202e" letter-spacing="0.3">D2 3.70</text>
+
+  <!-- 48 个焊盘：焊盘统一同色，仅靠散热焊盘缺角标识 Pin 1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="198.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="226.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="254.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="282.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="310.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="338.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="366.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="394.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="422.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="450.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="478.8" y="110" width="14.4" height="32" rx="7"/>
+    <rect x="506.8" y="110" width="14.4" height="32" rx="7"/>
+
+    <rect x="198.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="226.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="254.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="282.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="310.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="338.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="366.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="394.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="422.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="450.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="478.8" y="478" width="14.4" height="32" rx="7"/>
+    <rect x="506.8" y="478" width="14.4" height="32" rx="7"/>
+
+    <rect x="160" y="148.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="176.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="204.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="232.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="260.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="288.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="316.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="344.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="372.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="400.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="428.8" width="32" height="14.4" rx="7"/>
+    <rect x="160" y="456.8" width="32" height="14.4" rx="7"/>
+
+    <rect x="528" y="148.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="176.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="204.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="232.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="260.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="288.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="316.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="344.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="372.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="400.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="428.8" width="32" height="14.4" rx="7"/>
+    <rect x="528" y="456.8" width="32" height="14.4" rx="7"/>
+  </g>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="560" text-anchor="middle">48 脚 · 底视 Bottom View · D/E 5.00±0.10 · D2/E2 3.70±0.10</text>
+    <text x="360" y="578" text-anchor="middle">e 0.35 · b 0.18±0.05 · L 0.40±0.05 · 厚度 0.55（默认）</text>
+  </g>
+</svg>

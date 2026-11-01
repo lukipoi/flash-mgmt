@@ -13,9 +13,9 @@ const STATUS_LABELS: Record<EquipmentStatus, string> = {
 }
 
 const STATUS_STYLES: Record<EquipmentStatus, string> = {
-  normal: 'bg-green-500/15 text-green-400 ring-1 ring-green-500/30',
-  damaged: 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
-  lost: 'bg-red-500/15 text-red-400 ring-1 ring-red-500/30'
+  normal: 'bg-gain-500/15 text-gain-400 ring-1 ring-gain-500/30',
+  damaged: 'bg-notice-500/15 text-notice-400 ring-1 ring-notice-500/30',
+  lost: 'bg-alert-500/15 text-alert-400 ring-1 ring-alert-500/30'
 }
 
 const copied = ref(false)
@@ -122,12 +122,12 @@ const showPrintModal = ref(false)
         />
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-xl font-bold text-slate-100">
+            <h2 class="text-xl font-bold text-ink">
               {{ equip?.model || '设备详情' }}
             </h2>
             <UBadge
               v-if="equip?.brand"
-              color="blue"
+              color="data"
               variant="subtle"
               size="xs"
             >
@@ -140,7 +140,7 @@ const showPrintModal = ref(false)
               {{ STATUS_LABELS[equip.status] }}
             </span>
           </div>
-          <p v-if="equip" class="mt-1 font-mono text-xs text-slate-500">
+          <p v-if="equip" class="mt-1 font-mono text-xs text-ink-tertiary">
             ID: {{ equip.id }}
           </p>
         </div>
@@ -159,7 +159,7 @@ const showPrintModal = ref(false)
         <UButton
           v-if="equip"
           icon="i-lucide-activity"
-          color="amber"
+          color="notice"
           variant="outline"
           size="sm"
           @click="openStatusModal"
@@ -169,7 +169,7 @@ const showPrintModal = ref(false)
         <UButton
           v-if="equip"
           icon="i-lucide-printer"
-          color="amber"
+          color="notice"
           variant="solid"
           size="sm"
           @click="showPrintModal = true"
@@ -202,15 +202,15 @@ const showPrintModal = ref(false)
 
     <!-- 加载中 -->
     <div v-if="pending" class="space-y-4">
-      <div class="h-32 animate-pulse rounded-lg bg-white/5" />
-      <div class="h-64 animate-pulse rounded-lg bg-white/5" />
+      <div class="h-32 animate-pulse rounded-lg bg-surface-muted" />
+      <div class="h-64 animate-pulse rounded-lg bg-surface-muted" />
     </div>
 
     <!-- 错误 / 404 -->
-    <div v-else-if="error || !equip" class="rounded-lg bg-[#1e1e3a] p-12 text-center ring-1 ring-white/5">
-      <UIcon name="i-lucide-alert-octagon" class="mx-auto h-12 w-12 text-red-400" />
-      <h3 class="mt-4 text-lg font-semibold text-slate-200">设备不存在</h3>
-      <p class="mt-1 text-sm text-slate-500">
+    <div v-else-if="error || !equip" class="rounded-lg bg-surface-raised p-12 text-center ring-1 ring-line">
+      <UIcon name="i-lucide-alert-octagon" class="mx-auto h-12 w-12 text-alert-400" />
+      <h3 class="mt-4 text-lg font-semibold text-ink">设备不存在</h3>
+      <p class="mt-1 text-sm text-ink-tertiary">
         {{ error?.message || '未找到该设备记录' }}
       </p>
       <UButton to="/equipment" icon="i-lucide-list" color="primary" variant="outline" size="sm" class="mt-4">
@@ -220,22 +220,22 @@ const showPrintModal = ref(false)
 
     <template v-else>
       <!-- 基本信息 -->
-      <div class="rounded-lg bg-[#1e1e3a] ring-1 ring-white/5">
-        <div class="flex items-center gap-2 border-b border-white/5 px-5 py-4">
-          <UIcon name="i-lucide-info" class="h-5 w-5 text-cyan-400" />
-          <h3 class="text-sm font-semibold text-slate-200">基本信息</h3>
+      <div class="rounded-lg bg-surface-raised ring-1 ring-line">
+        <div class="flex items-center gap-2 border-b border-line px-5 py-4">
+          <UIcon name="i-lucide-info" class="h-5 w-5 text-action" />
+          <h3 class="text-sm font-semibold text-ink">基本信息</h3>
         </div>
         <div class="grid grid-cols-2 gap-x-6 gap-y-4 p-5 md:grid-cols-3">
           <div>
-            <dt class="text-xs text-slate-500">品牌</dt>
-            <dd class="mt-1 text-slate-200">{{ equip.brand || '-' }}</dd>
+            <dt class="text-xs text-ink-tertiary">品牌</dt>
+            <dd class="mt-1 text-ink">{{ equip.brand || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">型号</dt>
-            <dd class="mt-1 font-medium text-slate-200">{{ equip.model }}</dd>
+            <dt class="text-xs text-ink-tertiary">型号</dt>
+            <dd class="mt-1 font-medium text-ink">{{ equip.model }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">状态</dt>
+            <dt class="text-xs text-ink-tertiary">状态</dt>
             <dd class="mt-1">
               <span
                 :class="[STATUS_STYLES[equip.status], 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium']"
@@ -245,9 +245,9 @@ const showPrintModal = ref(false)
             </dd>
           </div>
           <div class="md:col-span-2">
-            <dt class="text-xs text-slate-500">序列号</dt>
+            <dt class="text-xs text-ink-tertiary">序列号</dt>
             <dd class="mt-1 flex items-center gap-2">
-              <span class="font-mono text-slate-300">{{ equip.serial_number || '-' }}</span>
+              <span class="font-mono text-ink-secondary">{{ equip.serial_number || '-' }}</span>
               <UButton
                 v-if="equip.serial_number"
                 :icon="copied ? 'i-lucide-check' : 'i-lucide-copy'"
@@ -261,16 +261,16 @@ const showPrintModal = ref(false)
             </dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">创建时间</dt>
-            <dd class="mt-1 font-mono text-xs text-slate-400">{{ formatDate(equip.created_at) }}</dd>
+            <dt class="text-xs text-ink-tertiary">创建时间</dt>
+            <dd class="mt-1 font-mono text-xs text-ink-secondary">{{ formatDate(equip.created_at) }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-500">更新时间</dt>
-            <dd class="mt-1 font-mono text-xs text-slate-400">{{ formatDate(equip.updated_at) }}</dd>
+            <dt class="text-xs text-ink-tertiary">更新时间</dt>
+            <dd class="mt-1 font-mono text-xs text-ink-secondary">{{ formatDate(equip.updated_at) }}</dd>
           </div>
           <div v-if="equip.note" class="md:col-span-3">
-            <dt class="text-xs text-slate-500">备注</dt>
-            <dd class="mt-1 rounded-md bg-white/5 p-3 text-sm text-slate-300 whitespace-pre-wrap">{{ equip.note }}</dd>
+            <dt class="text-xs text-ink-tertiary">备注</dt>
+            <dd class="mt-1 rounded-md bg-surface-muted p-3 text-sm text-ink-secondary whitespace-pre-wrap">{{ equip.note }}</dd>
           </div>
         </div>
       </div>
@@ -285,7 +285,7 @@ const showPrintModal = ref(false)
             placeholder="输入备注内容..."
             :rows="4"
           />
-          <div v-if="noteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="noteError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ noteError }}
           </div>
         </div>
@@ -315,7 +315,7 @@ const showPrintModal = ref(false)
             ]"
             class="w-full"
           />
-          <div v-if="statusError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="statusError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ statusError }}
           </div>
         </div>
@@ -336,14 +336,14 @@ const showPrintModal = ref(false)
     <UModal v-model:open="showDeleteModal" :title="`删除 ${equip?.model || '设备'}？`">
       <template #body>
         <div class="space-y-3">
-          <p class="text-sm text-slate-300">此操作不可恢复。</p>
-          <div v-if="equip" class="rounded-md bg-white/5 p-3 font-mono text-xs text-slate-400">
+          <p class="text-sm text-ink-secondary">此操作不可恢复。</p>
+          <div v-if="equip" class="rounded-md bg-surface-muted p-3 font-mono text-xs text-ink-secondary">
             <div>品牌：{{ equip.brand || '-' }}</div>
             <div>型号：{{ equip.model }}</div>
             <div>序列号：{{ equip.serial_number || '-' }}</div>
             <div>状态：{{ STATUS_LABELS[equip.status] }}</div>
           </div>
-          <div v-if="deleteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="deleteError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ deleteError }}
           </div>
         </div>

@@ -1,8 +1,10 @@
 import { db } from '../../database/init'
+import { normalizeVendorDb } from '../../utils/vendorNormalize'
+import { normalizePackageDb } from '../../utils/packageNormalize'
 
 export default defineEventHandler((event) => {
   const query = getQuery(event)
-  const { search, model, chip_type, location_a, location_b } = query
+  const { search, model, chip_type, location_a, location_b, vendor, package: pkg } = query
 
   let sql = 'SELECT * FROM chips WHERE 1=1'
   const params: any[] = []
@@ -21,6 +23,18 @@ export default defineEventHandler((event) => {
   if (chip_type) {
     sql += ' AND chip_type = ?'
     params.push(String(chip_type))
+  }
+
+  // 厂商筛选：lower() 归一匹配，兼容历史数据大小写混用（SQLite lower 只处理 ASCII，对中文品牌无影响）
+  if (vendor) {
+    sql += ' AND lower(vendor) = lower(?)'
+    params.push(normalizeVendorDb(String(vendor)))
+  }
+
+  // 封装筛选：同厂商筛选模式，lower() 归一匹配
+  if (pkg) {
+    sql += ' AND lower(package) = lower(?)'
+    params.push(normalizePackageDb(String(pkg)))
   }
 
   if (location_a) {

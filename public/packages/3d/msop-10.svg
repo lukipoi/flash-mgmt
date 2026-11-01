@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="130.5 186 459 288" width="459" height="288">
+  <!-- MSOP-10 顶视缩略图（无尺寸标注；带标注的工程图见 msop-10-spec.svg）
+       CH552 手册 19.4：D 3.0，E1 3.0，E 4.9，e 0.5，b 0.22；顶视 Pin 1 在左上 -->
+  <rect x="225" y="195" width="270" height="270" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- Pin 1 标识：本体左上角实心圆点 -->
+  <circle cx="252" cy="222" r="11" fill="#d9d9d9"/>
+
+  <!-- 10 只鸥翼引脚：5 左 + 5 右，间距 0.50mm，向外伸出 E-E1 的一半 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="139.5" y="230.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="139.5" y="275.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="139.5" y="320.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="139.5" y="365.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="139.5" y="410.1" width="85.5" height="19.8" rx="3"/>
+
+    <rect x="495" y="230.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="495" y="275.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="495" y="320.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="495" y="365.1" width="85.5" height="19.8" rx="3"/>
+    <rect x="495" y="410.1" width="85.5" height="19.8" rx="3"/>
+  </g>
+</svg>

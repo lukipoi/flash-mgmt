@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" height="420">
+  <!-- SOP-28 300mil 正俯视工程图（依据 TM1638 规格书 P18 尺寸，单位 mm） -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线与尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M160 100 V30 M661.2 100 V30"/>
+    <path d="M58 59.4 H170 M58 350.6 H170"/>
+    <path d="M112 100 H160 M112 310 H160"/>
+    <path d="M179.46 350.6 V388 M215.02 350.6 V388"/>
+  </g>
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M160 36 H661.2" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M58 59.4 V350.6" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M112 100 V310" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M179.46 382 H215.02" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="410.6" y="26" text-anchor="middle">A 17.90</text>
+    <text transform="translate(50 205) rotate(-90)" text-anchor="middle">B 10.40</text>
+    <text transform="translate(104 205) rotate(-90)" text-anchor="middle">B1 7.50</text>
+    <text x="197.24" y="404" text-anchor="middle">A2 1.27</text>
+  </g>
+
+  <!-- 引脚：下排 Pin 1-14（Pin 1 靠本体凹点标识，引脚本身同色） -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="173.77" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="209.33" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="244.89" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="280.45" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="316.01" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="351.57" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="387.13" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="422.69" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="458.25" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="493.81" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="529.37" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="564.93" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="600.49" y="310" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="636.05" y="310" width="11.38" height="40.6" rx="1.5"/>
+  </g>
+
+  <!-- 引脚：上排 Pin 15-28 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="173.77" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="209.33" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="244.89" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="280.45" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="316.01" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="351.57" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="387.13" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="422.69" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="458.25" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="493.81" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="529.37" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="564.93" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="600.49" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+    <rect x="636.05" y="59.4" width="11.38" height="40.6" rx="1.5"/>
+  </g>
+
+  <!-- 本体 -->
+  <rect x="160" y="100" width="501.2" height="210" rx="6" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 模具中心标记 Φ3.0 -->
+  <circle cx="410.6" cy="205" r="42" fill="none" stroke="#3a3a5c" stroke-width="1.1" stroke-dasharray="4 4"/>
+
+  <!-- Pin 1 凹点 Φ1.14（实心标称白） -->
+  <circle cx="190" cy="280" r="15.96" fill="#d9d9d9"/>
+</svg>

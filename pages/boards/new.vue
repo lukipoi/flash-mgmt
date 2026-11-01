@@ -85,18 +85,18 @@ function resetForm() {
         size="sm"
       />
       <div>
-        <h2 class="text-xl font-bold text-slate-100">录入电路板</h2>
-        <p class="mt-1 text-sm text-slate-500">记录拆下来的待处理板子</p>
+        <h2 class="text-xl font-bold text-ink">录入电路板</h2>
+        <p class="mt-1 text-sm text-ink-tertiary">记录拆下来的待处理板子</p>
       </div>
     </div>
 
     <!-- 表单 -->
-    <div class="max-w-2xl rounded-lg bg-[#1e1e3a] p-6 ring-1 ring-white/5">
+    <div class="max-w-2xl rounded-lg bg-surface-raised p-6 ring-1 ring-line">
       <div class="space-y-5">
         <!-- 品牌 + 型号 -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">品牌</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">品牌</label>
             <UInput
               v-model="form.brand"
               placeholder="如: Arduino / ST / 拆机来源"
@@ -104,23 +104,23 @@ function resetForm() {
             />
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">
-              型号 <span class="text-red-400">*</span>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">
+              型号 <span class="text-alert-400">*</span>
             </label>
             <UInput
               v-model="form.model"
               placeholder="如: UNO R3 / 自研板 V1.0"
               class="w-full"
-              :class="{ 'ring-1 ring-red-500/50': errors.model }"
+              :class="{ 'ring-1 ring-alert-500/50': errors.model }"
             />
-            <p v-if="errors.model" class="mt-1 text-xs text-red-400">{{ errors.model }}</p>
+            <p v-if="errors.model" class="mt-1 text-xs text-alert-400">{{ errors.model }}</p>
           </div>
         </div>
 
         <!-- 序列号 + 状态 -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">序列号</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">序列号</label>
             <UInput
               v-model="form.serial_number"
               placeholder="可留空"
@@ -128,7 +128,7 @@ function resetForm() {
             />
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">拆解状态</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">拆解状态</label>
             <USelect
               v-model="form.status"
               :items="STATUS_OPTIONS"
@@ -139,8 +139,8 @@ function resetForm() {
 
         <!-- 板载芯片 -->
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-slate-300">
-            板载主要芯片 <span class="text-xs text-slate-500">（逗号分隔，可留空）</span>
+          <label class="mb-1.5 block text-sm font-medium text-ink-secondary">
+            板载主要芯片 <span class="text-xs text-ink-tertiary">（逗号分隔，可留空）</span>
           </label>
           <UInput
             v-model="chipsText"
@@ -151,7 +151,7 @@ function resetForm() {
 
         <!-- 备注 -->
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-slate-300">备注</label>
+          <label class="mb-1.5 block text-sm font-medium text-ink-secondary">备注</label>
           <UTextarea
             v-model="form.note"
             placeholder="可选备注信息..."
@@ -163,10 +163,10 @@ function resetForm() {
         <!-- 提交错误 -->
         <div
           v-if="submitError"
-          class="flex items-center gap-2 rounded-md bg-red-500/10 p-3 ring-1 ring-red-500/20"
+          class="flex items-center gap-2 rounded-md bg-alert-500/10 p-3 ring-1 ring-alert-500/20"
         >
-          <UIcon name="i-lucide-alert-circle" class="h-5 w-5 shrink-0 text-red-400" />
-          <span class="text-sm text-red-300">{{ submitError }}</span>
+          <UIcon name="i-lucide-alert-circle" class="h-5 w-5 shrink-0 text-alert-400" />
+          <span class="text-sm text-alert-300">{{ submitError }}</span>
         </div>
 
         <!-- 操作按钮 -->

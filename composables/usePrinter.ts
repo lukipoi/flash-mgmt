@@ -30,7 +30,10 @@ interface ChipLabelData {
   jedecId?: string | null
   uid?: string | null
   capacity?: string | null
-  chipType: 'flash' | 'mcu'
+  package?: string | null
+  chipType: 'flash' | 'mcu' | 'other'
+  /** 「其他」类型的二级分类名（chip_category），用于在标签上显示分类路径代替「其他」 */
+  chipCategory?: string | null
   location_a?: string | null
   location_b?: string | null
   location_c?: string | null
@@ -60,6 +63,8 @@ interface ConsumableLabelData {
   location_c?: string | null
   shelf_life?: string | null
   production_date?: string | null
+  expiry_date?: string | null
+  batch_number?: string | null
   exec_standard?: string | null
   net_content?: string | null
   note?: string | null
@@ -113,6 +118,51 @@ const checkingStatus = ref(false)
 let api: any = null
 let initPromise: Promise<void> | null = null
 
+// ===== 「其他」类型芯片分类（一级 / 二级），用于标签类型文字 =====
+interface ChipCategoryItem { id: number, name: string, parent_id: number | null }
+const chipCategories = ref<ChipCategoryItem[]>([])
+let chipCategoriesLoaded = false
+let chipCategoriesPromise: Promise<void> | null = null
+
+/** 拉取芯片分类树（模块级单例，失败可重试） */
+function loadChipCategories(): Promise<void> {
+  if (import.meta.server) return Promise.resolve()
+  if (chipCategoriesLoaded) return Promise.resolve()
+  if (chipCategoriesPromise) return chipCategoriesPromise
+
+  chipCategoriesPromise = (async () => {
+    try {
+      const list = await $fetch<ChipCategoryItem[]>('/api/chip-categories')
+      if (Array.isArray(list)) {
+        chipCategories.value = list.map(c => ({ id: c.id, name: c.name, parent_id: c.parent_id ?? null }))
+        chipCategoriesLoaded = true
+      }
+    } catch {
+      // 分类拉不到时退回显示「其他」，不阻断打印
+    } finally {
+      chipCategoriesPromise = null
+    }
+  })()
+
+  return chipCategoriesPromise
+}
+
+/** 二级分类名 → “一级 / 二级” */
+function chipCategoryPath(name: string | null | undefined): string {
+  if (!name) return ''
+  const leaf = chipCategories.value.find(c => c.name === name)
+  if (!leaf) return name
+  const parent = leaf.parent_id ? chipCategories.value.find(c => c.id === leaf.parent_id) : null
+  return parent ? `${parent.name} / ${leaf.name}` : leaf.name
+}
+
+/** 标签上的芯片类型文字（「其他」类型优先显示分类路径） */
+function chipTypeText(data: ChipLabelData): string {
+  if (data.chipType === 'flash') return 'NOR Flash'
+  if (data.chipType === 'mcu') return 'MCU'
+  return chipCategoryPath(data.chipCategory) || '其他'
+}
+
 /** 初始化：动态 import SDK（SSR 安全）+ DTPWeb.checkServer 静态方法 */
 function doInit(): Promise<void> {
   if (import.meta.server) return Promise.resolve()
@@ -136,6 +186,7 @@ function doInit(): Promise<void> {
             api = dtpApi
             isAvailable.value = true
             refreshPrinters()
+            loadChipCategories()  // 预热分类，打印时类型文字才能显示分类路径
           } else {
             errorMsg.value = '未检测到 DTPWeb 打印助手，请先安装 DTPWeb-Inst'
           }
@@ -183,9 +234,15 @@ function selectPrinter(printerObj: any) {
 }
 
 /**
- * 查打印机硬件状态（轻量，不主动 openPrinter）
- * SDK startJob 后会自动建立连接，此时 getParam(232) 就能拿到有效值
- * 所以在 startJob 成功后调用才靠谱
+ * 查打印机硬件状态
+ *
+ * SDK 源码（public/vendor/dtpweb/dtpweb.esm.js）实锤：
+ * 1. getParam(id) = requestPrintParam(id).statusCode===OK ? resultInfo : -1，
+ *    请求失败时返回 -1 这个伪状态码，看不出真实原因；
+ * 2. isPrintable() 查询的是「当前已打开」的打印机，而 startJob 只在 action=Print(4096)
+ *    时才 openPrinter，预览(2) 不打开设备 → 预览后直接查状态必然失败；
+ * 3. 因此这里先补 openPrinter 再查；查询失败只说明「查不到」，不是打印机故障，
+ *    置 null 而不是 -1，避免把打印按钮永久锁死。
  */
 function checkPrinterStatus(): number | null {
   if (!api) {
@@ -193,16 +250,36 @@ function checkPrinterStatus(): number | null {
     printerStatusText.value = ''
     return null
   }
+  if (!currentPrinter.value) {
+    printerStatus.value = null
+    printerStatusText.value = '未选择打印机'
+    return null
+  }
+
   checkingStatus.value = true
   try {
-    const code = api.getParam(232)  // LPA_ParamID.IsPrintable = 232
+    // 预览任务不打开设备，状态接口需要已打开的打印机
+    if (typeof api.isPrinterOpened === 'function' && !api.isPrinterOpened()) {
+      api.openPrinter(currentPrinter.value)
+    }
+
+    const res: any = api.isPrintable()
+    if (!res || res.statusCode !== 0 || typeof res.resultInfo !== 'number') {
+      // 请求本身失败（未连接 / 服务异常），不是打印机状态码
+      const detail = typeof res?.statusCode === 'number' ? `，statusCode=${res.statusCode}` : ''
+      printerStatus.value = null
+      printerStatusText.value = `状态查询失败（未连接或服务异常${detail}）`
+      checkingStatus.value = false
+      return null
+    }
+    const code = res.resultInfo
     printerStatus.value = code
     printerStatusText.value = printableText(code)
     checkingStatus.value = false
     return code
   } catch {
     printerStatus.value = null
-    printerStatusText.value = ''
+    printerStatusText.value = '状态查询失败（SDK 调用异常）'
     checkingStatus.value = false
     return null
   }
@@ -235,9 +312,14 @@ function printableText(code: number): string {
   }
 }
 
-/** 是否允许打印（仅 0 和 10 算可打印） */
+/**
+ * 是否允许打印
+ * null = 尚未查到状态（或查询失败），此时不应拦截，否则一次失败的查询
+ * 就会把「确认打印」按钮永久置灰；只有查到真实的忙碌/故障状态才拦截。
+ */
 function isPrintableNow(): boolean {
   const code = printerStatus.value
+  if (code === null) return true
   return code === 0 || code === 10
 }
 
@@ -245,7 +327,9 @@ function isPrintableNow(): boolean {
  * 生成预览（不耗纸）
  * action = 2 (PrevBase64) = 白底预览
  */
-function generatePreview(data: LabelData): Promise<string[]> {
+async function generatePreview(data: LabelData): Promise<string[]> {
+  // 「其他」类型芯片要用分类路径当类型文字，先等分类加载完再画
+  await loadChipCategories()
   return new Promise((resolve, reject) => {
     if (!api) { reject(new Error('SDK 未初始化')); return }
 
@@ -258,7 +342,7 @@ function generatePreview(data: LabelData): Promise<string[]> {
         width: labelWidth.value,
         height: labelHeight.value,
         orientation: 0,
-        jobName: `标签预览-${data.model}`,
+        jobName: `标签预览-${data.type === 'container' ? data.name : data.model}`,
         printer: currentPrinter.value,
         action: 2,
         gapType: 2,
@@ -276,8 +360,7 @@ function generatePreview(data: LabelData): Promise<string[]> {
     }
 
     try {
-      checkPrinterStatus()  // startJob 成功，SDK 已连上，查就绪状态
-      drawLabel(data)
+      drawLabel(data)  // 任务进行中不查状态（SDK 忙时必然返回非 OK），等 commitJob 完成后再查
     } catch (err: any) {
       api.abortJob()
       previewLoading.value = false
@@ -293,6 +376,9 @@ function generatePreview(data: LabelData): Promise<string[]> {
         if (res?.previewData?.length) {
           previewImages.value = res.previewData
           resolve(res.previewData)
+          // 预览任务不会 openPrinter，状态查询需要已打开的打印机；
+          // 放到宏任务里，先让预览图渲染出来，再补查状态
+          setTimeout(checkPrinterStatus, 0)
         } else {
           reject(new Error('预览生成失败（服务无响应/超时或返回为空），可点「刷新」恢复'))
         }
@@ -314,7 +400,8 @@ function generatePreview(data: LabelData): Promise<string[]> {
  *   - 服务端失败/超时 → res = undefined → 打印失败
  * reject 代表真正失败：SDK 连接不上 / startJob 返回空 / res 无值 / 抛异常
  */
-function printNow(data: LabelData, copies = 1): Promise<string | null> {
+async function printNow(data: LabelData, copies = 1): Promise<string | null> {
+  await loadChipCategories()
   return new Promise((resolve, reject) => {
     if (!api) { reject(new Error('SDK 未初始化')); return }
 
@@ -327,7 +414,7 @@ function printNow(data: LabelData, copies = 1): Promise<string | null> {
         width: labelWidth.value,
         height: labelHeight.value,
         orientation: 0,
-        jobName: `芯片标签-${data.model}`,
+        jobName: `芯片标签-${data.type === 'container' ? data.name : data.model}`,
         printer: currentPrinter.value,
         action: 4096,
         gapType: 2,
@@ -347,7 +434,6 @@ function printNow(data: LabelData, copies = 1): Promise<string | null> {
     }
 
     try {
-      checkPrinterStatus()  // startJob 成功，SDK 已连上，查就绪状态
       drawLabel(data)
     } catch (err: any) {
       api.abortJob()
@@ -377,6 +463,34 @@ function printNow(data: LabelData, copies = 1): Promise<string | null> {
       reject(new Error(printResult.value))
     }
   })
+}
+
+/**
+ * 批量打印：逐项顺序调用 printNow，每项打印 copies 份
+ * 用于列表多选批量打标场景（如同批 10 包纸巾）
+ */
+async function printBatch(dataList: LabelData[], copies = 1): Promise<string> {
+  if (!api) throw new Error('SDK 未初始化')
+  if (!dataList.length) throw new Error('无打印数据')
+
+  let successCount = 0
+  let failCount = 0
+  for (let i = 0; i < dataList.length; i++) {
+    // printNow 内部会在结束时把 printing 设回 false，循环开始时设回 true 保持按钮 loading
+    printing.value = true
+    const item = dataList[i]
+    const itemName = 'model' in item ? item.model : (item as ContainerLabelData).name || '未命名'
+    printResult.value = `⏳ 正在打印第 ${i + 1}/${dataList.length} 项 (${itemName})...`
+    try {
+      await printNow(dataList[i], copies)
+      successCount++
+    } catch {
+      failCount++
+    }
+  }
+  printing.value = false
+  printResult.value = `✅ 批量打印完成: 成功 ${successCount} 项, 失败 ${failCount} 项 (每项 ${copies} 份)`
+  return printResult.value
 }
 
 /** 标签绘制分发：芯片 vs 设备 vs 耗材 vs 电路板 */
@@ -446,51 +560,44 @@ function drawDynamicLabel(
   align: 0 | 1 | 2 = 0,
 ) {
   if (!api) return
-  const contentW = w - margin * 2
   const gap = 0.3  // 块间距 mm
+  const availH = h - margin * 2
+  const TYPE_FONT_H = 3.4   // 二维码上方类型文字字号（原 2.5 太小）
+  const TYPE_TEXT_H = 8     // 类型文字预留高度（够放 2 行，长分类名换行后不被切）
+  const QR_BOTTOM_GAP = 2   // 二维码距标签底边留白，避免过于贴底
+  const QR_RIGHT_GAP = 1.5  // 二维码距标签右边留白
+
+  // === QR 物理规划 ===
+  // 二维码固定在右下区域（留边不贴死），并占满可用高度，不再只在底部挤一个小方块
+  // SDK draw2DQRCode 的 width/height 单位是毫米，显式传值即为实际打印尺寸
+  let qrSize = Math.min(16, availH - TYPE_TEXT_H - QR_BOTTOM_GAP, w * 0.42)
+  const MIN_QR_SIZE = 10
+  let contentW = w - margin * 2 - qrSize - 1
 
   // === 阶段 1：测量 ===
   // 用 measureText 拿真实高度（含多行换行），不行则回退到估算
-  const measured = blocks.map(b => ({ ...b, height: measureBlockHeight(b, contentW) }))
+  let measured = blocks.map(b => ({ ...b, height: measureBlockHeight(b, contentW) }))
   let contentH = measured.reduce((s, b) => s + b.height + gap, 0) - gap
 
-  // === QR 物理规划 ===
-  // SDK draw2DQRCode 不传 width → 自动选最小版本（跟内容匹配）
-  // 传 eccLevel → 拉高纠错等级
-  //
-  // 203 DPI：1mm ≈ 8px；QR module 最小 2×2px → ≈0.25mm/module
-  // Chip 典型内容 36-54 B（ASCII Byte 模式）：
-  //   Q 级 25% 版本 5 → 84 B 容量 → 33 module → 8.25 mm
-  //   H 级 30% 版本 6 → 75 B 容量 → 37 module → 9.25 mm
-  // 预留 11mm 给 QR 区（保守覆盖到版本 7，12mm 物理）
-  // 降级下限 8mm（版本 3 Q 级 32B 或版本 4 H 级 34B）
-
-  let qrReserve = 11  // QR 区预留总高 mm
-  const MIN_QR_RESERVE = 8
-
-  const availH = h - margin * 2
-  const baseNeed = contentH + qrReserve + 0.5
-
   // === 阶段 2：决策 ===
+  // 内容超过可用高度 → 先缩二维码把宽度还给文字，仍不够再按优先级砍次要块
+  while (contentH > availH && qrSize > MIN_QR_SIZE) {
+    qrSize -= 1
+    contentW = w - margin * 2 - qrSize - 1
+    measured = blocks.map(b => ({ ...b, height: measureBlockHeight(b, contentW) }))
+    contentH = measured.reduce((s, b) => s + b.height + gap, 0) - gap
+  }
+
   let final = measured
-
-  if (baseNeed > availH) {
-    // 步骤 1：缩 QR 预留（下限 8mm）
-    qrReserve = Math.max(MIN_QR_RESERVE, availH - contentH - 0.5)
-
-    // 步骤 2：还不够 → 跳过次要块（按 priority 从低到高砍）
+  if (contentH > availH && final.length > 1) {
     // model（型号）、id（数据库定位符）、loc（库位）永不砍
-    let stillNeed = contentH + qrReserve + 0.5 - availH
-    if (stillNeed > 0 && final.length > 1) {
-      const killable = [...final]
-        .filter(b => b.kind !== 'model' && b.kind !== 'id' && b.kind !== 'loc')
-        .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
-      for (const victim of killable) {
-        final = final.filter(b => b !== victim)
-        contentH = final.reduce((s, b) => s + b.height + gap, 0) - gap
-        stillNeed = contentH + qrReserve + 0.5 - availH
-        if (stillNeed <= 0) break
-      }
+    const killable = [...final]
+      .filter(b => b.kind !== 'model' && b.kind !== 'id' && b.kind !== 'loc')
+      .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
+    for (const victim of killable) {
+      final = final.filter(b => b !== victim)
+      contentH = final.reduce((s, b) => s + b.height + gap, 0) - gap
+      if (contentH <= availH) break
     }
   }
 
@@ -512,25 +619,33 @@ function drawDynamicLabel(
     y += b.height + gap
   }
 
-  // QR 贴底（内容多则上浮），不传 width 让 SDK 自动选最小版本
-  const qrAreaY = Math.max(h - margin - qrReserve, y + 0.5)
+  // QR 固定在右下区域、上下左右留边
+  const qrX = w - margin - QR_RIGHT_GAP - qrSize
+  const qrAreaY = h - margin - QR_BOTTOM_GAP - qrSize
 
   // eccLevel: 2 = Q 级 25% 纠错（L=7%, M=15%, Q=25%, H=30%）
-  // 不传 width → SDK 按默认 2px/module 自动算最小尺寸
+  // 显式 width/height → SDK 按指定尺寸绘制
   api.draw2DQRCode({
     text: qrText,
-    x: margin,
+    x: qrX,
     y: qrAreaY,
+    width: qrSize,
+    height: qrSize,
     eccLevel: 2,
   })
 
-  // QR 右侧类型文字：垂直对齐 QR 预留区中心
+  // 类型文字：二维码正上方居中
+  // 宽度取「二维码列右端到右边距」而非 qrSize —— 多出的 1.5mm 让「电源管理 / 线性稳压器」
+  // 这类长分类名能在 2 行内排完，而不是被挤出框或直接裁掉
   api.drawText({
     text: qrLabelText,
-    x: margin + qrReserve + 1,
-    y: qrAreaY + qrReserve / 2 - 1.5,
-    fontHeight: 3,
-    horizontalAlignment: 0,
+    x: qrX,
+    y: qrAreaY - TYPE_TEXT_H,
+    width: w - margin - qrX,
+    height: TYPE_TEXT_H,
+    fontHeight: TYPE_FONT_H,
+    horizontalAlignment: 1,
+    autoReturn: 1,  // 按字换行，长分类名折行显示
   })
 }
 
@@ -542,8 +657,10 @@ function drawChipLabel(data: ChipLabelData) {
 
   const blocks: LayoutBlock[] = []
   // 优先级：数字越小降级时越先被砍
-  blocks.push({ kind: 'model', text: data.model, fontHeight: 3.5, autoReturn: 1, minHeight: 3.5, priority: 99 })
+  blocks.push({ kind: 'model', text: data.model, fontHeight: 3.0, autoReturn: 1, minHeight: 3.0, priority: 99 })
   if (data.vendor) blocks.push({ kind: 'vendor', text: data.vendor, fontHeight: 2.2, priority: 5 })
+  // 封装仅芯片标签打印，优先保留（比容量/JEDEC/品牌更晚被砍）
+  if (data.package) blocks.push({ kind: 'pkg', text: `封装: ${data.package}`, fontHeight: 2.2, priority: 1 })
   if (data.jedecId) blocks.push({ kind: 'jedec', text: `JEDEC: ${formatJedecShort(data.jedecId)}`, fontHeight: 2.2, priority: 4 })
   if (data.capacity) blocks.push({ kind: 'cap', text: data.capacity, fontHeight: 2.2, priority: 3 })
   const loc = formatLabelLocation(data.location_a, data.location_b, data.location_c)
@@ -553,8 +670,8 @@ function drawChipLabel(data: ChipLabelData) {
 
   drawDynamicLabel(
     blocks,
-    `${data.model}|${data.jedecId || ''}|${data.uid || ''}|#${data.id}`,
-    data.chipType === 'flash' ? 'NOR Flash' : 'MCU',
+    `${data.model}|${data.jedecId || ''}|${data.uid && data.uid !== '/' ? data.uid : ''}|#${data.id}`,
+    chipTypeText(data),
     w, h,
   )
 }
@@ -568,7 +685,7 @@ function drawEquipmentLabel(data: EquipmentLabelData) {
   const STATUS_TEXT: Record<string, string> = { normal: '正常', damaged: '损坏', lost: '丢失' }
 
   const blocks: LayoutBlock[] = []
-  blocks.push({ kind: 'model', text: data.model, fontHeight: 3.5, autoReturn: 1, minHeight: 3.5, priority: 99 })
+  blocks.push({ kind: 'model', text: data.model, fontHeight: 3.0, autoReturn: 1, minHeight: 3.0, priority: 99 })
   if (data.brand) blocks.push({ kind: 'brand', text: data.brand, fontHeight: 2.2, priority: 5 })
   if (data.serialNumber) blocks.push({ kind: 'sn', text: `SN: ${data.serialNumber}`, fontHeight: 2.2, priority: 4 })
   blocks.push({ kind: 'status', text: `状态: ${STATUS_TEXT[data.status] || data.status}`, fontHeight: 2.2, priority: 3 })
@@ -589,16 +706,17 @@ function drawConsumableLabel(data: ConsumableLabelData) {
   const h = labelHeight.value
 
   const blocks: LayoutBlock[] = []
-  blocks.push({ kind: 'model', text: data.model, fontHeight: 3.5, autoReturn: 1, minHeight: 3.5, priority: 99 })
+  blocks.push({ kind: 'model', text: data.model, fontHeight: 3.0, autoReturn: 1, minHeight: 3.0, priority: 99 })
   if (data.brand) blocks.push({ kind: 'brand', text: data.brand, fontHeight: 2.2, priority: 5 })
   if (data.serialNumber) blocks.push({ kind: 'sn', text: `SN: ${data.serialNumber}`, fontHeight: 2.2, priority: 4 })
   const loc = formatLabelLocation(data.location_a, data.location_b, data.location_c)
   if (loc) blocks.push({ kind: 'loc', text: `位置: ${loc}`, fontHeight: 2.2, priority: 3 })
-  // 生产日期+保质期 → 过期日期；仅生产日期 → 生产；仅保质期 → 保质期
-  const expiry = calcExpiryDate(data.production_date ?? null, data.shelf_life ?? null)
+  // 失效日期 > 生产日期+保质期 > 仅生产日期 > 仅保质期
+  const expiry = calcExpiryDate(data.production_date ?? null, data.shelf_life ?? null, data.expiry_date ?? null)
   if (expiry) blocks.push({ kind: 'expiry', text: `过期: ${expiry}`, fontHeight: 2.2, priority: 4 })
   else if (data.production_date) blocks.push({ kind: 'prod', text: `生产: ${data.production_date}`, fontHeight: 2.2, priority: 2 })
   else if (data.shelf_life) blocks.push({ kind: 'shelf', text: `保质期: ${data.shelf_life}`, fontHeight: 2.2, priority: 2 })
+  if (data.batch_number) blocks.push({ kind: 'batch', text: `批号: ${data.batch_number}`, fontHeight: 2.2, priority: 2 })
   if (data.exec_standard) blocks.push({ kind: 'exec', text: `标准: ${data.exec_standard}`, fontHeight: 2.2, priority: 1 })
   if (data.net_content) blocks.push({ kind: 'net', text: `净含量: ${data.net_content}`, fontHeight: 2.2, priority: 1 })
   blocks.push({ kind: 'id', text: `#${data.id}`, fontHeight: 2.2, priority: 0 })
@@ -620,7 +738,7 @@ function drawBoardLabel(data: BoardLabelData) {
   const STATUS_TEXT: Record<string, string> = { pending: '待拆解', partial: '部分拆解', done: '已拆解' }
 
   const blocks: LayoutBlock[] = []
-  blocks.push({ kind: 'model', text: data.model, fontHeight: 3.5, autoReturn: 1, minHeight: 3.5, priority: 99 })
+  blocks.push({ kind: 'model', text: data.model, fontHeight: 3.0, autoReturn: 1, minHeight: 3.0, priority: 99 })
   if (data.brand) blocks.push({ kind: 'brand', text: data.brand, fontHeight: 2.2, priority: 5 })
   blocks.push({ kind: 'status', text: `状态: ${STATUS_TEXT[data.status] || data.status}`, fontHeight: 2.2, priority: 4 })
   if (data.chips?.length) {
@@ -741,5 +859,6 @@ export function usePrinter() {
     isPrintableNow,
     generatePreview,
     printNow,
+    printBatch,
   }
 }

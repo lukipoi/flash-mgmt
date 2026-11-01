@@ -1,0 +1,21 @@
+LIBRARY		CH375DLL.DLL
+EXPORTS
+	CH375GetVersion
+	CH375GetDeviceName
+	CH375OpenDevice
+	CH375CloseDevice
+	CH375DriverCommand
+	CH375GetDeviceDescr
+	CH375GetConfigDescr
+	CH375ReadData
+	CH375AbortRead
+	CH375ResetRead
+	CH375WriteData
+	CH375AbortWrite
+	CH375ResetWrite
+	CH375ReadInter
+	CH375AbortInter
+	CH375ResetInter
+	CH375SetIntRoutine
+	CH375WriteAuxData
+	CH375ResetAux

@@ -8,6 +8,8 @@ const props = defineProps<{
   equipment?: Equipment | null
   consumable?: Consumable | null
   board?: CircuitBoard | null
+  /** 批量耗材打印（mode='consumable' 时使用，传入后进入批量模式） */
+  consumables?: Consumable[]
   /** 容器标签参数（仅 mode='container' 时使用） */
   containerKind?: 'big' | 'small'
   containerName?: string
@@ -30,8 +32,18 @@ const modalOpen = computed({
   set: (val: boolean) => emit('update:open', val),
 })
 
+// 批量模式：传入了 consumables 数组
+const isBatch = computed(() => !!props.consumables?.length)
+
+// 批量模式下的 LabelData 列表（复用 buildLabelData 逐项转换）
+const batchDataList = computed(() => {
+  if (!isBatch.value || props.mode !== 'consumable') return []
+  return props.consumables!.map(c => buildLabelData(c))
+})
+
 // 根据当前模式获取显示名称
 const displayName = computed(() => {
+  if (isBatch.value) return `批量打印 (${batchDataList.value.length} 项耗材)`
   if (props.mode === 'chip') return props.chip?.model || ''
   if (props.mode === 'equipment') {
     const e = props.equipment
@@ -76,6 +88,7 @@ const {
   isPrintableNow,
   generatePreview,
   printNow,
+  printBatch,
 } = usePrinter()
 
 // 打印份数
@@ -122,8 +135,9 @@ watch(selectedPrinterName, (name) => {
   if (p) selectPrinter(p)
 })
 
-// 判断当前模式下数据是否就绪
+// 判断当前模式下数据是否就绪（批量模式取第一项用于预览）
 const currentData = computed(() => {
+  if (isBatch.value) return props.consumables?.[0] ?? null
   if (props.mode === 'chip' && props.chip) return props.chip
   if (props.mode === 'equipment' && props.equipment) return props.equipment
   if (props.mode === 'consumable' && props.consumable) return props.consumable
@@ -171,7 +185,9 @@ function buildLabelData(data: any) {
       jedecId: c.jedec_id,
       uid: c.uid,
       capacity: c.capacity,
+      package: c.package,
       chipType: c.chip_type,
+      chipCategory: c.chip_category,
       location_a: c.location_a,
       location_b: c.location_b,
       location_c: c.location_c,
@@ -203,6 +219,8 @@ function buildLabelData(data: any) {
       location_c: c.location_c,
       shelf_life: c.shelf_life,
       production_date: c.production_date,
+      expiry_date: c.expiry_date,
+      batch_number: c.batch_number,
       exec_standard: c.exec_standard,
       net_content: c.net_content,
       note: c.note,
@@ -233,14 +251,23 @@ function buildLabelData(data: any) {
 // 真打印（按钮）
 async function handlePrint() {
   if (!currentData.value) return
-  if (!confirm(`确认打印 ${copies.value} 张标签？\n（将消耗标签纸！）`)) return
-
-  try {
-    await printNow(buildLabelData(currentData.value), copies.value)
-    // 打印成功后关掉对话框
-    setTimeout(() => emit('update:open', false), 800)
-  } catch (err: any) {
-    alert('打印失败: ' + (err?.message || err))
+  if (isBatch.value) {
+    const total = batchDataList.value.length * copies.value
+    if (!confirm(`确认批量打印 ${batchDataList.value.length} 项 × ${copies.value} 份 = ${total} 张标签？\n（将消耗标签纸！）`)) return
+    try {
+      await printBatch(batchDataList.value, copies.value)
+      setTimeout(() => emit('update:open', false), 800)
+    } catch (err: any) {
+      alert('批量打印失败: ' + (err?.message || err))
+    }
+  } else {
+    if (!confirm(`确认打印 ${copies.value} 张标签？\n（将消耗标签纸！）`)) return
+    try {
+      await printNow(buildLabelData(currentData.value), copies.value)
+      setTimeout(() => emit('update:open', false), 800)
+    } catch (err: any) {
+      alert('打印失败: ' + (err?.message || err))
+    }
   }
 }
 
@@ -253,19 +280,19 @@ function close() {
 <template>
   <UModal v-model:open="modalOpen" :title="`打印标签 - ${displayName}`" :close-on-escape="true" :close-on-overlay-click="false">
     <template #body>
-      <div v-if="!currentData" class="py-4 text-center text-slate-500">
+      <div v-if="!currentData" class="py-4 text-center text-ink-tertiary">
         请先选择{{ mode === 'chip' ? '一颗芯片' : mode === 'equipment' ? '一个设备' : mode === 'consumable' ? '一个耗材' : mode === 'board' ? '一块电路板' : '容器参数' }}
       </div>
 
       <div v-else class="space-y-4">
         <!-- 打印机状态 -->
-        <div class="rounded-lg bg-white/5 p-4 ring-1 ring-white/5">
+        <div class="rounded-lg bg-surface-muted p-4 ring-1 ring-line">
           <div class="flex items-center gap-2">
             <UIcon
               :name="checking ? 'i-lucide-loader-2' : isAvailable ? 'i-lucide-printer' : 'i-lucide-alert-triangle'"
-              :class="['h-4 w-4', checking ? 'animate-spin text-amber-400' : isAvailable ? 'text-cyan-400' : 'text-red-400']"
+              :class="['h-4 w-4', checking ? 'animate-spin text-notice-400' : isAvailable ? 'text-action' : 'text-alert-400']"
             />
-            <span class="text-sm text-slate-300">
+            <span class="text-sm text-ink-secondary">
               <template v-if="checking">检测打印助手...</template>
               <template v-else-if="isAvailable">DTPWeb 已就绪</template>
               <template v-else>{{ errorMsg || '未检测到打印助手' }}</template>
@@ -301,86 +328,95 @@ function close() {
             </UButton>
           </div>
 
-          <div v-if="isAvailable && printers.length === 0" class="mt-2 text-xs text-amber-400">
+          <div v-if="isAvailable && printers.length === 0" class="mt-2 text-xs text-notice-400">
             未找到打印机，请检查 USB 连接
           </div>
 
           <!-- 打印机硬件状态徽章 -->
           <div
-            v-if="isAvailable && printers.length > 0 && printerStatus !== null"
+            v-if="isAvailable && printers.length > 0 && (printerStatus !== null || printerStatusText)"
             class="mt-3 flex items-center gap-2 rounded-md px-3 py-2 text-xs"
-            :class="statusLevel === 'ok' ? 'bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20'
-              : statusLevel === 'busy' ? 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20'
-              : 'bg-red-500/10 text-red-300 ring-1 ring-red-500/20'"
+            :class="statusLevel === 'ok' ? 'bg-gain-500/10 text-gain-300 ring-1 ring-gain-500/20'
+              : statusLevel === 'busy' ? 'bg-notice-500/10 text-notice-300 ring-1 ring-notice-500/20'
+              : statusLevel === 'unknown' ? 'bg-surface-muted/10 text-ink-secondary ring-1 ring-surface-muted/20'
+              : 'bg-alert-500/10 text-alert-300 ring-1 ring-alert-500/20'"
           >
             <UIcon
-              :name="statusLevel === 'ok' ? 'i-lucide-check-circle-2' : statusLevel === 'busy' ? 'i-lucide-loader-2' : 'i-lucide-x-circle'"
+              :name="statusLevel === 'ok' ? 'i-lucide-check-circle-2'
+                : statusLevel === 'busy' ? 'i-lucide-loader-2'
+                : statusLevel === 'unknown' ? 'i-lucide-help-circle'
+                : 'i-lucide-x-circle'"
               :class="['h-3.5 w-3.5', statusLevel === 'busy' ? 'animate-spin' : '']"
             />
             <span>{{ printerStatusText }}</span>
-            <span v-if="statusLevel !== 'ok'" class="opacity-70">({{ printerStatus }})</span>
+            <span v-if="printerStatus !== null && statusLevel !== 'ok'" class="opacity-70">({{ printerStatus }})</span>
           </div>
         </div>
 
         <!-- 标签参数 -->
-        <div class="rounded-lg bg-white/5 p-4 ring-1 ring-white/5">
-          <div class="mb-2 text-sm font-medium text-slate-300">标签尺寸</div>
+        <div class="rounded-lg bg-surface-muted p-4 ring-1 ring-line">
+          <div class="mb-2 text-sm font-medium text-ink-secondary">标签尺寸</div>
           <div class="flex items-center gap-3">
             <div class="flex items-center gap-1.5">
               <UInput v-model.number="labelWidth" type="number" min="10" max="100" step="1" class="w-20 text-center" />
-              <span class="text-xs text-slate-500">mm 宽</span>
+              <span class="text-xs text-ink-tertiary">mm 宽</span>
             </div>
             <div class="flex items-center gap-1.5">
               <UInput v-model.number="labelHeight" type="number" min="5" max="100" step="1" class="w-20 text-center" />
-              <span class="text-xs text-slate-500">mm 高</span>
+              <span class="text-xs text-ink-tertiary">mm 高</span>
             </div>
-            <span class="text-xs text-slate-600">·</span>
+            <span class="text-xs text-ink-tertiary">·</span>
             <div class="flex items-center gap-1.5">
-              <span class="text-xs text-slate-500">份数</span>
+              <span class="text-xs text-ink-tertiary">份数</span>
               <UInput v-model.number="copies" type="number" min="1" max="99" step="1" class="w-16 text-center" />
             </div>
           </div>
         </div>
 
         <!-- 预览区 -->
-        <div class="rounded-lg bg-white/5 p-4 ring-1 ring-white/5">
+        <div class="rounded-lg bg-surface-muted p-4 ring-1 ring-line">
           <div class="mb-2 flex items-center justify-between">
-            <span class="text-sm font-medium text-slate-300">标签预览</span>
-            <span v-if="previewImages.length" class="text-xs text-emerald-400">
-              ✅ 预览已生成
-            </span>
+            <span class="text-sm font-medium text-ink-secondary">标签预览</span>
+            <div class="flex items-center gap-2">
+              <span v-if="isBatch" class="text-xs text-notice-400/80">
+                仅预览第 1 项，共 {{ batchDataList.length }} 项
+              </span>
+              <span v-if="previewImages.length" class="text-xs text-gain-400">
+                ✅ 预览已生成
+              </span>
+            </div>
           </div>
 
           <!-- 预览图片 -->
           <div
             v-if="previewImages.length"
-            class="flex min-h-[160px] items-center justify-center rounded-md bg-slate-900/50 p-4"
+            class="flex min-h-[160px] items-center justify-center rounded-md bg-surface-sunken/50 p-4"
           >
             <img
               v-for="(src, i) in previewImages"
               :key="i"
               :src="src"
               :alt="`预览 ${i + 1}`"
-              class="max-h-48 rounded border border-white/10"
+              class="max-h-48 rounded border border-line"
             />
           </div>
 
           <!-- 加载中 -->
           <div
             v-else-if="previewLoading"
-            class="flex min-h-[160px] items-center justify-center rounded-md bg-slate-900/50"
+            class="flex min-h-[160px] items-center justify-center rounded-md bg-surface-sunken/50"
           >
-            <UIcon name="i-lucide-loader-2" class="h-6 w-6 animate-spin text-cyan-400" />
-            <span class="ml-2 text-sm text-slate-400">正在生成预览...</span>
+            <UIcon name="i-lucide-loader-2" class="h-6 w-6 animate-spin text-action" />
+            <span class="ml-2 text-sm text-ink-secondary">正在生成预览...</span>
           </div>
 
           <!-- 空状态 -->
           <div
             v-else
-            class="flex min-h-[160px] flex-col items-center justify-center rounded-md bg-slate-900/50"
+            class="flex min-h-[160px] flex-col items-center justify-center rounded-md bg-surface-sunken/50"
           >
-            <UIcon name="i-lucide-eye-off" class="h-8 w-8 text-slate-600" />
-            <p class="mt-2 text-sm text-slate-500">正在自动生成预览...</p>
+            <UIcon name="i-lucide-eye-off" class="h-8 w-8 text-ink-tertiary" />
+            <p class="mt-2 text-sm text-ink-tertiary">正在自动生成预览...</p>
           </div>
         </div>
 
@@ -389,8 +425,8 @@ function close() {
           v-if="printResult"
           class="rounded-md p-3 text-sm"
           :class="printResult.includes('失败')
-            ? 'bg-red-500/10 text-red-300 ring-1 ring-red-500/20'
-            : 'bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20'"
+            ? 'bg-alert-500/10 text-alert-300 ring-1 ring-alert-500/20'
+            : 'bg-gain-500/10 text-gain-300 ring-1 ring-gain-500/20'"
         >
           {{ printResult }}
         </div>
@@ -401,17 +437,17 @@ function close() {
       <div class="flex items-center justify-between gap-2">
         <div
           v-if="isAvailable && printers.length > 0 && statusLevel === 'error'"
-          class="text-xs text-red-400"
+          class="text-xs text-alert-400"
         >
           ⛔ {{ printerStatusText }} — 请排除故障后再打印
         </div>
         <div
           v-else-if="isAvailable && printers.length > 0 && statusLevel === 'busy'"
-          class="text-xs text-amber-400/80"
+          class="text-xs text-notice-400/80"
         >
           ⏳ {{ printerStatusText }}
         </div>
-        <div v-else class="text-xs text-slate-500">
+        <div v-else class="text-xs text-ink-tertiary">
           预览自动生成中，确认无误后再打印
         </div>
         <div class="flex gap-2">
@@ -423,14 +459,14 @@ function close() {
             关闭
           </UButton>
           <UButton
-            color="amber"
+            color="notice"
             variant="solid"
             icon="i-lucide-printer"
             :loading="printing"
             :disabled="!previewReady || printers.length === 0 || !isPrintableNow()"
             @click="handlePrint"
           >
-            确认打印 ({{ copies }}张)
+            确认打印{{ isBatch ? ` (${batchDataList.length}项×${copies}份)` : ` (${copies}张)` }}
           </UButton>
         </div>
       </div>

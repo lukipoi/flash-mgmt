@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 640" width="720" height="640">
+  <!-- LQFP-48 7x7 顶视图工程图（STM32F103x4/x6 手册 6.5 Figure 50 + Table 56）
+       D/E 9.00 · D1/E1 7.00 · D3/E3 5.50 · e 0.50 · b 0.22 · L 0.60 · L1 1.00
+       A 1.60 max · A1 0.05–0.15 · A2 1.35–1.45 · c 0.09–0.20 · k 0–7°
+       48 脚 = 每边 12 脚；顶视 Pin 1 在左上，本体缺角 + 实心圆点标识 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M112.5 72.5 V26 M607.5 72.5 V26"/>
+    <path d="M167.5 127.5 V54 M552.5 127.5 V54"/>
+    <path d="M607.5 72.5 H672 M607.5 567.5 H672"/>
+    <path d="M552.5 127.5 H626 M552.5 512.5 H626"/>
+    <path d="M112.5 168.75 H88 M112.5 196.25 H88"/>
+    <path d="M140 251.25 L95 300"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M112.5 30 H607.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M167.5 58 H552.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M666 567.5 V72.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M620 512.5 V127.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M94 196.25 V168.75" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="22" text-anchor="middle">D 9.00</text>
+    <text x="360" y="50" text-anchor="middle">D1 7.00</text>
+    <text transform="translate(684 320) rotate(-90)" text-anchor="middle">E 9.00</text>
+    <text transform="translate(638 320) rotate(-90)" text-anchor="middle">E1 7.00</text>
+    <text transform="translate(76 182.5) rotate(-90)" text-anchor="middle">e 0.50</text>
+    <text x="89" y="304" text-anchor="end">b 0.22</text>
+  </g>
+
+  <!-- 本体（顶视）：左上角缺角即 Pin 1 侧的索引角 -->
+  <path d="M167.5 141.5 L181 127.5 H552.5 V512.5 H167.5 Z" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5" stroke-linejoin="round"/>
+
+  <!-- Pin 1 标识：本体内实心圆点 -->
+  <circle cx="196" cy="156" r="11" fill="#d9d9d9"/>
+
+  <!-- 48 只翼形引脚：每边 12 只，间距 0.50mm，向本体外伸出 1.00mm -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="202.7" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="230.2" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="257.7" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="285.2" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="312.7" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="340.2" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="367.7" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="395.2" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="422.7" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="450.2" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="477.7" y="72.5" width="12.1" height="55" rx="2"/>
+    <rect x="505.2" y="72.5" width="12.1" height="55" rx="2"/>
+
+    <rect x="202.7" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="230.2" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="257.7" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="285.2" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="312.7" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="340.2" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="367.7" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="395.2" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="422.7" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="450.2" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="477.7" y="512.5" width="12.1" height="55" rx="2"/>
+    <rect x="505.2" y="512.5" width="12.1" height="55" rx="2"/>
+
+    <rect x="112.5" y="162.7" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="190.2" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="217.7" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="245.2" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="272.7" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="300.2" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="327.7" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="355.2" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="382.7" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="410.2" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="437.7" width="55" height="12.1" rx="2"/>
+    <rect x="112.5" y="465.2" width="55" height="12.1" rx="2"/>
+
+    <rect x="552.5" y="162.7" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="190.2" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="217.7" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="245.2" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="272.7" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="300.2" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="327.7" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="355.2" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="382.7" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="410.2" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="437.7" width="55" height="12.1" rx="2"/>
+    <rect x="552.5" y="465.2" width="55" height="12.1" rx="2"/>
+  </g>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="600" text-anchor="middle">48 脚（每边 12 脚）· 顶视 Top View · D/E 9.00 · D1/E1 7.00 · D3/E3 5.50</text>
+    <text x="360" y="618" text-anchor="middle">e 0.50 · b 0.22 · L 0.60 · L1 1.00 · A 1.60 max · A1 0.05–0.15 · A2 1.35–1.45 · k 0–7°</text>
+  </g>
+</svg>

@@ -18,9 +18,9 @@ const STATUS_LABELS: Record<EquipmentStatus, string> = {
 }
 
 const STATUS_STYLES: Record<EquipmentStatus, string> = {
-  normal: 'bg-green-500/15 text-green-400 ring-1 ring-green-500/30',
-  damaged: 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
-  lost: 'bg-red-500/15 text-red-400 ring-1 ring-red-500/30'
+  normal: 'bg-gain-500/15 text-gain-400 ring-1 ring-gain-500/30',
+  damaged: 'bg-notice-500/15 text-notice-400 ring-1 ring-notice-500/30',
+  lost: 'bg-alert-500/15 text-alert-400 ring-1 ring-alert-500/30'
 }
 
 function statusBadge(status: EquipmentStatus) {
@@ -80,20 +80,20 @@ const columns: TableColumn<Equipment>[] = [
   {
     accessorKey: 'brand',
     header: '品牌',
-    cell: ({ row }) => h('span', { class: 'text-slate-400' }, row.getValue('brand') || '-')
+    cell: ({ row }) => h('span', { class: 'text-ink-secondary' }, row.getValue('brand') || '-')
   },
   {
     accessorKey: 'model',
     header: '型号',
     cell: ({ row }) => h(ULink, {
       to: `/equipment/${row.original.id}`,
-      class: 'font-medium text-cyan-400 hover:text-cyan-300'
+      class: 'font-medium text-action hover:text-data-300'
     }, () => row.getValue('model'))
   },
   {
     accessorKey: 'serial_number',
     header: '序列号',
-    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-slate-400' }, row.getValue('serial_number') || '-')
+    cell: ({ row }) => h('span', { class: 'font-mono text-xs text-ink-secondary' }, row.getValue('serial_number') || '-')
   },
   {
     accessorKey: 'status',
@@ -103,12 +103,12 @@ const columns: TableColumn<Equipment>[] = [
   {
     accessorKey: 'note',
     header: '备注',
-    cell: ({ row }) => h('span', { class: 'text-slate-500' }, row.getValue('note') || '-')
+    cell: ({ row }) => h('span', { class: 'text-ink-tertiary' }, row.getValue('note') || '-')
   },
   {
     accessorKey: 'created_at',
     header: '录入时间',
-    cell: ({ row }) => h('span', { class: 'text-xs text-slate-500' }, formatDate(row.getValue('created_at')))
+    cell: ({ row }) => h('span', { class: 'text-xs text-ink-tertiary' }, formatDate(row.getValue('created_at')))
   },
   {
     id: 'actions',
@@ -201,8 +201,8 @@ async function confirmDelete() {
     <!-- 页头 -->
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h2 class="text-xl font-bold text-slate-100">设备列表</h2>
-        <p class="mt-1 text-sm text-slate-500">共 {{ equipments?.length ?? 0 }} 条记录</p>
+        <h2 class="text-xl font-bold text-ink">设备列表</h2>
+        <p class="mt-1 text-sm text-ink-tertiary">共 {{ equipments?.length ?? 0 }} 条记录</p>
       </div>
       <UButton
         to="/equipment/new"
@@ -216,7 +216,7 @@ async function confirmDelete() {
     </div>
 
     <!-- 搜索筛选栏 -->
-    <div class="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-[#1e1e3a] p-4 ring-1 ring-white/5">
+    <div class="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-surface-raised p-4 ring-1 ring-line">
       <UInput
         v-model="search"
         icon="i-lucide-search"
@@ -246,23 +246,23 @@ async function confirmDelete() {
     <!-- 错误提示 -->
     <div
       v-if="fetchError"
-      class="mb-4 flex items-center gap-3 rounded-lg bg-red-500/10 p-4 ring-1 ring-red-500/20"
+      class="mb-4 flex items-center gap-3 rounded-lg bg-alert-500/10 p-4 ring-1 ring-alert-500/20"
     >
-      <UIcon name="i-lucide-alert-circle" class="h-5 w-5 text-red-400" />
-      <span class="text-sm text-red-300">加载失败: {{ fetchError?.message }}</span>
+      <UIcon name="i-lucide-alert-circle" class="h-5 w-5 text-alert-400" />
+      <span class="text-sm text-alert-300">加载失败: {{ fetchError?.message }}</span>
     </div>
 
     <!-- 数据表格 -->
-    <div class="rounded-lg bg-[#1e1e3a] ring-1 ring-white/5">
+    <div class="rounded-lg bg-surface-raised ring-1 ring-line">
       <div v-if="pending" class="p-8">
         <div class="animate-pulse space-y-3">
-          <div v-for="i in 5" :key="i" class="h-10 rounded bg-white/5" />
+          <div v-for="i in 5" :key="i" class="h-10 rounded bg-surface-muted" />
         </div>
       </div>
 
       <div v-else-if="!equipments?.length" class="px-5 py-16 text-center">
-        <UIcon name="i-lucide-search-x" class="mx-auto h-10 w-10 text-slate-600" />
-        <p class="mt-3 text-sm text-slate-500">
+        <UIcon name="i-lucide-search-x" class="mx-auto h-10 w-10 text-ink-tertiary" />
+        <p class="mt-3 text-sm text-ink-tertiary">
           {{ search || statusFilter ? '没有匹配的设备' : '暂无设备数据' }}
         </p>
         <UButton
@@ -287,28 +287,28 @@ async function confirmDelete() {
     <UModal v-model:open="showEditModal" :title="`编辑设备 - ${editForm.model ?? ''}`">
       <template #body>
         <div class="space-y-4">
-          <div v-if="editError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="editError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ editError }}
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">品牌</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">品牌</label>
               <UInput v-model="editForm.brand" class="w-full" />
             </div>
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">型号</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">型号</label>
               <UInput v-model="editForm.model" class="w-full" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">序列号</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">序列号</label>
               <UInput v-model="editForm.serial_number" class="w-full font-mono" />
             </div>
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-300">状态</label>
+              <label class="mb-1.5 block text-sm font-medium text-ink-secondary">状态</label>
               <USelect
                 v-model="editForm.status"
                 :items="Object.entries(STATUS_LABELS).map(([v, l]) => ({ label: l, value: v }))"
@@ -318,7 +318,7 @@ async function confirmDelete() {
           </div>
 
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-300">备注</label>
+            <label class="mb-1.5 block text-sm font-medium text-ink-secondary">备注</label>
             <UTextarea v-model="editForm.note" :rows="3" class="w-full" />
           </div>
         </div>
@@ -339,14 +339,14 @@ async function confirmDelete() {
     <UModal v-model:open="showDeleteModal" :title="`删除 ${equipToDelete?.model || '设备'}？`">
       <template #body>
         <div class="space-y-3">
-          <p class="text-sm text-slate-300">此操作不可恢复。</p>
-          <div v-if="equipToDelete" class="rounded-md bg-white/5 p-3 font-mono text-xs text-slate-400">
+          <p class="text-sm text-ink-secondary">此操作不可恢复。</p>
+          <div v-if="equipToDelete" class="rounded-md bg-surface-muted p-3 font-mono text-xs text-ink-secondary">
             <div>品牌：{{ equipToDelete.brand || '-' }}</div>
             <div>型号：{{ equipToDelete.model }}</div>
             <div>序列号：{{ equipToDelete.serial_number || '-' }}</div>
             <div>状态：{{ STATUS_LABELS[equipToDelete.status] }}</div>
           </div>
-          <div v-if="deleteError" class="rounded-md bg-red-500/10 p-3 text-sm text-red-300 ring-1 ring-red-500/20">
+          <div v-if="deleteError" class="rounded-md bg-alert-500/10 p-3 text-sm text-alert-300 ring-1 ring-alert-500/20">
             {{ deleteError }}
           </div>
         </div>

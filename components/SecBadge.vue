@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
   <div class="flex items-center gap-2">
-    <span v-if="name" class="text-sm font-medium text-slate-300">{{ name }}</span>
+    <span v-if="name" class="text-sm font-medium text-ink-secondary">{{ name }}</span>
     <UBadge
       :color="locked ? 'success' : 'neutral'"
       variant="subtle"

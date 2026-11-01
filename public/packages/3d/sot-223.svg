@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="248.5 114.1 223.1 239.9" width="223.1" height="239.9">
+  <!-- SOT-223 正俯视缩略图（无尺寸标注；带标注的工程图见 sot-223-spec.svg）
+       3 脚 + 顶部金属散热片 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="266.99" y="287.95" width="31.68" height="64.03" rx="2"/>
+    <rect x="344.16" y="287.95" width="31.68" height="64.03" rx="2"/>
+    <rect x="421.33" y="287.95" width="31.68" height="64.03" rx="2"/>
+  </g>
+
+  <!-- 散热片（顶部居中，金属色，与引脚同色） -->
+  <path d="M308.61 170 V122.08 Q308.61 116.08 314.61 116.08 H405.39 Q411.39 116.08 411.39 122.08 V170 Z" fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8" stroke-linejoin="round"/>
+
+  <!-- 本体（顶视，塑料色） -->
+  <rect x="250.48" y="170" width="219.05" height="117.95" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+</svg>

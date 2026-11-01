@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 620" width="720" height="620">
+  <!-- QFN-32 5x5 底视图工程图（ESP32-C3 技术规格书 v2.4 §7 Figure 7-1）
+       D/E 5.00±0.05 · D2/E2 3.70±0.05 · e 0.50 BSC · b 0.25±0.05 · L 0.40±0.05
+       A 0.85（0.80–0.90）· A1 ≤0.05 · A3 0.203 Ref · 缺角 C0.30
+       32 脚 = 每边 8 脚；底视 Pin 1 在右上，用散热焊盘缺角标识，焊盘统一同色 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwEd" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#16202e"/>
+    </marker>
+    <marker id="arwSd" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#16202e"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M185 125 V50 M535 125 V50"/>
+    <path d="M535 125 H590 M535 475 H590"/>
+    <path d="M237.5 475 V505 M272.5 475 V505"/>
+    <path d="M199 308.75 L150 355"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M185 54 H535" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M584 475 V125" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M237.5 499 H272.5" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="46" text-anchor="middle">D 5.00</text>
+    <text transform="translate(602 300) rotate(-90)" text-anchor="middle">E 5.00</text>
+    <text x="255" y="523" text-anchor="middle">e 0.50</text>
+    <text x="144" y="359" text-anchor="end">b 0.25</text>
+  </g>
+
+  <!-- 本体（底视） -->
+  <rect x="185" y="125" width="350" height="350" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 中心散热焊盘 D2×E2 3.70，右上角 C0.30 缺角即 Pin 1 标识 -->
+  <path d="M230.5 170.5 H468.5 L489.5 191.5 V429.5 H230.5 Z" fill="#98a2b3" stroke="#6f7885" stroke-width="1"/>
+
+  <!-- D2 标注画在焊盘内（避开四周引脚焊盘） -->
+  <path d="M230.5 300 H489.5" fill="none" stroke="#16202e" stroke-width="1.2" marker-start="url(#arwSd)" marker-end="url(#arwEd)"/>
+  <text x="360" y="294" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#16202e" letter-spacing="0.3">D2 3.70</text>
+
+  <!-- 32 个焊盘：每边 8 个，焊盘统一同色，仅靠散热焊盘缺角标识 Pin 1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="228.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="263.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="298.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="333.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="368.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="403.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="438.75" y="125" width="17.5" height="28" rx="8.75"/>
+    <rect x="473.75" y="125" width="17.5" height="28" rx="8.75"/>
+
+    <rect x="228.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="263.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="298.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="333.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="368.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="403.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="438.75" y="447" width="17.5" height="28" rx="8.75"/>
+    <rect x="473.75" y="447" width="17.5" height="28" rx="8.75"/>
+
+    <rect x="185" y="168.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="203.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="238.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="273.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="308.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="343.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="378.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="185" y="413.75" width="28" height="17.5" rx="8.75"/>
+
+    <rect x="507" y="168.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="203.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="238.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="273.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="308.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="343.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="378.75" width="28" height="17.5" rx="8.75"/>
+    <rect x="507" y="413.75" width="28" height="17.5" rx="8.75"/>
+  </g>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="575" text-anchor="middle">32 脚（每边 8 脚）· 底视 Bottom View · D/E 5.00 · D2/E2 3.70 · 缺角 C0.30</text>
+    <text x="360" y="593" text-anchor="middle">e 0.50 BSC · b 0.25 · L 0.40 · A 0.85（0.80–0.90）· A1 ≤0.05 · A3 0.203 Ref</text>
+  </g>
+</svg>

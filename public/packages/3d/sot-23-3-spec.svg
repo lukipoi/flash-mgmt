@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 502" width="720" height="502">
+  <!-- SOT-23 正俯视工程图（3 脚，顶视；比例 67.4 px/mm，小封装放大）
+       尺寸（mm）：D 2.80-3.00 / E 1.20-1.40 / E1 2.25-2.55（脚跨距）/ e 0.95 TYP / e1 1.80-2.00
+       b 0.30-0.50 / L 0.55 REF / A 0.90-1.15 / A1 0-0.10 / A2 0.90-1.05 / c 0.08-0.15 / L1 0.30-0.50 / θ 0-8°
+       几何 nom：本体 D 2.9 × E 1.3；脚3 顶中；脚1/2 底排 ±0.95；L 0.55 伸出 → 总跨 E1 2.40 -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M262.27 273.81 V296 M457.73 273.81 V296"/>
+    <path d="M346.52 149.12 V122 M373.48 149.12 V122"/>
+    <path d="M346.52 149.12 H214 M282.49 310.88 H214"/>
+    <path d="M457.73 186.19 H505 M457.73 273.81 H505"/>
+    <path d="M295.97 310.88 V335 M360 273.81 V335"/>
+    <path d="M295.97 310.88 V358 M424.03 310.88 V358"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M262.27 300 H457.73" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M346.52 126 H373.48" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M218 310.88 V149.12" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M501 273.81 V186.19" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M295.97 331 H360" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M295.97 354 H424.03" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="360" y="294" text-anchor="middle">D 2.90</text>
+    <text x="360" y="118" text-anchor="middle">b 0.40</text>
+    <text transform="translate(208 230) rotate(-90)" text-anchor="middle">E1 2.40</text>
+    <text transform="translate(513 230) rotate(-90)" text-anchor="middle">E 1.30</text>
+    <text x="327.99" y="347" text-anchor="middle">e 0.95</text>
+    <text x="360" y="372" text-anchor="middle">e1 1.90</text>
+  </g>
+
+  <!-- 引脚：顶中 1 脚 + 底排 2 脚 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="346.52" y="149.12" width="26.96" height="37.07" rx="2"/>
+    <rect x="282.49" y="273.81" width="26.96" height="37.07" rx="2"/>
+    <rect x="410.55" y="273.81" width="26.96" height="37.07" rx="2"/>
+  </g>
+
+  <!-- 本体（顶视，塑料色） -->
+  <rect x="262.27" y="186.19" width="195.46" height="87.62" rx="2" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+
+  <!-- 参数说明 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="440" text-anchor="middle">SOT-23 · 3 脚 · 顶视 Top View · D 2.80–3.00 · E 1.20–1.40 · E1 2.25–2.55（脚跨距）</text>
+    <text x="360" y="456" text-anchor="middle">e 0.95 TYP · e1 1.80–2.00 · b 0.30–0.50（NOM 0.40）· L 0.55 REF · 脚3 顶中、脚1/2 底排</text>
+    <text x="360" y="472" text-anchor="middle">A 0.90–1.15 · A1 0–0.10 · A2 0.90–1.05 · c 0.08–0.15 · L1 0.30–0.50 · θ 0–8°</text>
+  </g>
+</svg>
