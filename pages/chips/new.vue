@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const route = useRoute()
 import type { Chip, ProbeResult } from '~~/shared/types'
 
 interface IdentifyResult {
@@ -25,6 +26,19 @@ let userDismissedIdentify = false
 
 // 从 sessionStorage 恢复识别结果
 onMounted(() => {
+  // 「识别MCU」页未命中带参跳转：UID/型号/厂商 预填
+  try {
+    const q = route.query
+    if (q.uid) {
+      const hex = String(q.uid).replace(/\s+/g, '').toUpperCase()
+      form.uid = hex.replace(/(..)/g, '$1 ').trim()
+      form.uid_length = Number(q.uid_length) || Math.max(1, hex.length / 2)
+      toast.add({ title: '已带入识别结果', description: `UID ${hex} 未入库，补全信息后保存`, color: 'info' })
+    }
+    if (q.model) form.model = String(q.model)
+    if (q.vendor) form.vendor = String(q.vendor)
+  } catch { /* 预填失败不阻断 */ }
+
   try {
     const saved = sessionStorage.getItem('new-identify-result')
     if (saved) {

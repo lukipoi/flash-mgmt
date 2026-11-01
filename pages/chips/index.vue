@@ -633,6 +633,15 @@ async function confirmDelete() {
           容器标签
         </UButton>
         <UButton
+          to="/identify"
+          icon="i-lucide-scan-search"
+          color="neutral"
+          variant="outline"
+          size="sm"
+        >
+          识别MCU
+        </UButton>
+        <UButton
           to="/chips/new"
           icon="i-lucide-plus"
           color="primary"
