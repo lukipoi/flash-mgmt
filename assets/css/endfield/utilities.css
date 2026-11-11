@@ -222,3 +222,638 @@
 /* ------------------------------------------------------------------ */
 
 @custom-variant cq-portrait (@container (orientation: portrait));
+
+/* ------------------------------------------------------------------ */
+/* 危险操作警戒框（GUI 风格方案 A 案 · 唯一允许常驻循环的动效）        */
+/*                                                                    */
+/* 规范：docs/gui-style-guide.html 07 章「唯一例外」                    */
+/*   仅危险操作区 / 不可撤销确认 / 设备运行中，每屏最多 1 处；          */
+/*   速度 0.8–1.2s 每周期，不加发光、不双层叠加；                      */
+/*   prefers-reduced-motion 下立即静止（theme.css 全局兜底亦已覆盖）。 */
+/*                                                                    */
+/* 无缝滚动几何：-45° 条纹沿渐变轴周期 = 2 × 8px，                     */
+/*   换算水平平移 = 2 × 8 / cos45° = 22.627px。                        */
+/*   平移正好一个周期，首尾图案重合，无跳帧。改条纹宽度必须同步改此值。 */
+/* ------------------------------------------------------------------ */
+
+.ef-hazard-frame {
+  border: 1px solid var(--ef-danger);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--ef-surface-raised);
+}
+
+.ef-hazard-strip {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+}
+
+.ef-hazard-strip::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -48px;
+  right: -48px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--ef-danger) 0 8px,
+    transparent 8px 16px
+  );
+  animation: ef-hazard-roll 0.8s linear infinite;
+}
+
+@keyframes ef-hazard-roll {
+  to { transform: translateX(-22.627px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-hazard-strip::before { animation: none; }
+}
+
+.ef-hazard-body { padding: 16px 18px; }
+
+.ef-hazard-title {
+  color: var(--ef-danger);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.ef-hazard-code {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.ef-hazard-content {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ef-ink-secondary);
+}
+
+/* ------------------------------------------------------------------ */
+/* 危险操作确认弹窗（警戒框语言接管整个弹窗，不再「框内框」）          */
+/* ------------------------------------------------------------------ */
+
+.ef-hazard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay, 300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* 遮罩单独淡入，面板硬切出现：动效只落在遮罩上，面板不位移不缩放 */
+.ef-hazard-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ef-scrim);
+  animation: ef-overlay-in 200ms var(--ease-exit, ease-out);
+}
+
+@keyframes ef-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-hazard-overlay::before { animation: none; }
+}
+
+.ef-hazard-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 32px);
+  border: 1px solid var(--ef-danger);
+  background: var(--ef-surface-raised);
+  box-shadow: var(--shadow-lg, 0 0 24px rgb(0 0 0 / 0.3));
+  /* 入场 F1（21:22 提速）：延迟 150ms 等生长线拉满，再用 clip-path 从一条线上下展开。
+     backwards = 延迟期间保持「一条线」，结束后回到无 clip-path 状态，
+     box-shadow 不会被裁掉。 */
+  animation: ef-reveal-v 240ms var(--ease-exit, ease-out) 150ms backwards;
+}
+
+/* ---- 入场动效：点 → 横线 → 展开成窗（F1，用户拍板 2026-11-08）----
+   生长线是 overlay 的兄弟节点，不受面板 clip-path 裁剪。
+   面板只做几何裁剪，内容始终保持原尺寸：不缩放、不位移、不旋转。
+   21:22 用户嫌 540ms 慢，收紧到约 390ms（线 280ms / 窗 240ms@150ms），
+   两段衔接保留，不退回「跟没加一样」。
+   规范 06 章修订 2 特批，仅危险确认弹窗可用。 */
+.ef-hazard-grow {
+  position: absolute;
+  z-index: 1; /* 面板展开前要盖在「被裁成一条线」的面板之上 */
+  top: 50%;
+  left: 50%;
+  width: min(560px, calc(100% - 32px));
+  height: 2px;
+  background: var(--ef-action);
+  transform: translate(-50%, -50%) scaleX(0);
+  transform-origin: center;
+  animation: ef-grow-h 280ms var(--ease-exit, ease-out) forwards;
+}
+
+@keyframes ef-grow-h {
+  0%   { transform: translate(-50%, -50%) scaleX(0); opacity: 1; }
+  62%  { transform: translate(-50%, -50%) scaleX(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(1); opacity: 0; }
+}
+
+@keyframes ef-reveal-v {
+  from { clip-path: inset(calc(50% - 1px) 0 calc(50% - 1px) 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* ---- 退场：逆向收回（21:30 用户拍板）----------------------------
+   窗 → 收成线 → 线缩回点 → 遮罩淡出，约 400ms，与 F1 入场对称。
+   用独立 keyframes 而非 animation-direction:reverse：切换 is-closing 时
+   animation-name 变化才能可靠重启动画（退场途中被重新打开也不会卡住）。
+   .ef-hazard-grow 用 both：延迟 120ms 期间保持「完整线」可见，
+   等窗收拢到一半再缩回点。 */
+@keyframes ef-collapse-v {
+  from { clip-path: inset(0 0 0 0); }
+  to   { clip-path: inset(calc(50% - 1px) 0 calc(50% - 1px) 0); }
+}
+@keyframes ef-shrink-h {
+  from { transform: translate(-50%, -50%) scaleX(1); opacity: 1; }
+  to   { transform: translate(-50%, -50%) scaleX(0); opacity: 1; }
+}
+@keyframes ef-overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.ef-hazard-overlay.is-closing::before {
+  animation: ef-overlay-out 300ms var(--ease-emphasis, ease-in-out) forwards;
+}
+.ef-hazard-overlay.is-closing .ef-hazard-modal {
+  animation: ef-collapse-v 240ms var(--ease-emphasis, ease-in-out) forwards;
+}
+.ef-hazard-overlay.is-closing .ef-hazard-grow {
+  animation: ef-shrink-h 280ms var(--ease-emphasis, ease-in-out) 120ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-hazard-grow { animation: none; opacity: 0; }
+  .ef-hazard-modal { animation: none; }
+  .ef-hazard-overlay.is-closing::before,
+  .ef-hazard-overlay.is-closing .ef-hazard-modal,
+  .ef-hazard-overlay.is-closing .ef-hazard-grow { animation: none; }
+}
+
+.ef-hazard-modal-head {
+  position: relative;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--ef-line);
+}
+
+.ef-hazard-modal-title {
+  padding-right: 36px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ef-ink);
+}
+
+.ef-hazard-modal-danger {
+  margin-top: 6px;
+  color: var(--ef-danger);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ef-hazard-modal-code {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.ef-hazard-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--ef-ink-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    background-color 50ms ease,
+    border-color 50ms ease,
+    color 50ms ease;
+}
+
+.ef-hazard-modal-close:hover {
+  color: var(--ef-ink);
+  background: var(--ef-surface-muted);
+  border-color: var(--ef-line-strong);
+}
+
+.ef-hazard-modal-close:focus-visible {
+  outline: 2px solid var(--ef-focus);
+  outline-offset: 2px;
+}
+
+.ef-hazard-modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  font-size: 13px;
+  color: var(--ef-ink-secondary);
+}
+
+.ef-hazard-modal-foot {
+  padding: 12px 18px;
+  border-top: 1px solid var(--ef-line);
+}
+
+/* ------------------------------------------------------------------ */
+/* 芯片类型二级分类展开（G1 · 用户拍板 2026-11-08）                     */
+/*                                                                    */
+/* 规范与样板：docs/chip-types-expand-motion-demo.html（G1）            */
+/*   v-if 硬切 → 常驻 DOM + .ct-card.is-open。高度走 CSS Grid 0fr→1fr，  */
+/*   不用 JS 量 auto 高度，也不拍一个不精确的 max-height。               */
+/*   三条动作全部是双向 transition，所以收起天然按原路逆向：           */
+/*     高度 240ms / 引导线 scaleY 220ms / 子项整块 opacity 180ms@60ms。  */
+/*   子项一起出现，不做 stagger 错峰；内容不缩放、不位移。               */
+/*   折叠箭头 rotate(90deg) 是状态过渡，不是装饰性旋转（21:52 拍板）。   */
+/* ------------------------------------------------------------------ */
+
+.ct-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 240ms var(--ease-exit, ease-out);
+}
+
+.ct-card.is-open > .ct-children {
+  grid-template-rows: 1fr;
+}
+
+.ct-children-inner {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* border-t 必须在这里：0fr 时跟着被裁掉，折叠态才不会留一条孤零零的分隔线 */
+.ct-pad {
+  border-top: 1px solid var(--ef-line);
+  padding: 4px 0;
+  opacity: 0;
+  transition: opacity 160ms ease; /* 收起：立刻淡出 */
+}
+
+.ct-card.is-open .ct-pad {
+  opacity: 1;
+  transition: opacity 180ms ease 60ms; /* 展开：稍后整块淡入 */
+}
+
+/* 左侧 1px 引导线，自顶端长到底；对齐子行 pl-11 之前的缩进区 */
+.ct-guide {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 28px;
+  width: 1px;
+  background: var(--ef-line-strong);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 220ms var(--ease-exit, ease-out);
+  pointer-events: none;
+}
+
+.ct-card.is-open .ct-guide {
+  transform: scaleY(1);
+}
+
+/* 折叠箭头：单个 chevron-right 旋转 90°，展开 / 收起同一条过渡。
+   只旋转这个 24px 按钮，不旋转整卡、整行或任何内容。 */
+.ct-caret-icon {
+  transform-origin: center;
+  transition: transform 220ms var(--ease-exit, ease-out);
+}
+
+.ct-card.is-open .ct-caret-icon {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-children,
+  .ct-pad,
+  .ct-guide,
+  .ct-caret-icon {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 录入芯片 · 类型按钮「选中框」平移（S1 / 2026-11-10 19:40 用户拍板）   */
+/*                                                                    */
+/* 作用对象 = 三个按钮上「唯一的一个框」。只放行框这一层位移，按钮与     */
+/* 文字钉在原位（零位移 / 零缩放 / 零旋转）。下方 5 处类型字段仍是       */
+/* 瞬时 v-if 切换、零动效 —— 内容区不要加 Transition / clip-path。       */
+/* 卷帘换页（H1）与静态黄色指示线均已否，见已归档的 H 组样板。          */
+/* 专项样板：docs/chip-type-frame-motion-demo.html（S1–S4，S1 已落地）   */
+/* ------------------------------------------------------------------ */
+.type-tabs {
+  position: relative;
+  --type-dur: 260ms;
+  --type-ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* 按钮本体：恒定中性底色，选中视觉全部交给框；文字层压在框之上 */
+.type-btn { position: relative; }
+.type-btn-lbl { position: relative; z-index: 3; pointer-events: none; }
+
+/* 唯一会动的层：位置走 transform / width，颜色由模板里的 Tailwind 类
+   （border-data-500 / bg-action/10 等）提供，明暗主题自动跟随。
+   位移用 transition 而非 animation + forwards：快速连点天然可打断。 */
+.type-frame {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  width: var(--fw, 0px);
+  transform: translateX(var(--fx, 0px));
+  transition: transform var(--type-dur) var(--type-ease),
+              width var(--type-dur) var(--type-ease);
+}
+.type-frame-inner {
+  position: absolute;
+  inset: 0;
+  border-width: 1px;
+  border-style: solid;
+  transition: background-color var(--type-dur) var(--type-ease),
+              border-color var(--type-dur) var(--type-ease);
+}
+
+/* 初始化 / ResizeObserver 重算时临时关掉过渡，避免框「自己滑一下」 */
+.type-frame.no-trans,
+.type-frame.no-trans .type-frame-inner { transition: none; }
+
+/* prefers-reduced-motion 由 theme.css 的全局兜底统一处理，不重复实现。 */
+
+/* ------------------------------------------------------------------ */
+/* 左侧功能菜单 · 选中框纵向平移（N1 / 2026-11-10 20:21 用户拍板）       */
+/*                                                                    */
+/* 「N1，不用换色」：统一信号黄，不按菜单项 / 功能组分色。              */
+/* 只放行 .nav-frame / .nav-bar 两层沿 Y 位移，12 个菜单项连同图标文字   */
+/* 钉在原位（零位移 / 零缩放 / 零旋转）。右侧主内容区零动效。           */
+/* 与录入页 S1 同属「选中框平移」特批，见规范修订 5。                   */
+/* 样板：docs/side-nav-frame-motion-demo.html（N1–N4，N1 已落地）        */
+/* ------------------------------------------------------------------ */
+.side-nav {
+  position: relative;
+  --nav-dur: 260ms;
+  --nav-ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* 文字层压在框之上；菜单项本体不参与动画 */
+.nav-item-lbl {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+/* 唯一会动的两层：淡黄底色框 + 左侧 4px 竖条（原 before:marker-bar） */
+.nav-frame {
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+  pointer-events: none;
+  height: var(--fh, 40px);
+  transform: translateY(var(--fy, 0px));
+  border: 1px solid color-mix(in srgb, var(--ef-action) 20%, transparent);
+  background: color-mix(in srgb, var(--ef-action) 10%, transparent);
+  transition: transform var(--nav-dur) var(--nav-ease),
+              height var(--nav-dur) var(--nav-ease);
+}
+.nav-bar {
+  position: absolute;
+  top: 0;
+  left: 12px;
+  z-index: 3;
+  width: 4px;
+  height: calc(var(--fh, 40px) - 12px);
+  margin-top: 6px;
+  pointer-events: none;
+  transform: translateY(var(--fy, 0px));
+  background: var(--ef-action);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), 0 100%);
+  transition: transform var(--nav-dur) var(--nav-ease),
+              height var(--nav-dur) var(--nav-ease);
+}
+
+/* 未精确匹配任何菜单项的路由（详情页）：框瞬时隐藏，不悬空 */
+.nav-frame.is-hidden,
+.nav-bar.is-hidden { visibility: hidden; }
+
+/* 初始化 / ResizeObserver 重算时临时关过渡，避免框「自己滑一下」 */
+.nav-frame.no-trans,
+.nav-bar.no-trans { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-frame,
+  .nav-bar,
+  .nav-item-lbl { transition: none; }
+}
+
+/* ------------------------------------------------------------------ */
+/* 读取反馈 Toast · R4 / R1 按状态分流（2026-11-10 21:13 用户拍板）      */
+/*                                                                    */
+/* 「R4 只留给所有 ERR 和 WARN，别的走 R1」：                            */
+/*   error / warning           → R4 顶部 6px 静止斜纹警戒带 + 状态色描边 */
+/*   success / info / neutral  → R1 等宽状态码 + 深底等宽日志块          */
+/*                                                                    */
+/* 落点：app.config.ts 的 ui.toast.slots / variants.color 只注入类名，   */
+/* 视觉全在这里，26 处 toast.add() 零改动。                              */
+/*                                                                    */
+/* ⚠️ UToast 的 DOM 固定（leading / wrapper[title+description] / close / */
+/*    progress），没有独立的「抬头 / 日志块 / 排查行」槽：三段式由        */
+/*    ::before / ::after + description 日志块模拟，通道名仍由 title 承载。*/
+/*    R1 设计稿底部的「排查 ·」信号黄小方块因此没落地（无法从纯 CSS 判断   */
+/*    description 里是否含排查建议，乱加会误导）。                       */
+/*                                                                    */
+/* ⚠️ 规范边界：R4 斜纹是静止母题，不是 hazard 滚动条（规范 07 章：仅    */
+/*    危险操作区 / 不可撤销确认 / 设备运行中、每屏 1 处、唯一常驻循环）。 */
+/*    读取失败是故障回执且会堆叠，所以不做任何循环动画，不占例外名额。   */
+/*    信号黄不作为错误色；错误 --ef-danger、警告 --ef-warning。           */
+/*                                                                    */
+/* ⚠️ app.config.ts 的 toast.slots 现在「保留默认布局类 + 追加 ef-toast-*」，*/
+/*    默认 root 的 bg-default / shadow-lg / ring / rounded-lg / p-4 /      */
+/*    gap-2.5 仍在，下面逐项写全才能盖掉；普通 CSS 优先级高于 @layer。   */
+/*                                                                    */
+/* ⚠️ 绝对不要在这里写 position —— Toaster 靠 ui.base() 的                */
+/*    absolute inset-x-0 让 ToastRoot 脱离 viewport 的 flex 流并撑满 384px；*/
+/*    viewport 有 data-[expanded=true]:h-(--height) 固定高度，若改成       */
+/*    position:relative，ToastRoot 会被压缩到该高度，overflow:hidden 会     */
+/*    把 description 整块裁掉（2026-11-10 截图实测，勿再犯）。             */
+/*    absolute 本身已是定位上下文，::before 斜纹带 / ::after 切角仍正常工作。*/
+/* 样板：docs/read-error-toast-design.html（R1–R4，已定案）              */
+/* ------------------------------------------------------------------ */
+.ef-toast {
+  --ts: var(--ef-line-strong);
+  /* position 交给 Nuxt UI：absolute inset-x-0（见上，勿覆盖） */
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 14px 12px 16px;
+  border: 1px solid var(--ef-line-strong);
+  border-left: 3px solid var(--ts);
+  border-radius: 0;
+  background: var(--ef-surface-raised);
+  box-shadow: none;
+  color: var(--ef-ink);
+  font-size: 13px;
+  overflow: hidden;
+}
+.ef-toast--err     { --ts: var(--ef-danger); }
+.ef-toast--warn    { --ts: var(--ef-warning); }
+.ef-toast--ok      { --ts: var(--ef-success); }
+.ef-toast--info    { --ts: var(--ef-info); }
+.ef-toast--neutral { --ts: var(--ef-line-strong); }
+
+/* 右上角状态色切角三角：corner-brackets 母题的极简静态版 */
+.ef-toast::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-top: 9px solid var(--ts);
+  border-left: 9px solid transparent;
+  pointer-events: none;
+}
+
+/* ---- R1（默认）：等宽状态码 + 深底等宽日志块 ---- */
+.ef-toast::before {
+  content: "NOTE";
+  flex: none;
+  min-width: 36px;
+  padding-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--ts);
+}
+.ef-toast--ok::before      { content: "OK"; }
+.ef-toast--info::before    { content: "INFO"; }
+.ef-toast--neutral::before { content: "NOTE"; }
+
+/* wrapper 的 flex-1 / flex-col 由 app.config.ts 保留的默认类提供；
+   这里写死一份兜底，避免以后再改 slots 时把布局契约弄丢 */
+.ef-toast-wrap {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ef-toast-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--ef-ink);
+}
+
+.ef-toast-desc {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--ef-line);
+  background: var(--ef-surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--ef-ink-secondary);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* ---- R4（error / warning）：静止斜纹警戒带 ---- */
+.ef-toast--band {
+  border-color: var(--ts);
+  border-left-width: 1px;
+  padding-top: 19px;
+}
+.ef-toast--band::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  min-width: 0;
+  padding: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--ts) 0 8px,
+    var(--ef-surface-sunken) 8px 16px
+  );
+  /* ⚠️ 刻意不写 animation：静止斜纹，不是 hazard 滚动条 */
+}
+.ef-toast--band .ef-toast-title::before {
+  content: "ERR · ";
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--ts);
+}
+.ef-toast--warn.ef-toast--band .ef-toast-title::before { content: "WARN · "; }
+
+.ef-toast--band .ef-toast-desc {
+  margin-top: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ef-ink-secondary);
+}
+
+/* 关闭按钮 / 进度条低调化，不抢状态色 */
+.ef-toast-close { opacity: .55; }
+.ef-toast-close:hover { opacity: 1; }
+.ef-toast-progress { opacity: .35; }
+
+/* 默认 root 的 focus:outline-none 保留；自定义 variants.color 盖掉了
+   focus-visible:ring-*，这里用 1px 状态色描边补回键盘焦点可见性 */
+.ef-toast:focus-visible {
+  outline: 1px solid var(--ts);
+  outline-offset: 2px;
+}
+
+/* 入场 150ms 纯 opacity；无位移 / 缩放 / spring */
+.ef-toast { animation: ef-toast-in 150ms ease-out both; }
+@keyframes ef-toast-in { from { opacity: 0 } to { opacity: 1 } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-toast { animation: none; }
+}

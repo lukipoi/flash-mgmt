@@ -10,6 +10,9 @@ const showScanner = ref(false)
 const showPhoneScan = ref(false)
 const resolving = ref(false)
 const scanningDevice = ref(false)
+const { flags: labFlags } = useLab()
+const scanBtnLabel = computed(() =>
+  labFlags.value.esclStream ? '扫描仪快扫（eSCL 直连，约 6~8 秒）' : '扫描仪扫描（放玻璃上，约 5~15 秒）')
 
 function detailPath(kind: string, id?: number, name?: string): string | null {
   if (kind === 'container' && name) return `/chips?search=${encodeURIComponent(name)}`
@@ -48,16 +51,25 @@ async function handleScanned(text: string) {
   }
 }
 /**
- * 用本机扫描仪扫描（WIA，走后端 /api/scanner/scan → Python scan_once.py）
+ * 扫描仪扫描（走后端 /api/scanner/scan → Python scan_once.py）
+ * 🧪 实验开关「扫描仪快扫」开启时：body 带 escl 地址 + dpi=200 走 eSCL 网络直连
+ *   （整面快扫，静态扫描不糊、袋装小码可解，实测约 6~8s；见 composables/useLab.ts）
+ * 默认关闭 = 原行为（WIA 整面）零变化。
  * 玻璃上可能同时有多张标签：含 #id 的文本优先，逐条尝试 resolve，第一个命中即跳转
  */
 async function handleDeviceScan() {
   if (scanningDevice.value || resolving.value) return
   scanningDevice.value = true
+  const { flags } = useLab()
+  const body: Record<string, any> = {}
+  if (flags.value.esclStream) {
+    body.escl = LAB_DEFAULT_ESCL
+    body.dpi = LAB_ESCL_DPI
+  }
   try {
     const res = await $fetch<{ texts: { text: string; format: string }[]; elapsedMs: number }>(
       '/api/scanner/scan',
-      { method: 'POST', body: {} },
+      { method: 'POST', body },
     )
     const texts = (res.texts || []).map(t => t.text).filter(Boolean)
     if (!texts.length) throw new Error('扫描完成，但玻璃上没有识别到条码/二维码')
@@ -105,7 +117,7 @@ async function handleDeviceScan() {
           :disabled="resolving"
           @click="handleDeviceScan"
         >
-          扫描仪扫描（放玻璃上，约 5~15 秒）
+          {{ scanBtnLabel }}
         </UButton>
         <UButton
           icon="i-lucide-scan-line"

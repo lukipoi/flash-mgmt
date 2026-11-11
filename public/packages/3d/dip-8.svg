@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="182 56.6 312.2 260.8" width="312.2" height="260.8">
+  <!-- DIP-8 顶视图（33.7 px/mm，INCH 表 ×25.4） 本体 9.27×6.35，引脚跨 7.62，e 2.54，缺口示 pin1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="184.05" y="58.6" width="51.4" height="21.4" rx="1.5"/>
+    <rect x="269.65" y="58.6" width="51.4" height="21.4" rx="1.5"/>
+    <rect x="355.25" y="58.6" width="51.4" height="21.4" rx="1.5"/>
+    <rect x="440.85" y="58.6" width="51.4" height="21.4" rx="1.5"/>
+    <rect x="184.05" y="294" width="51.4" height="21.4" rx="1.5"/>
+    <rect x="269.65" y="294" width="51.4" height="21.4" rx="1.5"/>
+    <rect x="355.25" y="294" width="51.4" height="21.4" rx="1.5"/>
+    <rect x="440.85" y="294" width="51.4" height="21.4" rx="1.5"/>
+  </g>
+  <!-- 本体 -->
+  <rect x="182" y="80" width="312.4" height="214" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+  <!-- 左侧 pin1 缺口（塑封凹坑，非通孔）：深一档实心半圆，r = 0.157×E1（家族统一） -->
+  <path d="M 182 153.3 A 33.7 33.7 0 0 1 182 220.7 Z" fill="#262c38"/>
+</svg>

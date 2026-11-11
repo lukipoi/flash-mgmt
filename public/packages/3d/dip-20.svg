@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="59 64 607 174" width="607" height="174">
+  <!-- DIP-20 顶视图（22 px/mm，INCH 表 ×25.4） 本体 26.06×6.35，引脚跨 7.62，e 2.54，缺口示 pin1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="94.45" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="150.33" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="206.21" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="262.09" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="317.97" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="373.85" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="429.73" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="485.61" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="541.49" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="597.37" y="66" width="33.5" height="14" rx="1.5"/>
+    <rect x="94.45" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="150.33" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="206.21" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="262.09" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="317.97" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="373.85" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="429.73" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="485.61" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="541.49" y="219.7" width="33.5" height="14" rx="1.5"/>
+    <rect x="597.37" y="219.7" width="33.5" height="14" rx="1.5"/>
+  </g>
+  <!-- 本体 -->
+  <rect x="76" y="80" width="573.3" height="139.7" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+  <!-- 左侧 pin1 缺口（塑封凹坑，非通孔）：r = 0.157×E1（家族统一） -->
+  <path d="M 76 127.85 A 22 22 0 0 1 76 171.85 Z" fill="#262c38"/>
+  <!-- 顶面凹坑（模具标记，图面右侧虚线圆，不通） -->
+  <circle cx="486" cy="149.85" r="22" fill="#262c38"/>
+</svg>

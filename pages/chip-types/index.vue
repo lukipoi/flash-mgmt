@@ -274,20 +274,20 @@ async function importLcsc() {
       <div
         v-for="root in visibleRoots"
         :key="root.id"
-        class="overflow-hidden rounded-lg bg-surface-raised ring-1 ring-line"
+        class="ct-card overflow-hidden rounded-lg bg-surface-raised ring-1 ring-line"
+        :class="{ 'is-open': isExpanded(root) }"
       >
         <!-- 一级分类 -->
         <div class="flex items-center gap-2 px-3 py-3">
           <button
             type="button"
-            class="flex h-6 w-6 shrink-0 items-center justify-center rounded text-ink-tertiary hover:bg-surface-muted hover:text-ink-secondary"
+            class="ct-caret-icon flex h-6 w-6 shrink-0 items-center justify-center rounded text-ink-tertiary hover:bg-surface-muted hover:text-ink-secondary"
             :title="isExpanded(root) ? '收起' : '展开'"
+            :aria-expanded="isExpanded(root)"
             @click="toggle(root.id)"
           >
-            <UIcon
-              :name="isExpanded(root) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-              class="h-4 w-4"
-            />
+            <!-- 单个 chevron + CSS rotate(90deg)：展开 / 收起都是同一条过渡，不做字形切换 -->
+            <UIcon name="i-lucide-chevron-right" class="h-4 w-4" />
           </button>
           <UIcon name="i-lucide-folder" class="h-4 w-4 shrink-0 text-action" />
           <span class="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{{ root.name }}</span>
@@ -321,36 +321,47 @@ async function importLcsc() {
           </div>
         </div>
 
-        <!-- 二级分类 -->
-        <div v-if="isExpanded(root)" class="border-t border-line py-1">
-          <div
-            v-for="child in childrenFor(root)"
-            :key="child.id"
-            class="flex items-center gap-2 py-2 pl-11 pr-3 hover:bg-surface-muted/10"
-          >
-            <UIcon name="i-lucide-corner-down-right" class="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />
-            <span class="min-w-0 flex-1 truncate text-sm text-ink-secondary">{{ child.name }}</span>
-            <span class="shrink-0 text-xs text-ink-tertiary">{{ child.chip_count }} 颗</span>
-            <div class="flex shrink-0 items-center gap-1">
-              <UButton
-                icon="i-lucide-pencil"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                @click="openEdit(child, root)"
-              />
-              <UButton
-                icon="i-lucide-trash-2"
-                color="error"
-                variant="ghost"
-                size="xs"
-                @click="openDelete(child)"
-              />
+        <!-- 二级分类：常驻 DOM + is-open，展开 / 收起交给 utilities.css 的 G1。
+             border-t 放进 .ct-pad，0fr 时一起被裁掉，折叠态不留孤线；
+             inert 挡掉折叠态的键盘焦点，避免 Tab 进看不见的按钮。 -->
+        <div
+          class="ct-children"
+          :aria-hidden="!isExpanded(root)"
+          :inert="!isExpanded(root) || undefined"
+        >
+          <div class="ct-children-inner">
+            <span class="ct-guide" aria-hidden="true"></span>
+            <div class="ct-pad">
+              <div
+                v-for="child in childrenFor(root)"
+                :key="child.id"
+                class="flex items-center gap-2 py-2 pl-11 pr-3 hover:bg-surface-muted/10"
+              >
+                <UIcon name="i-lucide-corner-down-right" class="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />
+                <span class="min-w-0 flex-1 truncate text-sm text-ink-secondary">{{ child.name }}</span>
+                <span class="shrink-0 text-xs text-ink-tertiary">{{ child.chip_count }} 颗</span>
+                <div class="flex shrink-0 items-center gap-1">
+                  <UButton
+                    icon="i-lucide-pencil"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    @click="openEdit(child, root)"
+                  />
+                  <UButton
+                    icon="i-lucide-trash-2"
+                    color="error"
+                    variant="ghost"
+                    size="xs"
+                    @click="openDelete(child)"
+                  />
+                </div>
+              </div>
+              <p v-if="!childrenFor(root).length" class="py-2 pl-11 text-xs text-ink-tertiary">
+                暂无二级分类，点右侧「二级」新增
+              </p>
             </div>
           </div>
-          <p v-if="!childrenFor(root).length" class="py-2 pl-11 text-xs text-ink-tertiary">
-            暂无二级分类，点右侧「二级」新增
-          </p>
         </div>
       </div>
     </div>

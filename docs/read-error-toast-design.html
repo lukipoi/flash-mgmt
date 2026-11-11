@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flash-mgmt · 读取反馈 Toast 专门设计稿（R1–R4）</title>
+<style>
+/* ==================================================================
+   读取反馈 Toast · 专门设计稿（R 组）
+   2026-11-10 21:00 用户：「读取报错的 toast 也该更新下了」→「那个长太丑，专门设计一下」
+
+   21:13 用户拍板「R4 只留给所有 ERR 和 WARN，别的走 R1」→ 已落地：
+     app.config.ts 注入 ui.toast 类、utilities.css 加 .ef-toast 一套规则，
+     26 处 toast.add() 零改动。本页四个卡片保留作设计记录，
+     「按定案分流演示」按钮可看五种状态的最终组合效果。
+
+   为什么不能只「补个 CSS」：规范页 04 章那张 .toast 基准件只有一行 OK 示例，
+   没有 error 变体、没有长文本排版、没有多状态；实际 toast 是 Nuxt UI 默认
+   消费级卡片（rounded-lg + shadow-lg 24px + ring），跟直角 / 1px 描边 /
+   零偏移阴影的工业控制台冲突。所以要专门设计，不是调参。
+
+   色值 / 字体 / 缓动全部取自 assets/css/endfield/theme.css。
+   ================================================================== */
+:root, [data-theme="light"] {
+  --surface:#ffffff; --surface-raised:#fafafa; --surface-sunken:#f2f2f2; --surface-muted:#e6e6e6;
+  --ink:#191919; --ink-secondary:#626262; --ink-tertiary:#8a8a8a;
+  --line:#d9d9d9; --line-strong:#b3b3b3;
+  --action:#fffa00; --on-action:#191919;
+  --button:#383838; --button-hover:#484848; --on-button:#eeeeee;
+  --danger:#de0909; --warning:#b74e00; --success:#007f43; --data:#25759f; --focus:#191919;
+  --oldscrim:rgba(0,0,0,.26);
+}
+[data-theme="dark"] {
+  --surface:#141414; --surface-raised:#1f1f1f; --surface-sunken:#000000; --surface-muted:#282828;
+  --ink:#fafafa; --ink-secondary:#b3b3b3; --ink-tertiary:#8a8a8a;
+  --line:#383838; --line-strong:#626262;
+  --action:#fffa00; --on-action:#191919;
+  --button:rgba(255,255,255,.2); --button-hover:rgba(255,255,255,.3); --on-button:#d9d9d9;
+  --danger:#f74040; --warning:#fc6c00; --success:#00d872; --data:#4aa8d8; --focus:#fffa00;
+  --oldscrim:rgba(0,0,0,.55);
+}
+:root {
+  --font-sans:"HarmonyOS Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-display:"Archivo","Montserrat","HarmonyOS Sans SC",sans-serif;
+  --font-mono:"JetBrains Mono","Cascadia Code",ui-monospace,Consolas,monospace;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--surface); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:1.6; }
+.label { font-family:var(--font-mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-tertiary); }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+a { color:var(--action); }
+code { font-family:var(--font-mono); font-size:11.5px; color:var(--action); }
+.btn { display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:0 14px;
+  font-size:13px; font-family:inherit; border:1px solid transparent; border-radius:0; cursor:pointer;
+  transition:background-color 50ms ease, border-color 50ms ease, color 50ms ease; }
+.btn-primary { background:var(--action); color:var(--on-action); }
+.btn-primary:hover { filter:brightness(.92); }
+.btn-secondary { background:var(--button); color:var(--on-button); border-color:var(--line-strong); }
+.btn-secondary:hover { background:var(--button-hover); }
+.btn-ghost { background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn-ghost:hover { background:var(--surface-muted); }
+.btn.on { background:var(--action); color:var(--on-action); border-color:var(--action); }
+.btn:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+select { font-family:inherit; min-height:34px; padding:0 10px; font-size:12px; border:1px solid var(--line-strong);
+  border-radius:0; background:var(--surface-raised); color:var(--ink); }
+.ctl { display:inline-flex; align-items:center; gap:7px; font-size:11px; color:var(--ink-tertiary); font-family:var(--font-mono); }
+
+.topbar { position:sticky; top:0; z-index:100; height:56px; display:flex; align-items:center; gap:16px;
+  padding:0 24px; background:var(--surface-raised); border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; }
+.brand-mark { width:20px; height:20px; background:var(--action);
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%); }
+.topbar .sep { flex:1; }
+.topbar .meta { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.wrap { max-width:1080px; margin:0 auto; padding:48px 24px 120px; }
+.hero { padding-bottom:36px; border-bottom:1px solid var(--line); }
+.eyebrow { color:var(--action); font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; }
+h1 { font-family:var(--font-display); font-size:clamp(30px,4vw,46px); line-height:1.08; margin:12px 0 14px; letter-spacing:-.02em; }
+h2 { font-family:var(--font-display); font-size:20px; margin:0 0 6px; }
+h3 { font-size:14px; margin:0; }
+.lede { color:var(--ink-secondary); font-size:15px; max-width:820px; margin:0 0 20px; }
+section { padding:44px 0 8px; border-bottom:1px solid var(--line); }
+section:last-of-type { border-bottom:0; }
+.sec-head { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; }
+.sec-num { font-family:var(--font-mono); font-size:12px; color:var(--action); }
+.note { border-left:3px solid var(--action); background:var(--surface-raised); padding:12px 16px;
+  font-size:13px; color:var(--ink-secondary); margin:20px 0; }
+.note strong { color:var(--ink); }
+.note.rev { border-left-color:var(--danger); }
+.toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+.readout { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.hint { font-size:11px; color:var(--ink-tertiary); }
+table { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:14px; }
+th { text-align:left; font-weight:500; color:var(--ink-tertiary); font-size:11px; letter-spacing:.04em;
+  padding:8px 10px; border-bottom:1px solid var(--line-strong); }
+td { padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+td.mono { font-size:11px; color:var(--ink-secondary); }
+pre { background:var(--surface-sunken); border:1px solid var(--line); padding:16px 18px; overflow:auto;
+  font-family:var(--font-mono); font-size:11.5px; line-height:1.7; color:var(--ink-secondary); margin:14px 0 0; }
+pre b { color:var(--action); font-weight:500; }
+
+/* ==================================================================
+   01 · 现状对照：Nuxt UI 默认 toast 的还原
+   ================================================================== */
+.old-row { display:grid; grid-template-columns:minmax(0,420px) minmax(0,1fr); gap:28px; align-items:start; }
+.old-card { border-radius:8px; padding:16px; background:var(--surface-raised); border:1px solid var(--line);
+  box-shadow:0 0 0 1px var(--line), 0 12px 24px var(--oldscrim); display:flex; gap:10px; }
+.old-card .old-ttl { font-size:14px; font-weight:500; color:var(--ink); }
+.old-card .old-desc { font-size:14px; color:var(--ink-secondary); margin-top:4px; line-height:1.5; }
+.old-card .old-x { margin-left:auto; color:var(--ink-tertiary); font-size:16px; line-height:1; }
+.old-list { margin:0; padding-left:18px; color:var(--ink-secondary); font-size:12.5px; }
+.old-list li { margin-bottom:7px; }
+.old-list b { color:var(--ink); }
+
+/* ==================================================================
+   02 · 舞台：模拟桌面右下角 toast 堆叠区
+   ================================================================== */
+.samples { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:20px; }
+.sample { border:1px solid var(--line); background:var(--surface-raised); padding:18px; display:flex; flex-direction:column; gap:10px; }
+.sample.pick { border-color:var(--action); }
+.sample .top { display:flex; align-items:baseline; gap:10px; }
+.sample .key { font-family:var(--font-mono); font-size:18px; color:var(--action); }
+.sample .name { font-size:15px; font-weight:700; }
+.sample .badge { margin-left:auto; font-family:var(--font-mono); font-size:9px; padding:2px 6px;
+  border:1px solid var(--action); color:var(--action); }
+.sample .spec { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.sample .what { font-size:12.5px; color:var(--ink-secondary); flex:1; }
+.sample .what b { color:var(--ink); font-weight:600; }
+.sample .play { align-self:flex-start; }
+
+.desk { position:relative; min-height:430px; border:1px solid var(--line); background:var(--surface); overflow:hidden; }
+.desk-bar { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line);
+  background:var(--surface-raised); }
+.desk-bar .sub { font-size:11.5px; color:var(--ink-tertiary); }
+.desk-bar .sep { flex:1; }
+.desk-app { position:absolute; inset:46px 18px 18px; opacity:.32; pointer-events:none; }
+.desk-app .ph { height:12px; background:var(--surface-muted); margin-bottom:10px; }
+.desk-app .ph.w60 { width:60%; } .desk-app .ph.w35 { width:35%; } .desk-app .ph.w80 { width:80%; }
+.desk-app .ph.tall { height:120px; width:100%; margin-top:24px; }
+.desk-app .stamp { position:absolute; top:44%; left:50%; transform:translate(-50%,-50%);
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; color:var(--ink-tertiary); }
+.stack { position:absolute; right:18px; bottom:18px; width:min(410px, calc(100% - 36px));
+  display:flex; flex-direction:column-reverse; gap:10px; }
+.stack:empty::after { content:"点上方「触发一条」开始"; display:block; padding:14px;
+  border:1px dashed var(--line-strong); font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+
+/* 入场：只动 opacity 150ms（规范 06 章允许范围），不位移、不缩放、不 spring */
+@keyframes tIn { from { opacity:0 } to { opacity:1 } }
+body.reduced .t,
+body.reduced .old-card { animation:none; }
+
+/* ---------- 四方案共用基类 ---------- */
+.t { --st:var(--line-strong); position:relative; border-radius:0; background:var(--surface-raised);
+  border:1px solid var(--line-strong); box-shadow:none; font-size:13px;
+  animation:tIn 150ms ease-out both; }
+.t[data-s="err"]  { --st:var(--danger); }
+.t[data-s="warn"] { --st:var(--warning); }
+.t[data-s="ok"]   { --st:var(--success); }
+.t[data-s="info"] { --st:var(--data); }
+.t .fix-mark { display:inline-block; width:7px; height:7px; background:var(--action); flex:none; margin-top:5px; }
+.t .fix { display:flex; gap:8px; align-items:flex-start; color:var(--ink-secondary); font-size:11.5px; line-height:1.55; }
+.t .fix b { color:var(--ink-tertiary); font-family:var(--font-mono); font-size:10px; font-weight:500; letter-spacing:.06em; }
+
+/* ---------- R1 · 故障回执 ---------- */
+.t.r1 { padding:12px 14px 12px 17px; border-left:3px solid var(--st); }
+.t.r1::before { content:""; position:absolute; top:0; right:0; width:0; height:0;
+  border-top:9px solid var(--st); border-left:9px solid transparent; }
+.r1-head { display:flex; justify-content:space-between; gap:12px; font-family:var(--font-mono);
+  font-size:10px; letter-spacing:.08em; color:var(--st); padding-right:12px; }
+.r1-head .r1-t { color:var(--ink-tertiary); }
+.r1-title { font-size:15px; font-weight:700; margin:7px 0 9px; letter-spacing:.01em; }
+.r1-log { background:var(--surface-sunken); border:1px solid var(--line); padding:8px 10px;
+  font-size:11.5px; line-height:1.65; color:var(--ink-secondary); overflow-wrap:anywhere; }
+.r1 .fix { margin-top:10px; }
+
+/* ---------- R2 · 大状态码 ---------- */
+.t.r2 { display:flex; align-items:center; gap:14px; padding:14px 16px; border-left:3px solid var(--st); }
+.r2-code { font-family:var(--font-mono); font-size:22px; font-weight:700; letter-spacing:.04em;
+  line-height:1; color:var(--st); padding-right:14px; border-right:1px solid var(--line); flex:none; }
+.r2-body { min-width:0; }
+.r2-title { font-size:14px; font-weight:700; }
+.r2-desc { font-size:12px; color:var(--ink-secondary); margin-top:3px; overflow-wrap:anywhere; }
+.r2 .fix { margin-top:8px; }
+
+/* ---------- R3 · 终端日志 ---------- */
+.t.r3 { background:var(--surface-sunken); padding:0; }
+.r3-head { display:flex; justify-content:space-between; gap:12px; padding:8px 12px;
+  border-bottom:1px solid var(--line); font-family:var(--font-mono); font-size:10px;
+  letter-spacing:.08em; color:var(--st); }
+.r3-head .r3-t { color:var(--ink-tertiary); }
+.r3-lines { padding:10px 12px 12px; font-family:var(--font-mono); font-size:11.5px;
+  line-height:1.8; color:var(--ink-secondary); overflow-wrap:anywhere; }
+.r3-lines .r3-p { display:inline-block; width:15px; color:var(--ink-tertiary); }
+.r3-lines .r3-err { color:var(--st); }
+.r3-lines .r3-fix { color:var(--ink); }
+
+/* ---------- R4 · 静止警戒带 ---------- */
+.t.r4 { border-color:var(--st); padding:0; }
+.r4-band { height:6px; background:repeating-linear-gradient(-45deg,
+  var(--st) 0 8px, var(--surface-sunken) 8px 16px); }
+.r4-body { padding:12px 14px; }
+.r4-head { font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; color:var(--st); }
+.r4-title { font-size:14px; font-weight:700; margin:5px 0; }
+.r4-desc { font-size:12px; color:var(--ink-secondary); overflow-wrap:anywhere; }
+.r4 .fix { margin-top:9px; }
+
+/* ==================================================================
+   03 · 落地要点
+   ================================================================== */
+.pill { display:inline-block; font-family:var(--font-mono); font-size:10px; padding:2px 7px;
+  border:1px solid var(--line-strong); color:var(--ink-secondary); margin-right:6px; }
+.pill.warn { border-color:var(--danger); color:var(--danger); }
+.foot { margin-top:44px; text-align:center; font-size:11px; color:var(--ink-tertiary); font-family:var(--font-mono); }
+
+@media (max-width:760px) {
+  .old-row, .samples { grid-template-columns:1fr; }
+  .stack { width:calc(100% - 36px); }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="brand-mark"></span> flash-mgmt / DESIGN</div>
+  <span class="label">读取反馈 Toast · 专门设计稿</span>
+  <span class="sep"></span>
+  <span class="meta">R1–R4 · 21:00 · 仅设计稿</span>
+  <button class="btn btn-ghost" id="themeBtn" type="button">切换明暗</button>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">DESIGN PROPOSAL · R1 / R4 已定案落地（21:13）</div>
+    <h1>读取报错的 toast，得重新设计一张。</h1>
+    <p class="lede">现在的太丑，问题不在颜色深浅，在它根本不是这套界面的东西：Nuxt UI 默认是<strong>消费级卡片</strong>——圆角、24px 大投影、双层 ring，浮在页面上像广告弹窗；而项目是直角、1px 描边、零偏移阴影的工业控制台。加上读取失败的文本是「长错误摘要 + 排查建议」硬塞进一行 <span class="mono">text-sm</span>，技术信息不用等宽，成功/警告/失败只靠颜色区分，还全是 <span class="mono">timeout: 0</span> 常驻，右下角越堆越乱。</p>
+    <div class="note rev"><strong>不是补个 CSS 能解决的。</strong>规范页 04 章那张 <span class="mono">.toast</span> 基准件只有一行 <span class="mono">OK</span> 示例，没有 error 变体、没有长文本排版、没有堆叠规则。所以这一页是四个<strong>重新设计的形态</strong>，不是把默认卡片换个圆角。21:13 已拍板 R1 / R4 分流并落地到项目，下面四个卡片保留作设计记录。</div>
+    <div class="note"><strong>两条规范边界我先守住：</strong>① hazard 红黑<strong>滚动</strong>条按 07 章只用于危险操作区 / 不可撤销确认 / 设备运行中，且每屏最多 1 处；读取失败是<strong>故障回执</strong>、还会堆叠，所以四版都<strong>不加循环动画</strong>（R4 是静止斜纹，不占例外名额）。② 信号黄只做「排查 / 下一步」这个行动线索的小方块，<strong>不拿来做错误色</strong>；错误一律 <span class="mono">--ef-danger</span>。入场统一 150ms 纯 <span class="mono">opacity</span>，无位移 / 缩放 / spring。</div>
+    <div class="note"><strong>✅ 21:13 已定案并落地：</strong>「R4 只留给所有 ERR 和 WARN，别的走 R1」。<code>color:'error'</code> / <code>'warning'</code> → <strong>R4 静止警戒带</strong>；<code>'success'</code> / <code>'info'</code> / <code>'neutral'</code> → <strong>R1 结构化回执</strong>。落在 <code>app.config.ts</code> 的 <code>ui.toast</code> + <code>utilities.css</code> 的 <code>.ef-toast</code>，<strong>26 处调用一行没改</strong>。点「按定案分流演示」看五种状态的实际组合。</div>
+  </div>
+
+  <!-- 01 现状 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>现状 · 丑在哪</h2></div>
+    <p class="lede">左边是照 Nuxt UI 默认 <span class="mono">ui.toast.slots.root</span> 还原的当前 toast（<span class="mono">rounded-lg shadow-lg ring ring-default p-4</span>），右边是具体问题。</p>
+    <div class="old-row">
+      <div class="old-card" id="oldCard">
+        <div style="flex:1">
+          <div class="old-ttl">STC 读取失败</div>
+          <div class="old-desc" id="oldDesc">串口打开失败: Access is denied（确认芯片已断电重新上电、串口未被占用）</div>
+        </div>
+        <span class="old-x">×</span>
+      </div>
+      <ul class="old-list">
+        <li><b>圆角 + 24px 大投影 + ring</b>：三种「浮起来」的语汇叠在一起，跟零偏移阴影、1px 描边的基准件直接冲突。全站直角化只归零了圆角，投影和 ring 还在。</li>
+        <li><b>长文本挤成一行</b>：错误摘要和排查建议用全角括号糊在一起，<span class="mono">text-sm</span> 换行后没有层级，扫一眼找不到「我该干什么」。</li>
+        <li><b>技术信息不用等宽</b>：端口、ChipID、UID、协议版本都是数据，混在正文字体里看不出是数据。</li>
+        <li><b>只靠颜色区分状态</b>：成功 / 警告 / 失败没有状态标识，色弱或明暗切换后更难分辨。</li>
+        <li><b><span class="mono">timeout: 0</span> 常驻</b>：录入库 13 个通道 + 识别页 13 个通道全都不自动消失；<span class="mono">useToast()</span> 内部 <span class="mono">maxToasts = 5</span> 会挤掉最旧的，所以是「最多 5 条常驻」而非无限堆叠 —— 但一摞 5 张消费级卡片依然很吵。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 02 四个方案 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>四个专门设计的形态</h2></div>
+    <p class="lede">点「试用」切换舞台方案；再选状态、连发几条看堆叠。文案全部是项目里真实的读取结果。</p>
+
+    <div class="toolbar">
+      <button class="btn btn-secondary" id="fireBtn" type="button">触发一条</button>
+      <button class="btn btn-secondary" id="burstBtn" type="button">连发 3 条（看堆叠）</button>
+      <button class="btn btn-ghost" id="clearBtn" type="button">清空</button>
+      <button class="btn btn-ghost" id="tourBtn" type="button">依次看 R1–R4</button>
+      <span style="flex:1"></span>
+      <button class="btn btn-ghost" id="oldBtn" type="button">叠一条现状对照</button>
+      <button class="btn btn-primary" id="finalBtn" type="button">按定案分流演示</button>
+      <label class="ctl"><input type="checkbox" id="reducedChk"> 减少动态效果</label>
+    </div>
+    <div class="toolbar">
+      <span class="label">状态</span>
+      <button class="btn btn-ghost on sbtn" data-s="err" type="button">ERR · STC</button>
+      <button class="btn btn-ghost sbtn" data-s="err2" type="button">ERR · HK32（无建议）</button>
+      <button class="btn btn-ghost sbtn" data-s="warn" type="button">WARN</button>
+      <button class="btn btn-ghost sbtn" data-s="ok" type="button">OK</button>
+      <button class="btn btn-ghost sbtn" data-s="info" type="button">INFO</button>
+      <span class="sep" style="flex:1"></span>
+      <span class="readout" id="readout">当前 R1 · ERR · STC</span>
+    </div>
+
+    <div class="desk">
+      <div class="desk-bar"><h3>桌面右下角 · toast 堆叠区</h3><span class="sub">主内容区零动效</span><span class="sep"></span><span class="label" id="deskScheme">R1 / 故障回执</span></div>
+      <div class="desk-app">
+        <div class="ph w35"></div><div class="ph w60"></div><div class="ph w80"></div>
+        <div class="ph tall"></div>
+        <div class="stamp">CONTENT / NO MOTION</div>
+      </div>
+      <div class="stack" id="stack"></div>
+    </div>
+
+    <div class="samples">
+      <div class="sample pick" id="card-r1">
+        <div class="top"><span class="key">R1</span><span class="name">故障回执</span><span class="badge">推荐</span></div>
+        <div class="spec">抬头 / 日志块 / 排查 · 三段式 · 150ms</div>
+        <div class="what">像一张设备故障单：<b>等宽抬头</b>写通道与状态码，错误摘要放进深底 <b>1px 描边的日志块</b>（数据感、能换行），底部单独一行「排查 ·」带信号黄小方块指明下一步。右上角一个状态色三角呼应 corner-brackets 母题。<b>信息最全，长文本最耐看。</b></div>
+        <button class="btn btn-primary play" data-r="r1" type="button">试用 R1</button>
+      </div>
+      <div class="sample" id="card-r2">
+        <div class="top"><span class="key">R2</span><span class="name">大状态码</span><span class="badge">最克制</span></div>
+        <div class="spec">22px 等宽 ERR + 竖分隔 · 无内部块</div>
+        <div class="what">左侧一个 <b>22px 等宽状态码</b>压住视线，右侧两行文字，整张只有一层 1px 描边 + 3px 状态条。识别最快、堆叠多条也不吵，<b>不需要改任何调用处</b>。代价是长错误信息仍会挤。</div>
+        <button class="btn btn-secondary play" data-r="r2" type="button">试用 R2</button>
+      </div>
+      <div class="sample" id="card-r3">
+        <div class="top"><span class="key">R3</span><span class="name">终端日志</span><span class="badge">技术感最强</span></div>
+        <div class="spec">黑底等宽 · $ / ! / &gt; 行前缀</div>
+        <div class="what">整张做成 <b>surface-sunken 黑底等宽日志片段</b>，<span class="mono">!</span> 行用错误色、<span class="mono">&gt;</span> 行写排查。跟项目里已有的实时日志框是同一套语汇，长错误最清楚。中文等宽偏密，且要改调用处把描述拆行。</div>
+        <button class="btn btn-secondary play" data-r="r3" type="button">试用 R3</button>
+      </div>
+      <div class="sample" id="card-r4">
+        <div class="top"><span class="key">R4</span><span class="name">静止警戒带</span><span class="badge">视觉最强</span></div>
+        <div class="spec">6px 静止红黑斜纹 · 不滚动</div>
+        <div class="what">顶部一条 <b>静止</b>红黑斜纹带 + 1px 状态色描边，借用 hazard 母题的分量但不做循环动画。适合「擦除后仍读不到 UID」这类最严重的失败。<b>注意：静止，不是第 1 个特批例外</b>，堆叠多条时斜纹会偏吵。</div>
+        <button class="btn btn-secondary play" data-r="r4" type="button">试用 R4</button>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:14px">四版都是直角、1px 描边、零偏移阴影、无位移；入场只有 150ms 纯透明度。R1 / R3 会把描述拆成「摘要 / 排查」两段，R2 / R4 保持单块描述。</p>
+  </section>
+
+  <!-- 03 落地 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>落地方式（已落地）</h2></div>
+    <p class="lede">不用改 26 处 <span class="mono">toast.add()</span> 也能换外观：Nuxt UI 的 <span class="mono">useToast()</span> 会把 <span class="mono">appConfig.ui.toast</span> 合并进组件的 tv 主题，注入自定义类即可；状态码用 CSS 伪元素按 <span class="mono">variants.color</span> 的类名生成。</p>
+    <pre><b>// app.config.ts —— 保留默认布局类 + 追加 ef-toast-*，按状态分流</b>
+toast: {
+  slots: {
+    // ⚠️ appConfig.ui.toast.slots 是「替换」theme.slots，不是合并；只写自定义类会丢布局
+    root: 'relative group overflow-hidden bg-default shadow-lg rounded-lg ring ring-default p-4 flex gap-2.5 focus:outline-none ef-toast',
+    wrapper: 'w-0 flex-1 flex flex-col ef-toast-wrap',
+    title: 'text-sm font-medium text-highlighted ef-toast-title',
+    description: 'text-sm text-muted ef-toast-desc',
+    icon: 'shrink-0 size-5 ef-toast-icon',
+    close: 'p-0 ef-toast-close',
+    progress: 'absolute inset-x-0 bottom-0 ef-toast-progress'
+  },
+  variants: {
+    color: {
+      error:     { root: 'ef-toast--band ef-toast--err'  },  <b>// → R4</b>
+      warning:   { root: 'ef-toast--band ef-toast--warn' },  <b>// → R4</b>
+      success:   { root: 'ef-toast--ok'      },              <b>// → R1</b>
+      info:      { root: 'ef-toast--info'    },              <b>// → R1</b>
+      neutral:   { root: 'ef-toast--neutral' },              <b>// → R1</b>
+      primary:   { root: 'ef-toast--info' },
+      secondary: { root: 'ef-toast--neutral' }
+    }
+  }
+}
+
+<b>/* utilities.css —— .ef-toast 基类就是 R1，--band 覆盖成 R4 */</b>
+.ef-toast {
+  --ts: var(--ef-line-strong);
+  border: 1px solid var(--ef-line-strong); border-left: 3px solid var(--ts);
+  border-radius: 0; background: var(--ef-surface-raised); box-shadow: none;
+  /* 逐项盖掉默认 root 的 bg-default / shadow-lg / ring / rounded-lg / p-4 / gap-2.5 */
+  /* ⚠️ 不写 position：交给 Toaster 的 absolute inset-x-0，改回 relative 会裁掉描述 */
+}
+.ef-toast--err  { --ts: var(--ef-danger);  }
+.ef-toast--warn { --ts: var(--ef-warning); }
+.ef-toast--ok   { --ts: var(--ef-success); }
+.ef-toast--info { --ts: var(--ef-info);    }
+
+/* R1：等宽状态码 + description 做成深底等宽日志块 */
+.ef-toast::before { content: 'OK'; /* 按 --ok / --info / --neutral 切换 */ }
+.ef-toast-desc    { background: var(--ef-surface-sunken); border: 1px solid var(--ef-line);
+                    font-family: var(--font-mono); white-space: pre-line; }
+
+/* R4：顶部 6px 静止斜纹带 + 状态色描边；刻意无 animation */
+.ef-toast--band::before {
+  height: 6px;
+  background: repeating-linear-gradient(-45deg, var(--ts) 0 8px,
+              var(--ef-surface-sunken) 8px 16px);
+}
+.ef-toast--band .ef-toast-title::before { content: 'ERR · '; }
+.ef-toast--warn.ef-toast--band .ef-toast-title::before { content: 'WARN · '; }
+
+/* 入场只有 150ms 纯 opacity */
+.ef-toast { animation: ef-toast-in 150ms ease-out both; }</pre>
+    <div class="note"><strong>三个必须注意的点：</strong>① <span class="mono">tv(theme)</span> 的默认 root 仍会带 <span class="mono">shadow-lg / ring / rounded-lg / p-4</span>，所以 CSS 里要把这些属性<strong>逐项写全</strong>，不能只写新增的；② 状态码靠 <span class="mono">::before</span> 生成，<strong>调用处零改动</strong>；但 <code>UToast</code> 的 DOM 固定（没有独立的抬头 / 日志块 / 排查行槽），所以 R1 落地时用 <code>root::before</code> 做等宽状态码、<code>description</code> 做成深底等宽日志块、<code>::after</code> 做右上角切角三角 —— <strong>设计稿里「排查 ·」信号黄小方块因此没落地</strong>（纯 CSS 判断不出 description 是否含排查建议，乱加会误导）；③ <span class="mono">timeout: 0</span> 常驻 + <span class="mono">maxToasts = 5</span>，最多同时 5 条，建议后续做「同通道重复失败只留最新一条」；④ <strong>布局契约（21:40 截图后修复）</strong>：<span class="mono">slots</span> 是替换不是合并，必须保留默认布局类；<span class="mono">.ef-toast</span> <strong>绝不能写 <span class="mono">position: relative</span></strong> —— 它会盖掉 Toaster 的 <span class="mono">absolute inset-x-0</span>，让 ToastRoot 掉进 viewport 的 <span class="mono">data-[expanded=true]:h-(--height)</span> 固定高度 flex 流，被压到 40–56px，<span class="mono">overflow:hidden</span> 把 description 整块裁没，只剩一条窄横幅。修复后实测 <span class="mono">position:absolute / width:384px / height:96px</span>，描述完整可见。</div>
+    <div class="note rev"><strong>不改的东西：</strong>hazard 红黑滚动条（07 章：仅危险操作区、每屏 1 处、唯一常驻循环例外）；按钮 / 卡片位移；spring 回弹；发光；图标旋转。四版入场都只有 150ms opacity，<span class="mono">prefers-reduced-motion</span> 下由 theme.css 全局兜底直接到位。</div>
+  </section>
+
+  <!-- 04 选型表 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>选型对照</h2></div>
+    <table>
+      <thead><tr><th>方案</th><th>信息量</th><th>堆叠耐受</th><th>调用处改动</th><th>适合 / 风险</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">R1 · 故障回执</td><td>★★★ 抬头 / 日志块 / 排查三段</td><td>★★ 三条约占 260px</td><td>需拆 description</td><td><strong>推荐</strong>：长错误信息最有层次，「下一步」最清楚。卡片偏高，堆叠要配去重。</td></tr>
+        <tr><td class="mono">R2 · 大状态码</td><td>★★ 标题 + 一行描述</td><td>★★★ 最矮、最不吵</td><td><strong>零改动</strong></td><td>最稳妥、最快落地；但「排查建议」仍和摘要挤在一行，长文本优势没吃到。</td></tr>
+        <tr><td class="mono">R3 · 终端日志</td><td>★★★ 多行、前缀分层</td><td>★ 黑底块最抢眼</td><td>需拆 description</td><td>和实时日志框同语汇，开发者视角最顺；中文等宽偏密，多条同时出现会压过页面。</td></tr>
+        <tr><td class="mono">R4 · 静止警戒带</td><td>★★ 抬头 + 描述 + 排查</td><td>★ 斜纹多条会吵</td><td>零改动</td><td>分量最重，适合「不可恢复失败」单条专用；若所有读取失败都用它，会稀释 hazard 母题。</td></tr>
+      </tbody>
+    </table>
+    <p class="hint" style="margin-top:14px"><strong>最终定案（21:13）：</strong>ERR / WARN 走 R4，OK / INFO / NOTE 走 R1，已落地（见 03 章）。R2 / R3 留作备选，未采用。</p>
+  </section>
+
+  <p class="foot">END · read error toast design（R1 / R4 已定案落地） · <a href="gui-style-guide.html">返回 GUI 风格方案</a> · <a href="hazard-frame-demo.html">hazard 母题</a></p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var DATA = {
+    err:  { s:'err',  code:'ERR',  ch:'STC / UART',       title:'STC 读取失败',
+            msg:'串口打开失败: Access is denied',
+            fix:'确认芯片已断电重新上电、串口未被占用', t:'20:58:14' },
+    err2: { s:'err',  code:'ERR',  ch:'HK32 / CMSIS-DAP', title:'HK32 读取失败',
+            msg:'HK32 读取失败: 未检测到 CMSIS-DAP 设备',
+            fix:'', t:'20:58:21' },
+    warn: { s:'warn', code:'WARN', ch:'STC / UART',       title:'擦除完成，但未取回 UID',
+            msg:'协议 BSL｜BSL 2.0｜时钟 未知。擦除应答未附带 UID（确认芯片系列是否支持 UID）',
+            fix:'重试一次；仍无 UID 时改走其它读取通道', t:'20:58:33' },
+    ok:   { s:'ok',   code:'OK',   ch:'CH32V / SWIO',     title:'读取成功：CH32V003F4P6',
+            msg:'UID CDAB573213BE379C｜家族 CH32V003｜ChipID 0x00330510｜Flash 16KB',
+            fix:'', t:'20:58:47' },
+    info: { s:'info', code:'INFO', ch:'SCAN / RESOLVE',   title:'扫码失败',
+            msg:'无法识别的二维码',
+            fix:'确认标签是系统内二维码，或改用手动搜索', t:'20:59:02' }
+  };
+
+  var state = { r:'r1', s:'err', reduced:false, showOld:false, queue:[] };
+  var stack = document.getElementById('stack');
+  var readout = document.getElementById('readout');
+  var deskScheme = document.getElementById('deskScheme');
+  var NAME = { r1:'R1 / 故障回执', r2:'R2 / 大状态码', r3:'R3 / 终端日志', r4:'R4 / 静止警戒带' };
+  var timers = [];
+
+  function esc(x) {
+    return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fixRow(d) {
+    if (!d.fix) return '';
+    return '<div class="fix"><i class="fix-mark"></i><span><b>排查 · </b>' + esc(d.fix) + '</span></div>';
+  }
+
+  function toastHTML(r, d) {
+    var head = '<span>' + esc(d.code) + ' / READ · ' + esc(d.ch) + '</span><span class="r1-t">' + esc(d.t) + '</span>';
+    if (r === 'r1') {
+      return '<div class="t r1" data-s="' + d.s + '">' +
+        '<div class="r1-head">' + head + '</div>' +
+        '<div class="r1-title">' + esc(d.title) + '</div>' +
+        '<div class="r1-log">' + esc(d.msg) + '</div>' + fixRow(d) + '</div>';
+    }
+    if (r === 'r2') {
+      return '<div class="t r2" data-s="' + d.s + '">' +
+        '<div class="r2-code">' + esc(d.code) + '</div>' +
+        '<div class="r2-body"><div class="r2-title">' + esc(d.title) + '</div>' +
+        '<div class="r2-desc">' + esc(d.msg) + '</div>' + fixRow(d) + '</div></div>';
+    }
+    if (r === 'r3') {
+      return '<div class="t r3" data-s="' + d.s + '">' +
+        '<div class="r3-head"><span>! READ ' + esc(d.code) + ' / ' + esc(d.ch) + '</span>' +
+        '<span class="r3-t">' + esc(d.t) + '</span></div>' +
+        '<div class="r3-lines">' +
+          '<div><span class="r3-p">$</span> POST /api/mcu/read</div>' +
+          '<div class="r3-err"><span class="r3-p">!</span> ' + esc(d.msg) + '</div>' +
+          (d.fix ? '<div class="r3-fix"><span class="r3-p">&gt;</span> 排查 · ' + esc(d.fix) + '</div>' : '') +
+        '</div></div>';
+    }
+    return '<div class="t r4" data-s="' + d.s + '">' +
+      '<div class="r4-band"></div><div class="r4-body">' +
+      '<div class="r4-head">' + esc(d.code) + ' / ' + esc(d.ch) + ' · ' + esc(d.t) + '</div>' +
+      '<div class="r4-title">' + esc(d.title) + '</div>' +
+      '<div class="r4-desc">' + esc(d.msg) + '</div>' + fixRow(d) + '</div></div>';
+  }
+
+  function oldHTML(d) {
+    return '<div class="old-card" style="animation:tIn 150ms ease-out both">' +
+      '<div style="flex:1"><div class="old-ttl">' + esc(d.title) + '</div>' +
+      '<div class="old-desc">' + esc(d.msg) + (d.fix ? '（' + esc(d.fix) + '）' : '') + '</div></div>' +
+      '<span class="old-x">×</span></div>';
+  }
+
+  function render() {
+    var html = '';
+    for (var i = 0; i < state.queue.length; i++) {
+      html += toastHTML(state.queue[i].r, state.queue[i].d);
+    }
+    if (state.showOld) html += oldHTML(DATA[state.s]);
+    stack.innerHTML = html;
+    readout.textContent = '当前 ' + NAME[state.r].split(' / ')[0] + ' · ' + DATA[state.s].code +
+      ' · ' + DATA[state.s].ch + ' · 堆叠 ' + state.queue.length + ' 条';
+    deskScheme.textContent = NAME[state.r];
+  }
+
+  function fire(key, r) {
+    state.queue.push({ r: r || state.r, d: DATA[key || state.s] });
+    if (state.queue.length > 5) state.queue.shift();
+    render();
+  }
+
+  function clearTimers() {
+    for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]);
+    timers = [];
+  }
+
+  function setScheme(r) {
+    clearTimers();
+    state.r = r;
+    var cards = document.querySelectorAll('.sample');
+    for (var i = 0; i < cards.length; i++) cards[i].classList.toggle('pick', cards[i].id === 'card-' + r);
+    var btns = document.querySelectorAll('.play');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].className = 'btn play ' + (btns[j].getAttribute('data-r') === r ? 'btn-primary' : 'btn-secondary');
+    }
+    state.queue = [];
+    fire();
+  }
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    if (t.classList.contains('play')) { setScheme(t.getAttribute('data-r')); return; }
+    if (t.classList.contains('sbtn')) {
+      state.s = t.getAttribute('data-s');
+      var all = document.querySelectorAll('.sbtn');
+      for (var i = 0; i < all.length; i++) all[i].classList.toggle('on', all[i] === t);
+      state.queue = [];
+      fire();
+      return;
+    }
+  });
+
+  document.getElementById('fireBtn').addEventListener('click', function () { fire(); });
+  document.getElementById('clearBtn').addEventListener('click', function () {
+    clearTimers();
+    state.queue = [];
+    state.showOld = false;
+    document.getElementById('oldBtn').classList.remove('on');
+    render();
+  });
+  document.getElementById('burstBtn').addEventListener('click', function () {
+    clearTimers();
+    state.queue = [];
+    var seq = ['err', 'err2', 'warn'];
+    for (var i = 0; i < seq.length; i++) {
+      (function (k, delay) {
+        timers.push(setTimeout(function () { fire(k); }, delay));
+      })(seq[i], i * 180);
+    }
+  });
+  document.getElementById('tourBtn').addEventListener('click', function () {
+    clearTimers();
+    var seq = ['r1','r2','r3','r4'];
+    for (var i = 0; i < seq.length; i++) {
+      (function (r, delay) {
+        timers.push(setTimeout(function () {
+          state.r = r;
+          var cards = document.querySelectorAll('.sample');
+          for (var a = 0; a < cards.length; a++) cards[a].classList.toggle('pick', cards[a].id === 'card-' + r);
+          var btns = document.querySelectorAll('.play');
+          for (var b = 0; b < btns.length; b++) {
+            btns[b].className = 'btn play ' + (btns[b].getAttribute('data-r') === r ? 'btn-primary' : 'btn-secondary');
+          }
+          state.queue = [];
+          fire('err', r);
+        }, delay));
+      })(seq[i], i * 1400);
+    }
+  });
+  document.getElementById('oldBtn').addEventListener('click', function () {
+    state.showOld = !state.showOld;
+    this.classList.toggle('on', state.showOld);
+    render();
+  });
+  document.getElementById('finalBtn').addEventListener('click', function () {
+    clearTimers();
+    state.queue = [];
+    var seq = [
+      { s:'err',  r:'r4' }, { s:'err2', r:'r4' }, { s:'warn', r:'r4' },
+      { s:'ok',   r:'r1' }, { s:'info', r:'r1' }
+    ];
+    for (var i = 0; i < seq.length; i++) {
+      (function (item, delay) {
+        timers.push(setTimeout(function () {
+          state.r = item.r;
+          state.s = item.s;
+          var cards = document.querySelectorAll('.sample');
+          for (var a = 0; a < cards.length; a++) cards[a].classList.toggle('pick', cards[a].id === 'card-' + item.r);
+          var pb = document.querySelectorAll('.play');
+          for (var b = 0; b < pb.length; b++) pb[b].className = 'btn play ' + (pb[b].getAttribute('data-r') === item.r ? 'btn-primary' : 'btn-secondary');
+          var sb = document.querySelectorAll('.sbtn');
+          for (var c = 0; c < sb.length; c++) sb[c].classList.toggle('on', sb[c].getAttribute('data-s') === item.s);
+          fire(item.s, item.r);
+        }, delay));
+      })(seq[i], i * 900);
+    }
+  });
+  document.getElementById('reducedChk').addEventListener('change', function () {
+    state.reduced = this.checked;
+    document.body.classList.toggle('reduced', this.checked);
+  });
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var root = document.documentElement;
+    root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  setScheme('r1');
+})();
+</script>
+</body>
+</html>

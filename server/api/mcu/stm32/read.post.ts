@@ -68,7 +68,7 @@ export default defineEventHandler(async (event) => {
       const e = logs.get(logId)
       if (e) { e.done = true; e.ok = true; e.result = res }
     }
-    if (!res.ok) throw new Error(String(res.error || '读取失败'))
+    if (!res.ok) throw new Error(String(res.hint || res.error || '读取失败'))
     return {
       model: res.model || '',
       vendor: res.vendor || '',
@@ -81,12 +81,13 @@ export default defineEventHandler(async (event) => {
     }
   } catch (err: any) {
     const raw = err?.message || '读取失败'
+    const hint = err?.data?.statusMessage || ''
     const msg = raw === 'no_probe'
       ? '未检测到 CMSIS-DAP 探针（确认 LinkE 处于 DAP 模式、已插 USB）'
       : raw === 'no_device'
         ? '两个 DBGMCU_IDCODE 地址均无有效应答（确认 SWD 四线、芯片上电）'
         : raw.startsWith('attach_failed')
-          ? raw.replace('attach_failed: ', '')
+          ? (hint || 'SWD 附加失败（确认 SWDIO/SWCLK/GND/3V3 四线、芯片已上电、LinkE 为 DAP 模式）')
           : raw
     if (logId) {
       const e = logs.get(logId)

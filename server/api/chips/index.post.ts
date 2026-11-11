@@ -3,13 +3,15 @@ import { normalizeUid, normalizeJedecId, isNoUid } from '~~/utils/format'
 import { normalizeVendorDb } from '../../utils/vendorNormalize'
 import { normalizePackageDb } from '../../utils/packageNormalize'
 import { normalizeChipCategory } from '../../utils/chipCategory'
+import { saveChipPhoto } from '../../utils/chipPhoto'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { vendor, model, chip_type, jedec_id, uid, uid_length, capacity, package: pkg, chip_category,
     qty_per_bag,
     location_a, location_b, location_c,
-    sec1_locked, sec2_locked, sec3_locked, sec1_data, sec2_data, sec3_data, note } = body
+    sec1_locked, sec2_locked, sec3_locked, sec1_data, sec2_data, sec3_data, note,
+    photo } = body
 
   if (!model) {
     throw createError({ statusCode: 400, statusMessage: '缺少必填字段: model' })
@@ -85,6 +87,16 @@ export default defineEventHandler(async (event) => {
     sec1_locked ?? 0, sec2_locked ?? 0, sec3_locked ?? 0,
     sec1_data ?? null, sec2_data ?? null, sec3_data ?? null, note ?? null
   )
+
+  // 原件照片（可选，非强制）：dataURL 随表单来，建档后落盘
+  if (photo && typeof photo === 'string' && photo.startsWith('data:image/jpeg')) {
+    try {
+      saveChipPhoto(db, Number(result.lastInsertRowid), photo)
+    } catch (e: any) {
+      // 照片失败不挡建档，提示即可
+      console.error('[chips] 照片保存失败:', e?.message)
+    }
+  }
 
   // 返回创建的记录
   return db.prepare('SELECT * FROM chips WHERE id = ?').get(result.lastInsertRowid)

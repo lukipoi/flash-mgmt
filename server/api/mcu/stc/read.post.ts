@@ -9,6 +9,8 @@
  *    供 GET /api/mcu/stc/log?logId=xxx 轮询展示（跑完自动关日志框用）
  * trim 为 IRC 频率 MHz，默认 22.1184
  */
+import { getLinkEMode, switchLinkEMode } from '../../../utils/wlinkMode'
+
 interface StcLogEntry {
   lines: string[]
   done: boolean
@@ -41,12 +43,59 @@ export default defineEventHandler(async (event) => {
     logs.set(logId, { lines: [], done: false, ok: false, result: null })
   }
 
+  const pushLog = logId ? (line: string) => logs.get(logId)?.lines.push(line) : undefined
+
+  // ---- 模式保险（与 CH32V/GD32 通道同款，方向相反）：autoCycle 走 wlink 软件控 3V3，
+  //      需要 LinkE 处于 RV 模式；当天 ARM SWD 会话后常忘切回，自动切回 RV ----
+  if (body?.autoCycle) {
+    try {
+      const mode = await getLinkEMode()
+      if (mode === 'dap') {
+        pushLog?.('[WARN] 检测到 LinkE 处于 DAP 模式（上次 ARM SWD 会话忘切回），自动切换 RV...')
+        const ok = await switchLinkEMode('rv', wlinkExePath(), pushLog)
+        if (!ok) {
+          const err = 'LinkE 自动切回 RV 模式失败，请用 WCH-LinkUtility 手动切换后重试'
+          pushLog?.(`[ERR] ${err}`)
+          if (logId) {
+            const e = logs.get(logId)
+            if (e) { e.done = true; e.ok = false; e.result = { error: err } }
+          }
+          throw createError({ statusCode: 409, statusMessage: err })
+        }
+        // 切模式会让 LinkE 的 CDC 串口重枚举，COM 号常变——自动重找，免得用旧口白跑一趟
+        let newPort = ''
+        try {
+          const enumRes = await runPythonScript(pythonScriptPath('stc_read.py'), ['--ports'], 15_000)
+          const plist: { device: string, description: string }[] = enumRes?.ports || []
+          const wch = plist.find(p => /wch-link/i.test(p.description || ''))
+          if (wch) newPort = wch.device
+        } catch { /* 枚举失败不致命，沿用旧口试一次 */ }
+        if (newPort && newPort !== port) {
+          const idx = args.indexOf('--port')
+          if (idx >= 0) args[idx + 1] = newPort
+          pushLog?.(`[INFO] 已切回 RV 模式；LinkE 串口已变更为 ${newPort}，本次自动使用`)
+        } else if (newPort) {
+          pushLog?.('[INFO] 已切回 RV 模式；串口号未变')
+        } else {
+          pushLog?.('[WARN] 已切回 RV 模式，但未枚举到 WCH-Link 串口——沿用原口，失败请重新选口')
+        }
+      } else if (mode === 'unknown') {
+        pushLog?.('[WARN] 未检测到 WCH-LinkE（自动断电重启需要 LinkE；若用独立 USB-TTL 可忽略）')
+      } else {
+        pushLog?.('[INFO] LinkE 模式检查通过（RV）')
+      }
+    } catch (err: any) {
+      if (err?.statusCode === 409) throw err
+      pushLog?.(`[WARN] 模式检查跳过: ${err?.message || '未知'}`)
+    }
+  }
+
   try {
     const res = await runPythonScript(
       pythonScriptPath('stc_read.py'),
       args,
       120_000,
-      logId ? (line: string) => logs.get(logId)?.lines.push(line) : undefined,
+      pushLog,
     )
     if (logId) {
       const e = logs.get(logId)

@@ -40,3 +40,18 @@ yarn-error.log*
 tmp/
 temp/
 *.tmp
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 扫描实验产物（图/临时帧）
+server/python/*.jpg
+scripts/*.jpg
+scripts/job.xml
+
+# Agent 工作日志（私有，不入库）
+.workbuddy/
+
+# 误生成的杂项文件
+/s

@@ -248,12 +248,10 @@ function buildLabelData(data: any) {
   }
 }
 
-// 真打印（按钮）
+// 真打印（按钮 / Enter）：直接打，免确认（纸多随便造）
 async function handlePrint() {
-  if (!currentData.value) return
+  if (!currentData.value || printing.value) return
   if (isBatch.value) {
-    const total = batchDataList.value.length * copies.value
-    if (!confirm(`确认批量打印 ${batchDataList.value.length} 项 × ${copies.value} 份 = ${total} 张标签？\n（将消耗标签纸！）`)) return
     try {
       await printBatch(batchDataList.value, copies.value)
       setTimeout(() => emit('update:open', false), 800)
@@ -261,7 +259,6 @@ async function handlePrint() {
       alert('批量打印失败: ' + (err?.message || err))
     }
   } else {
-    if (!confirm(`确认打印 ${copies.value} 张标签？\n（将消耗标签纸！）`)) return
     try {
       await printNow(buildLabelData(currentData.value), copies.value)
       setTimeout(() => emit('update:open', false), 800)
@@ -270,6 +267,18 @@ async function handlePrint() {
     }
   }
 }
+
+// Enter 直接打印：预览就绪 + 打印机可用时，按 Enter = 点打印按钮
+function onKeydown(e: KeyboardEvent) {
+  if (!modalOpen.value || e.key !== 'Enter' || e.repeat) return
+  // 不拦截下拉菜单的 Enter 选值
+  const el = e.target as HTMLElement | null
+  if (el?.closest('select, [role="listbox"], [role="option"]')) return
+  if (printing.value || !previewReady.value || printers.value.length === 0 || !isPrintableNow()) return
+  handlePrint()
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 // 关闭
 function close() {
@@ -448,7 +457,7 @@ function close() {
           ⏳ {{ printerStatusText }}
         </div>
         <div v-else class="text-xs text-ink-tertiary">
-          预览自动生成中，确认无误后再打印
+          预览就绪后点按钮或按 Enter 直接打印（免确认）
         </div>
         <div class="flex gap-2">
           <UButton
@@ -466,7 +475,7 @@ function close() {
             :disabled="!previewReady || printers.length === 0 || !isPrintableNow()"
             @click="handlePrint"
           >
-            确认打印{{ isBatch ? ` (${batchDataList.length}项×${copies}份)` : ` (${copies}张)` }}
+            打印{{ isBatch ? ` (${batchDataList.length}项×${copies}份)` : ` (${copies}张)` }}
           </UButton>
         </div>
       </div>

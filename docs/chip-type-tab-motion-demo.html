@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flash-mgmt · 类型按钮切换动效样板</title>
+<style>
+/* ==================================================================
+   录入芯片 · 三个类型按钮的切换动效（T 组）
+   2026-11-10 19:07 用户更正：「其实不要卷页帘，是按钮的切换，
+   不是对应页面的切换」。动效作用对象 = 三个按钮本身；下方内容区
+   保持瞬时 v-if 切换、零动效。此前 H 组卷帘换页整套已否。
+
+   约束沿用 gui-style-guide.html：只动 clip-path / opacity / 颜色 /
+   一条线；按钮本体零位移、零缩放、零旋转；不做 stagger；
+   信号黄只作为「动作中的线」，不是常驻选中指示器。
+   色值 / 缓动取自 assets/css/endfield/theme.css
+   ================================================================== */
+:root, [data-theme="light"] {
+  --surface:#ffffff; --surface-raised:#fafafa; --surface-sunken:#f2f2f2; --surface-muted:#e6e6e6;
+  --ink:#191919; --ink-secondary:#626262; --ink-tertiary:#8a8a8a;
+  --line:#d9d9d9; --line-strong:#b3b3b3;
+  --action:#fffa00; --on-action:#191919;
+  --button:#383838; --button-hover:#484848; --on-button:#eeeeee;
+  --danger:#de0909; --data:#25759f; --special:#7b4dbd; --neutral:#626262; --focus:#191919;
+}
+[data-theme="dark"] {
+  --surface:#141414; --surface-raised:#1f1f1f; --surface-sunken:#000000; --surface-muted:#282828;
+  --ink:#fafafa; --ink-secondary:#b3b3b3; --ink-tertiary:#8a8a8a;
+  --line:#383838; --line-strong:#626262;
+  --action:#fffa00; --on-action:#191919;
+  --button:rgba(255,255,255,.2); --button-hover:rgba(255,255,255,.3); --on-button:#d9d9d9;
+  --danger:#f74040; --data:#4aa8d8; --special:#a778e8; --neutral:#8a8a8a; --focus:#fffa00;
+}
+:root {
+  --font-sans:"HarmonyOS Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-display:"Archivo","Montserrat","HarmonyOS Sans SC",sans-serif;
+  --font-mono:"JetBrains Mono","Cascadia Code",ui-monospace,Consolas,monospace;
+  --ease-exit:ease-out; --ease-emphasis:ease-in-out;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--surface); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:1.6; }
+.label { font-family:var(--font-mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-tertiary); }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+a { color:var(--action); }
+code { font-family:var(--font-mono); font-size:11.5px; color:var(--action); }
+.btn { display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:0 14px;
+  font-size:13px; font-family:inherit; border:1px solid transparent; border-radius:0; cursor:pointer;
+  transition:background-color 50ms ease, border-color 50ms ease, color 50ms ease; }
+.btn-primary { background:var(--action); color:var(--on-action); }
+.btn-primary:hover { filter:brightness(.92); }
+.btn-secondary { background:var(--button); color:var(--on-button); border-color:var(--line-strong); }
+.btn-secondary:hover { background:var(--button-hover); }
+.btn-ghost { background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn-ghost:hover { background:var(--surface-muted); }
+.btn:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+
+.topbar { position:sticky; top:0; z-index:100; height:56px; display:flex; align-items:center; gap:16px;
+  padding:0 24px; background:var(--surface-raised); border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; }
+.brand-mark { width:20px; height:20px; background:var(--action);
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%); }
+.topbar .sep { flex:1; }
+.topbar .meta { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.wrap { max-width:1000px; margin:0 auto; padding:48px 24px 120px; }
+.hero { padding-bottom:36px; border-bottom:1px solid var(--line); }
+.eyebrow { color:var(--action); font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; }
+h1 { font-family:var(--font-display); font-size:clamp(30px,4vw,48px); line-height:1.08; margin:12px 0 14px; letter-spacing:-.02em; }
+h2 { font-family:var(--font-display); font-size:20px; margin:0 0 6px; }
+.lede { color:var(--ink-secondary); font-size:15px; max-width:760px; margin:0 0 20px; }
+section { padding:44px 0 8px; border-bottom:1px solid var(--line); }
+section:last-of-type { border-bottom:0; }
+.sec-head { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; }
+.sec-num { font-family:var(--font-mono); font-size:12px; color:var(--action); }
+.note { border-left:3px solid var(--action); background:var(--surface-raised); padding:12px 16px;
+  font-size:13px; color:var(--ink-secondary); margin:20px 0; }
+.note strong { color:var(--ink); }
+.note.rev { border-left-color:var(--danger); }
+
+.toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+.readout { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.samples { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:20px; }
+.sample { border:1px solid var(--line); background:var(--surface-raised); padding:18px; display:flex; flex-direction:column; gap:10px; }
+.sample.pick { border-color:var(--action); }
+.sample .top { display:flex; align-items:baseline; gap:10px; }
+.sample .key { font-family:var(--font-mono); font-size:18px; color:var(--action); }
+.sample .name { font-size:15px; font-weight:700; }
+.sample .badge { margin-left:auto; font-family:var(--font-mono); font-size:9px; padding:2px 6px;
+  border:1px solid var(--action); color:var(--action); }
+.sample .spec { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.sample .what { font-size:12.5px; color:var(--ink-secondary); flex:1; }
+.sample .what b { color:var(--ink); font-weight:600; }
+.sample .play { align-self:flex-start; }
+
+/* ==================================================================
+   舞台：三个类型按钮（动效唯一作用对象）
+   ================================================================== */
+.stage { border:1px solid var(--line); background:var(--surface); padding:16px; }
+.stage-bar { display:flex; align-items:center; gap:10px; margin-bottom:14px; padding-bottom:12px;
+  border-bottom:1px solid var(--line); }
+.stage-bar h3 { font-size:16px; font-weight:700; margin:0; }
+.stage-bar .sub { font-size:12px; color:var(--ink-tertiary); }
+.stage-bar .sep { flex:1; }
+.field-label { font-size:12px; font-weight:500; color:var(--ink-secondary); margin-bottom:8px; }
+.field-label span { color:var(--danger); }
+
+.tabs-wrap { position:relative; }
+.tabs { display:flex; gap:10px; }
+.tab { position:relative; flex:1; min-height:48px; padding:0 14px; text-align:left;
+  font-size:13px; font-family:inherit; color:var(--ink-tertiary);
+  background:var(--surface-muted); border:1px solid var(--line); border-radius:0;
+  cursor:pointer; overflow:hidden; isolation:isolate;
+  transition:border-color 150ms ease; }
+.tab:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+.tab .lbl { position:relative; z-index:2; display:flex; align-items:center; gap:8px; height:46px;
+  transition:color 150ms ease; pointer-events:none; }
+.tab .ico { font-family:var(--font-mono); font-size:12px; opacity:.85; }
+/* 选中态层：绝对定位铺满，只是「一层颜色」，按钮本体始终不动 */
+.tab .sel { position:absolute; inset:0; z-index:1; pointer-events:none;
+  border:1px solid var(--line-strong); background:var(--surface-raised);
+  clip-path:inset(0 0 0 100%); }
+.tab[data-type="flash"] .sel { border-color:var(--data); background:rgba(37,117,159,.14); }
+.tab[data-type="mcu"] .sel { border-color:var(--special); background:rgba(123,77,189,.14); }
+.tab[data-type="other"] .sel { border-color:var(--line-strong); background:var(--surface-raised); }
+.tab.is-on .sel { clip-path:inset(0 0 0 0); }
+.tab.is-on .lbl { color:var(--ink); }
+.tab[data-type="flash"].is-on .lbl { color:var(--data); }
+.tab[data-type="mcu"].is-on .lbl { color:var(--special); }
+.tab[data-type="other"].is-on .lbl { color:var(--ink); }
+
+/* 扫过按钮组的唯一一条线（T2） */
+.scan { position:absolute; top:0; bottom:0; left:0; width:2px; background:var(--action);
+  opacity:0; pointer-events:none; z-index:5; }
+.scan.run { animation:scanMove var(--dur,200ms) var(--ease-emphasis) both; }
+@keyframes scanMove {
+  from { transform:translateX(var(--from-x,0px)); opacity:1; }
+  to   { transform:translateX(var(--to-x,0px)); opacity:1; }
+}
+
+/* ---------- 关键帧：全部只动 clip-path / opacity / 一条线 ---------- */
+/* 向右切（Flash → MCU）：从左往右擦 */
+@keyframes wipeOutR { from { clip-path:inset(0 0 0 0); }     to { clip-path:inset(0 0 0 100%); } }
+@keyframes wipeInR  { from { clip-path:inset(0 0 0 100%); }  to { clip-path:inset(0 0 0 0); } }
+/* 向左切（MCU → Flash）：从右往左擦 */
+@keyframes wipeOutL { from { clip-path:inset(0 0 0 0); }     to { clip-path:inset(0 100% 0 0); } }
+@keyframes wipeInL  { from { clip-path:inset(0 100% 0 0); }  to { clip-path:inset(0 0 0 0); } }
+/* 交叉淡变 + 一次内描边点亮 */
+@keyframes fadeOut  { from { opacity:1; } to { opacity:0; } }
+@keyframes fadeIn   { from { opacity:0; box-shadow:inset 0 0 0 1px var(--action); }
+                      to   { opacity:1; box-shadow:inset 0 0 0 0 transparent; } }
+
+/* animation 值优先级高于普通声明，能覆盖 .is-on 的 clip-path */
+.sel.out-R { animation:wipeOutR var(--dur,220ms) var(--ease-emphasis) forwards; }
+.sel.in-R  { animation:wipeInR  var(--dur,220ms) var(--ease-emphasis) forwards; }
+.sel.out-L { animation:wipeOutL var(--dur,220ms) var(--ease-emphasis) forwards; }
+.sel.in-L  { animation:wipeInL  var(--dur,220ms) var(--ease-emphasis) forwards; }
+/* T4：改用 opacity，不裁切 */
+.stage[data-motion="t4"] .tab .sel { clip-path:none; opacity:0; }
+.stage[data-motion="t4"] .tab.is-on .sel { opacity:1; }
+.stage[data-motion="t4"] .sel.fade-out { animation:fadeOut var(--dur,160ms) ease forwards; }
+.stage[data-motion="t4"] .sel.fade-in  { animation:fadeIn  var(--dur,160ms) ease forwards; }
+
+/* 无障碍：直接落定，不残留任何半截选中态 */
+body.sim-reduce .sel,
+body.sim-reduce .scan { animation:none !important; }
+@media (prefers-reduced-motion:reduce) {
+  .sel, .scan { animation:none !important; }
+}
+
+/* 内容区示意：明确「零动效、瞬时切换」 */
+.form-static { margin-top:16px; border:1px dashed var(--line-strong); background:var(--surface-raised);
+  padding:12px 14px; color:var(--ink-tertiary); }
+.form-static .fs-head { display:flex; align-items:baseline; gap:10px; margin-bottom:8px; }
+.form-static .fs-tag { font-family:var(--font-mono); font-size:9px; letter-spacing:.06em;
+  border:1px solid var(--line-strong); padding:2px 6px; }
+.form-static .fs-row { font-size:12.5px; font-family:var(--font-mono); color:var(--ink-secondary); }
+.form-static .fs-note { margin-top:6px; font-size:11px; }
+
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { text-align:left; font-weight:500; color:var(--ink-tertiary); font-size:11px; letter-spacing:.04em;
+  padding:8px 10px; border-bottom:1px solid var(--line-strong); }
+td { padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+pre { margin:12px 0; padding:14px 16px; background:var(--surface-sunken); border:1px solid var(--line);
+  overflow-x:auto; font-family:var(--font-mono); font-size:11.5px; line-height:1.7; color:var(--ink-secondary); }
+pre b { color:var(--action); font-weight:400; }
+@media (max-width:760px) { .samples { grid-template-columns:1fr; } .wrap { padding:32px 16px 80px; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"></span> FLASH / MGMT</div>
+  <span class="label">CHIP TYPE BUTTON MOTION · T 组</span>
+  <span class="sep"></span>
+  <span class="meta">← gui-style-guide.html / 06</span>
+  <button class="btn btn-ghost" id="themeBtn" type="button">切换明暗</button>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">THE BUTTONS, NOT THE FORM</div>
+    <h1>动的是按钮，不是下面那片表单。</h1>
+    <p class="lede">19:07 你纠正得对：前面我把「类型切换」一路做成了内容区换页（H1 卷帘），整套理解偏了。<strong>卷帘已从项目代码里撤干净</strong>，录入页 5 处类型字段恢复瞬时 <code>v-if</code> 切换、零动效。这一轮只做<strong>三个类型按钮本身</strong>：点 MCU 时，选中态怎么从 Flash 按钮换到 MCU 按钮。</p>
+    <div class="note rev"><strong>边界写死：</strong>按钮本体<strong>零位移、零缩放、零旋转</strong>；动的只是按钮里那层「选中态颜色」和至多一条线。信号黄只作「动作中的线」，<strong>不是常驻选中指示器</strong>（17:56 那条静态黄线已否）。下方内容区在舞台里故意画成灰化虚线框，标注「瞬时切换 / 零动效」——它不是动效对象。</div>
+    <div class="note rev"><strong>⚠️ 本页未采用（2026-11-10 19:40）：</strong>用户看了 T1–T4 后又提出「让框灵活平移，颜色改变」，并从 <a href="chip-type-frame-motion-demo.html">S1–S4</a> 中拍板 <strong>S1 整框平移 + 同步换色</strong>。方向没错，但这四个「按钮内部擦除交接」方案<strong>没有被选中</strong>，仅留作备选。项目里落地的是 S1：只有一个框在三个按钮上滑动，按钮与文字仍钉在原位。</div>
+    <p class="label">舞台里直接点三个按钮，可反复 Flash ↔ MCU ↔ 其他；工具条能依次播放 T1–T4。</p>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>舞台 · 点按钮看切换</h2></div>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="playAll">→ 依次播放 T1–T4（每次切到 MCU）</button>
+      <button class="btn btn-secondary" id="toFlash">切到 Flash</button>
+      <button class="btn btn-secondary" id="toOther">切到 其他</button>
+      <button class="btn btn-ghost" id="reduceBtn" aria-pressed="false">模拟「减少动态效果」：关</button>
+      <span class="readout" id="readout">当前 T1 · Flash 存储</span>
+    </div>
+
+    <div class="stage" id="stage" data-motion="t1">
+      <div class="stage-bar">
+        <h3>录入芯片 · 芯片类型</h3>
+        <span class="sub">动效只发生在这一排按钮上</span>
+        <span class="sep"></span>
+        <span class="readout" id="stageReadout">FLASH 存储</span>
+      </div>
+
+      <div class="field-label">芯片类型 <span>*</span></div>
+      <div class="tabs-wrap" id="tabsWrap">
+        <div class="tabs" id="tabs">
+          <button class="tab is-on" type="button" data-type="flash" aria-pressed="true">
+            <span class="sel"></span><span class="lbl"><span class="ico">▣</span>Flash 存储</span>
+          </button>
+          <button class="tab" type="button" data-type="mcu" aria-pressed="false">
+            <span class="sel"></span><span class="lbl"><span class="ico">◈</span>MCU 单片机</span>
+          </button>
+          <button class="tab" type="button" data-type="other" aria-pressed="false">
+            <span class="sel"></span><span class="lbl"><span class="ico">◇</span>其他</span>
+          </button>
+        </div>
+        <span class="scan" id="scan" aria-hidden="true"></span>
+      </div>
+
+      <div class="form-static">
+        <div class="fs-head"><span class="fs-tag">CONTENT / NO MOTION</span><span class="label">下方内容区 · 瞬时切换，零动效</span></div>
+        <div class="fs-row" id="formRow">JEDEC ID　·　UID　·　容量　·　自动读取（CH341）</div>
+        <div class="fs-note">这块的文字会跟着类型变，但<strong>没有任何动画</strong>——只是用来确认动效没有跑到表单上。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>四个按钮切换样板 · 未采用 / 备选</h2></div>
+    <p class="lede">点「试用」会切到该方案并自动演示一次 Flash → MCU；之后可以直接点舞台按钮反复看。四个方案都只动按钮里那层选中态，按钮本体钉在原位。</p>
+
+    <div class="samples">
+      <div class="sample pick" data-motion="t1">
+        <div class="top"><span class="key">T1</span><span class="name">选中态擦除交接</span><span class="badge">备选</span></div>
+        <div class="spec">旧擦出 + 新擦入 220ms · ease-in-out · 方向随切换方向</div>
+        <div class="what"><b>怎么动：</b>旧按钮的选中色沿切换方向被擦掉，新按钮的选中色同步擦入，一条清晰的擦除边缘从旧按钮走向新按钮。<strong>最像「选中态从 Flash 换到 MCU」</strong>，有来路有回路，且按钮本身一个像素都不动。Flash→MCU 向右擦、MCU→Flash 向左擦。</div>
+        <button class="btn btn-secondary play">试用 T1</button>
+      </div>
+
+      <div class="sample" data-motion="t2">
+        <div class="top"><span class="key">T2</span><span class="name">一条线扫过按钮组</span></div>
+        <div class="spec">2px 线 200ms · ease-in-out · 扫到即落定</div>
+        <div class="what"><b>怎么动：</b>切换瞬间一条 2px 信号黄竖线从旧按钮中心扫到新按钮中心，线到达时新按钮点亮、旧按钮熄灭。<strong>呼应你在危险弹窗挑的 F1 生长线</strong>——整排按钮里唯一在动的就是这条线，按钮与文字都不动。注意这是「一条线移动」，不是按钮位移。</div>
+        <button class="btn btn-secondary play">试用 T2</button>
+      </div>
+
+      <div class="sample" data-motion="t3">
+        <div class="top"><span class="key">T3</span><span class="name">只擦入（最轻）</span></div>
+        <div class="spec">新擦入 180ms · ease-out · 旧瞬时消失</div>
+        <div class="what"><b>怎么动：</b>旧按钮选中色瞬时消失，新按钮选中色沿方向擦入。<strong>最短、最轻、绝不会有两块同时半透明叠着</strong>；代价是「换过去」的方向感比 T1 弱一些。适合觉得 T1 还是偏多的人。</div>
+        <button class="btn btn-secondary play">试用 T3</button>
+      </div>
+
+      <div class="sample" data-motion="t4">
+        <div class="top"><span class="key">T4</span><span class="name">交叉淡变 + 描边点亮</span><span class="badge">下限对照</span></div>
+        <div class="spec">旧淡出 / 新淡入 160ms · 一次内描边</div>
+        <div class="what"><b>怎么动：</b>旧选中色淡出、新选中色淡入，新按钮同时有一次极短的 1px 内描边点亮。纯颜色 / opacity，零裁切，<strong>最克制</strong>。提醒：你当初否掉弹窗「遮罩淡入」的理由是「跟没加没啥区别」，这版可能也偏弱，留作下限对照。</div>
+        <button class="btn btn-secondary play">试用 T4</button>
+      </div>
+
+      <div class="sample" style="border-style:dashed">
+        <div class="top"><span class="key" style="color:var(--danger)">✕</span><span class="name">已否 / 仍然不做</span></div>
+        <div class="spec">内容区卷帘 · 静态黄色指示线 · 按钮位移缩放旋转 · stagger</div>
+        <div class="what"><strong>内容区卷帘换页（H1）：19:07 已否，项目代码全量撤回。</strong>按钮底部 2px 信号黄线：17:56 已否。仍然禁止：按钮本体左右平移 / 缩放 / 旋转（会变成「乱飞」）、三个按钮逐个错峰点亮、装饰性循环、spring 回弹。<strong>特批例外：</strong>19:40 放行了「选中框」这一层 <code>translateX</code> 平移（S1），按钮本体依旧不许动，见 <a href="chip-type-frame-motion-demo.html">S 组样板</a> 与规范修订 5。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>备选方案 · 落地要点（当前未采用）</h2></div>
+    <p class="lede">项目里三个按钮在 <code>pages/chips/new.vue</code> 的 <code>&lt;div class="flex gap-3"&gt;</code> 里，目前选中态靠 <code>:class</code> 切边框 / 底色 / 文字色，已有 <code>transition-colors</code>。落地只改这一处，<strong>内容区 5 处 <code>v-if</code> 一行都不碰</strong>。</p>
+
+<pre><b>&lt;!-- 每个按钮加一层「选中态」，按钮本体不参与动画 --&gt;</b>
+&lt;button class="type-btn ..." :class="{ 'is-on': form.chip_type === 'flash' }"
+        :aria-pressed="form.chip_type === 'flash'" @click="..."&gt;
+  &lt;span class="type-btn-sel" aria-hidden="true"&gt;&lt;/span&gt;
+  &lt;span class="type-btn-lbl"&gt;▣ Flash 存储&lt;/span&gt;
+&lt;/button&gt;
+
+<b>/* utilities.css · 以 T1 为例，只有这层在动 */</b>
+.type-btn { position:relative; overflow:hidden; isolation:isolate; }
+.type-btn-sel { position:absolute; inset:0; z-index:1; pointer-events:none;
+  clip-path:inset(0 0 0 100%); }
+.type-btn.is-on .type-btn-sel { clip-path:inset(0 0 0 0); }
+.type-btn-lbl { position:relative; z-index:2; }
+
+.type-btn-sel.out-R { animation:wipeOutR 220ms var(--ease-emphasis) forwards; }
+.type-btn-sel.in-R  { animation:wipeInR  220ms var(--ease-emphasis) forwards; }
+<b>/* direction 由 from/to 的按钮序号比较得出；动画结束把 is-on 落到新按钮 */</b></pre>
+
+    <div style="border:1px solid var(--line);padding:16px">
+      <table>
+        <thead><tr><th>样板</th><th>落地要点</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">T1</td><td>需要一层 <code>.type-btn-sel</code>；切换时给旧 / 新两层分别挂 out / in 动画，方向由按钮序号比较；动画结束清 class、把 <code>is-on</code> 落到新按钮</td></tr>
+          <tr><td class="mono">T2</td><td>按钮组容器 <code>position:relative</code> + 一条绝对定位的 <code>.scan</code> 线，用 <code>translateX</code> 从旧按钮中心扫到新按钮中心；无需选中态层动画</td></tr>
+          <tr><td class="mono">T3</td><td>T1 的简化版：只给新按钮挂 in 动画，旧按钮直接移除 <code>is-on</code>；最省事</td></tr>
+          <tr><td class="mono">T4</td><td>连 <code>clip-path</code> 都不用，只动 <code>opacity</code> + 一次内描边；注意可能被嫌「跟没加没啥区别」</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note"><strong>三个坑：</strong>① 选中态层必须 <code>pointer-events:none</code>，否则挡住点击；② 动画用 <code>forwards</code> 只挂在「正在切换」的临时 class 上，播完立刻清掉，别让 <code>clip-path</code> 长期残留在选中按钮上；③ 快速连点要先清掉上一次动画、把 <code>is-on</code> 强制落定到当前值再启动新动画，否则会留下半截选中态。<span class="mono">prefers-reduced-motion</span> 下直接落定、不播动画。</div>
+    <div class="note rev"><strong>验收口径：</strong>动效只出现在三个按钮上，下面表单切换是瞬时的；按钮本体无位移 / 缩放 / 旋转；字段值不丢；快速连点不留半截选中态；<code>prefers-reduced-motion</code> 下直接换到位。</div>
+
+    <p class="label" style="margin-top:40px;text-align:center">END · chip type button motion · <a href="chip-type-frame-motion-demo.html">现行 S1 · 选中框平移（已落地）</a> · <a href="gui-style-guide.html">返回 GUI 风格方案</a> · <a href="chip-type-switch-motion-demo.html">已否的内容区卷帘（归档）</a></p>
+  </section>
+
+</div>
+
+<script>
+const TYPES = ['flash','mcu','other'];
+const NAMES = { flash:'FLASH 存储', mcu:'MCU 单片机', other:'其他' };
+const FORM = {
+  flash:'JEDEC ID　·　UID　·　容量　·　自动读取（CH341）',
+  mcu:'芯片 ID　·　UID　·　自动读取 UID（STC / WCH）',
+  other:'一级分类　·　二级分类　·　单包颗数'
+};
+const WAIT = { t1:240, t2:210, t3:190, t4:170 };
+const DUR  = { t1:220, t2:200, t3:180, t4:160 };
+
+const stage = document.getElementById('stage');
+const tabs = document.getElementById('tabs');
+const tabsWrap = document.getElementById('tabsWrap');
+const scan = document.getElementById('scan');
+const readout = document.getElementById('readout');
+const stageReadout = document.getElementById('stageReadout');
+const formRow = document.getElementById('formRow');
+let current = 'flash';
+let motion = 't1';
+let t1 = null, t2 = null;
+let playing = false;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function el(type) { return tabs.querySelector('.tab[data-type="' + type + '"]'); }
+function setOn(type) {
+  tabs.querySelectorAll('.tab').forEach(b => {
+    const on = b.dataset.type === type;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+}
+function sync() {
+  stageReadout.textContent = NAMES[current];
+  formRow.textContent = FORM[current];
+  readout.textContent = '当前 ' + motion.toUpperCase() + ' · ' + NAMES[current];
+}
+function reduced() { return document.body.classList.contains('sim-reduce'); }
+
+/* 打断上一次切换：清动画、把选中态强制落定到 current，不留半截 */
+function cleanup() {
+  clearTimeout(t1); clearTimeout(t2);
+  tabs.querySelectorAll('.sel').forEach(s => { s.className = 'sel'; });
+  scan.classList.remove('run');
+  setOn(current);
+}
+function centerX(node) {
+  const w = tabsWrap.getBoundingClientRect();
+  const r = node.getBoundingClientRect();
+  return r.left - w.left + r.width / 2;
+}
+
+function switchTo(type) {
+  if (!TYPES.includes(type) || type === current) return;
+  cleanup();
+  const from = current, to = type;
+  const dir = TYPES.indexOf(to) > TYPES.indexOf(from) ? 'R' : 'L';
+  current = to;
+  sync();
+  if (reduced()) { cleanup(); return; }
+
+  const fromSel = el(from).querySelector('.sel');
+  const toSel = el(to).querySelector('.sel');
+  const dur = DUR[motion], ms = WAIT[motion];
+
+  if (motion === 't2') {
+    scan.style.setProperty('--from-x', centerX(el(from)) + 'px');
+    scan.style.setProperty('--to-x', centerX(el(to)) + 'px');
+    scan.style.setProperty('--dur', dur + 'ms');
+    scan.classList.add('run');
+    t1 = setTimeout(() => { setOn(to); }, Math.round(dur * 0.72));
+    t2 = setTimeout(() => { cleanup(); }, ms + 20);
+    return;
+  }
+
+  if (motion === 't4') {
+    fromSel.classList.add('fade-out');
+    toSel.classList.add('fade-in');
+  } else if (motion === 't3') {
+    el(from).classList.remove('is-on');
+    toSel.classList.add('in-' + dir);
+  } else {
+    fromSel.classList.add('out-' + dir);
+    toSel.classList.add('in-' + dir);
+  }
+  t2 = setTimeout(() => { cleanup(); }, ms + 20);
+}
+
+tabs.addEventListener('click', e => {
+  const b = e.target.closest('.tab');
+  if (!b) return;
+  playing = false;
+  switchTo(b.dataset.type);
+});
+
+function setMotion(m) {
+  motion = m;
+  stage.dataset.motion = m;
+  document.querySelectorAll('.sample[data-motion]').forEach(s => {
+    s.classList.toggle('pick', s.dataset.motion === m);
+  });
+  sync();
+}
+document.querySelectorAll('.sample[data-motion]').forEach(card => {
+  card.querySelector('.play').addEventListener('click', () => {
+    playing = false;
+    const m = card.dataset.motion;
+    cleanup(); clearTimeout(t1); clearTimeout(t2);
+    current = 'flash'; setMotion(m); cleanup();
+    void tabs.offsetWidth;
+    requestAnimationFrame(() => switchTo('mcu'));
+  });
+});
+
+document.getElementById('toFlash').addEventListener('click', () => { playing = false; switchTo('flash'); });
+document.getElementById('toOther').addEventListener('click', () => { playing = false; switchTo('other'); });
+
+async function playSequence() {
+  if (playing) return;
+  playing = true;
+  for (const m of ['t1','t2','t3','t4']) {
+    if (!playing) return;
+    cleanup(); clearTimeout(t1); clearTimeout(t2);
+    current = 'flash'; setMotion(m); cleanup();
+    readout.textContent = '播放 ' + m.toUpperCase() + ' · 准备 Flash';
+    await wait(280);
+    if (!playing) return;
+    switchTo('mcu');
+    await wait((WAIT[m] || 200) + 240);
+  }
+  readout.textContent = '播放完毕 · 本页未采用，现行方案是 S1';
+  playing = false;
+}
+document.getElementById('playAll').addEventListener('click', playSequence);
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const el = document.documentElement;
+  el.dataset.theme = el.dataset.theme === 'dark' ? 'light' : 'dark';
+});
+const reduceBtn = document.getElementById('reduceBtn');
+reduceBtn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('sim-reduce');
+  reduceBtn.setAttribute('aria-pressed', String(on));
+  reduceBtn.textContent = '模拟「减少动态效果」：' + (on ? '开（直接落定）' : '关');
+  cleanup();
+  readout.textContent = on ? 'reduced-motion = on · 选中态直接落定' : '就绪';
+});
+
+setMotion('t1');
+sync();
+</script>
+</body>
+</html>

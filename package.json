@@ -13,6 +13,7 @@
     "@nuxt/ui": "^3.0.0",
     "@zxing/browser": "^0.2.1",
     "@zxing/library": "^0.23.0",
+    "jpeg-js": "^0.4.4",
     "nuxt": "^3.14.0",
     "qrcode-generator": "^2.0.4",
     "three": "^0.186.1",

@@ -1,6 +1,7 @@
 import { db } from '../../database/init'
 import { normalizeVendorDb } from '../../utils/vendorNormalize'
 import { normalizePackageDb } from '../../utils/packageNormalize'
+import { dsModelKey, dsMatchAlias } from '../../utils/datasheet'
 
 export default defineEventHandler((event) => {
   const query = getQuery(event)
@@ -50,5 +51,14 @@ export default defineEventHandler((event) => {
   sql += ' ORDER BY created_at DESC'
 
   const stmt = db.prepare(sql)
-  return stmt.all(...params)
+  const rows = stmt.all(...params) as Array<Record<string, any>>
+
+  // has_ds：型号是否有 Datasheet（一次载入全部 model_key + 规则，内存匹配）
+  const dsRows = db.prepare('SELECT model_key, aliases FROM datasheets').all() as Array<{ model_key: string, aliases: string | null }>
+  const dsExact = new Set(dsRows.map(r => r.model_key))
+  return rows.map((r) => {
+    const key = dsModelKey(String(r.model ?? ''))
+    const has = dsExact.has(key) || dsRows.some(dr => dsMatchAlias(key, dr.aliases))
+    return { ...r, has_ds: has }
+  })
 })

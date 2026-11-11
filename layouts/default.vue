@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 
 const route = useRoute()
 // 扫码查详情弹窗（电脑摄像头 / 手机回传）
@@ -24,6 +24,52 @@ const navItems = [
 function isActive(to: string): boolean {
   return route.path === to
 }
+
+// ---- 左侧导航「选中框」纵向平移（N1，2026-11-10 20:21 用户拍板：不用换色）----
+// 只有 .nav-frame / .nav-bar 两层沿 Y 位移，12 个菜单项连同图标文字钉在原位。
+// 布局是跨页常驻 DOM，框只建一次；用 route.path 而不是 click，前进/后退也要跟上。
+// 样板：docs/side-nav-frame-motion-demo.html（N1–N4，N1 已落地）
+const sideNav = ref<HTMLElement | null>(null)
+const navFrame = ref<HTMLElement | null>(null)
+const navBar = ref<HTMLElement | null>(null)
+let navObserver: ResizeObserver | null = null
+
+function placeNavFrame(instant = false) {
+  const nav = sideNav.value
+  if (!nav) return
+  const item = nav.querySelector<HTMLElement>(`[data-to="${route.path}"]`)
+  // 详情页等未精确匹配的路由：原本就没有菜单项高亮，框也不能悬空
+  const hidden = !item
+  for (const el of [navFrame.value, navBar.value]) {
+    el?.classList.toggle('is-hidden', hidden)
+  }
+  if (!item) return
+  const r = item.getBoundingClientRect()
+  const n = nav.getBoundingClientRect()
+  for (const el of [navFrame.value, navBar.value]) {
+    if (!el) continue
+    // 初始化 / 容器尺寸变化时瞬时落定，避免框「自己滑一下」
+    if (instant) el.classList.add('no-trans')
+    el.style.setProperty('--fy', `${r.top - n.top}px`)
+    el.style.setProperty('--fh', `${r.height}px`)
+  }
+  if (instant) {
+    void navFrame.value?.offsetWidth
+    navFrame.value?.classList.remove('no-trans')
+    navBar.value?.classList.remove('no-trans')
+  }
+}
+
+watch(() => route.path, () => nextTick(() => placeNavFrame()))
+
+onMounted(() => {
+  nextTick(() => placeNavFrame(true))
+  if (sideNav.value && typeof ResizeObserver !== 'undefined') {
+    navObserver = new ResizeObserver(() => placeNavFrame(true))
+    navObserver.observe(sideNav.value)
+  }
+})
+onUnmounted(() => navObserver?.disconnect())
 
 // ---- 主题切换：统一走 composables/useTheme（单一主题来源）----
 const { theme, toggleTheme } = useTheme()
@@ -52,30 +98,40 @@ const { theme, toggleTheme } = useTheme()
       </div>
 
       <!-- 导航菜单 -->
-      <nav class="flex-1 space-y-1 px-3 py-4">
+      <!-- N1：唯一一个「选中框」沿侧栏上下平移，左侧竖条跟着走。
+           菜单项本体钉在原位；统一信号黄，不按菜单项 / 功能组换色。
+           用 flex + gap 而不是 space-y，避免间距规则作用到绝对定位的框上。 -->
+      <nav ref="sideNav" class="side-nav flex flex-1 flex-col gap-1 px-3 py-4">
         <NuxtLink
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
+          :data-to="item.to"
           active-class=""
           exact-active-class=""
-          class="relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
+          :aria-current="isActive(item.to) ? 'page' : undefined"
+          class="nav-item relative flex shrink-0 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
           :class="isActive(item.to)
-            ? 'bg-action/10 text-action ring-1 ring-action/20 before:absolute before:inset-y-1.5 before:left-0 before:w-1 before:bg-action before:marker-bar'
+            ? 'text-action'
             : 'text-ink-secondary hover:bg-surface-muted hover:text-ink'"
         >
-          <UIcon :name="item.icon" class="h-5 w-5 shrink-0" />
-          {{ item.label }}
+          <span class="nav-item-lbl">
+            <UIcon :name="item.icon" class="h-5 w-5 shrink-0" />
+            {{ item.label }}
+          </span>
         </NuxtLink>
 
         <button
           type="button"
-          class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-ink-secondary transition-colors hover:bg-surface-muted hover:text-ink"
+          class="flex w-full shrink-0 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-ink-secondary transition-colors hover:bg-surface-muted hover:text-ink"
           @click="showScan = true"
         >
           <UIcon name="i-lucide-scan-line" class="h-5 w-5 shrink-0" />
           扫码查详情
         </button>
+
+        <span ref="navFrame" class="nav-frame" aria-hidden="true"></span>
+        <span ref="navBar" class="nav-bar" aria-hidden="true"></span>
       </nav>
 
       <!-- 主题切换（演示多主题框架） -->

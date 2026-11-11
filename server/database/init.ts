@@ -311,4 +311,29 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   );
+  CREATE TABLE IF NOT EXISTS datasheets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    model_key TEXT NOT NULL UNIQUE,
+    model TEXT NOT NULL,
+    original_name TEXT,
+    size INTEGER,
+    uploaded_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE TABLE IF NOT EXISTS datasheet_versions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ds_id INTEGER NOT NULL,
+    version TEXT,
+    original_name TEXT,
+    size INTEGER,
+    uploaded_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_ds_versions_ds ON datasheet_versions(ds_id);
 `)
+// 迁移：datasheet 版本管理（current_ver 指向 datasheet_versions.id；version 为当前版本号标注）
+try { db.exec(`ALTER TABLE datasheets ADD COLUMN version TEXT`) } catch { /* 列已存在，忽略 */ }
+try { db.exec(`ALTER TABLE datasheets ADD COLUMN current_ver INTEGER`) } catch { /* 列已存在，忽略 */ }
+// 迁移：DS 适用型号规则（逗号分隔；每条为精确型号或前缀通配，如 "STC8H*,PY32F002A"）
+try { db.exec(`ALTER TABLE datasheets ADD COLUMN aliases TEXT`) } catch { /* 列已存在，忽略 */ }
+
+// 迁移：芯片原件照片（一颗一张，文件 data/chip-photos/chip-<id>.jpg；NULL = 没照片，旧数据零负担）
+try { db.exec(`ALTER TABLE chips ADD COLUMN photo TEXT`) } catch { /* 列已存在，忽略 */ }

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flash-mgmt · 警戒框 / 滚动警示条专项演示</title>
+<style>
+/* ==================================================================
+   警戒框 + hazard 滚动条 · 专项演示
+   视觉原型：gui-style-guide.html 第 07 章「反面示例」红框
+   所有色值取自 assets/css/endfield/theme.css
+   本页不改项目代码，仅作设计评审
+   ================================================================== */
+:root, [data-theme="light"] {
+  --surface:#ffffff; --surface-raised:#fafafa; --surface-sunken:#f2f2f2; --surface-muted:#e6e6e6;
+  --ink:#191919; --ink-secondary:#626262; --ink-tertiary:#8a8a8a;
+  --line:#d9d9d9; --line-strong:#b3b3b3;
+  --action:#fffa00; --action-pressed:#eeea00; --on-action:#191919;
+  --button:#383838; --button-hover:#484848; --on-button:#eeeeee;
+  --danger:#de0909; --warning:#b74e00; --success:#007f43; --focus:#191919;
+}
+[data-theme="dark"] {
+  --surface:#141414; --surface-raised:#1f1f1f; --surface-sunken:#000000; --surface-muted:#282828;
+  --ink:#fafafa; --ink-secondary:#b3b3b3; --ink-tertiary:#8a8a8a;
+  --line:#383838; --line-strong:#626262;
+  --action:#fffa00; --action-pressed:#eeea00; --on-action:#191919;
+  --button:rgba(255,255,255,.2); --button-hover:rgba(255,255,255,.3); --on-button:#d9d9d9;
+  --danger:#f74040; --warning:#fc6c00; --success:#00d872; --focus:#fffa00;
+}
+:root {
+  --font-sans:"HarmonyOS Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-display:"Archivo","Montserrat","HarmonyOS Sans SC",sans-serif;
+  --font-mono:"JetBrains Mono","Cascadia Code",ui-monospace,Consolas,monospace;
+  --duration-instant:50ms; --duration-fast:200ms;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--surface); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:1.6; }
+.label { font-family:var(--font-mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-tertiary); }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+a { color:var(--action); }
+
+.topbar { position:sticky; top:0; z-index:100; height:56px; display:flex; align-items:center; gap:16px;
+  padding:0 24px; background:var(--surface-raised); border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; }
+.brand-mark { width:20px; height:20px; background:var(--action);
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%); }
+.topbar .sep { flex:1; }
+.topbar .meta { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.btn { display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:0 14px;
+  font-size:13px; font-family:inherit; border:1px solid transparent; border-radius:4px; cursor:pointer;
+  transition:background-color var(--duration-instant) ease, border-color var(--duration-instant) ease; }
+.btn-primary { background:var(--action); color:var(--on-action); }
+.btn-primary:hover { background:var(--action-pressed); }
+.btn-ghost { background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn-ghost:hover { background:var(--surface-muted); }
+.btn-danger { background:transparent; color:var(--danger); border-color:var(--danger); }
+.btn-danger:hover { background:var(--danger); color:#fff; }
+.btn:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+
+.wrap { max-width:1000px; margin:0 auto; padding:48px 24px 120px; }
+.hero { padding-bottom:36px; border-bottom:1px solid var(--line); }
+.eyebrow { color:var(--danger); font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; }
+h1 { font-family:var(--font-display); font-size:clamp(30px,4vw,48px); line-height:1.08; margin:12px 0 14px; letter-spacing:-.02em; }
+h2 { font-family:var(--font-display); font-size:20px; margin:0 0 6px; }
+h3 { font-size:14px; margin:0 0 10px; }
+.lede { color:var(--ink-secondary); font-size:15px; max-width:720px; margin:0 0 24px; }
+section { padding:44px 0 8px; border-bottom:1px solid var(--line); }
+section:last-of-type { border-bottom:0; }
+.sec-head { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; }
+.sec-num { font-family:var(--font-mono); font-size:12px; color:var(--action); }
+.note { border-left:3px solid var(--action); background:var(--surface-raised); padding:12px 16px;
+  font-size:13px; color:var(--ink-secondary); margin:20px 0; }
+.note strong { color:var(--ink); }
+.note.warn { border-left-color:var(--danger); }
+
+/* ---------- 警戒框组件 ----------
+   无缝滚动的几何：-45° 条纹沿渐变轴的周期 = 2 × --hz-w，
+   换算到水平位移 = 2w / cos(45°) = 2.8284 × w。
+   例：w=8px → 水平周期 22.627px。平移正好一个周期，循环首尾图案重合，无跳帧。
+   改条纹宽度时必须同步更新 --hz-period，否则接缝会闪。
+------------------------------------------------------------------- */
+.hz {
+  --hz-c1:var(--danger);
+  --hz-c2:transparent;
+  --hz-w:8px;
+  --hz-h:6px;
+  --hz-speed:.8s;
+  --hz-dir:normal;
+  --hz-period:22.627px;
+  position:relative; height:var(--hz-h); overflow:hidden; flex:none;
+}
+.hz::before {
+  content:""; position:absolute; top:0; bottom:0; left:-48px; right:-48px;
+  background:repeating-linear-gradient(-45deg,
+    var(--hz-c1) 0 var(--hz-w),
+    var(--hz-c2) var(--hz-w) calc(var(--hz-w) * 2));
+  animation:hzRoll var(--hz-speed) linear infinite;
+  animation-direction:var(--hz-dir);
+}
+@keyframes hzRoll { to { transform:translateX(calc(-1 * var(--hz-period))); } }
+/* 仅 hover / 聚焦时滚动：暂停而非移除动画，避免位置跳变 */
+.hz.hz-hover::before { animation-play-state:paused; }
+.hz.hz-hover:hover::before, .hazard-frame:hover > .hz.hz-hover::before { animation-play-state:running; }
+.hz.hz-still::before { animation:none; }
+/* 无障碍：系统要求减少动态效果时立即静止 */
+@media (prefers-reduced-motion:reduce) { .hz::before { animation:none!important; } }
+body.sim-reduce .hz::before { animation:none!important; }
+
+.hazard-frame { border:1px solid var(--danger); background:var(--surface-raised); }
+.hazard-frame .body { padding:20px 22px 22px; }
+.hazard-frame .title { color:var(--danger); font-weight:700; font-size:15px; letter-spacing:.02em; margin:0 0 8px; }
+.hazard-frame .title .mono { font-size:10px; font-weight:400; letter-spacing:.05em; opacity:.8; margin-left:8px; }
+.hazard-frame p { color:var(--ink-secondary); font-size:13px; margin:0 0 18px; }
+.hazard-frame .actions { display:flex; gap:10px; flex-wrap:wrap; }
+.hazard-frame.yellow { border-color:var(--action); }
+.hazard-frame.yellow .title { color:var(--action); }
+.hazard-frame.orange { border-color:var(--warning); }
+.hazard-frame.orange .title { color:var(--warning); }
+
+/* 主舞台 */
+.stage { background:var(--surface-sunken); border:1px solid var(--line); padding:32px; }
+.stage-note { font-size:11px; color:var(--ink-tertiary); margin-top:14px; }
+
+/* 控制面板 */
+.controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px 24px;
+  background:var(--surface-raised); border:1px solid var(--line); padding:20px; margin-top:20px; }
+.ctl { display:flex; flex-direction:column; gap:7px; }
+.ctl > .label { margin-bottom:2px; }
+.seg { display:flex; gap:4px; flex-wrap:wrap; }
+.seg button { flex:1; min-width:52px; min-height:30px; padding:0 8px; font-size:11.5px; font-family:inherit;
+  background:transparent; color:var(--ink-secondary); border:1px solid var(--line-strong);
+  border-radius:2px; cursor:pointer;
+  transition:background-color var(--duration-instant) ease, color var(--duration-instant) ease,
+             border-color var(--duration-instant) ease; }
+.seg button:hover { background:var(--surface-muted); color:var(--ink); }
+.seg button[aria-pressed="true"] { background:var(--action); color:var(--on-action); border-color:var(--action); }
+.seg button:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+.readout { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); margin-top:12px; }
+
+/* 变体对照 */
+.variants { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.variant .cap { font-size:11px; color:var(--ink-tertiary); margin-top:10px; }
+.variant .cap b { color:var(--ink-secondary); font-weight:600; }
+
+/* 反例 */
+.bad .hz { --hz-speed:.22s; --hz-c1:#ff2d2d; }
+.bad .hz::before { filter:drop-shadow(0 0 6px #ff2d2d); }
+.forbid { display:flex; gap:10px; padding:7px 0; font-size:12.5px; color:var(--ink-secondary); }
+.forbid .x { color:var(--danger); font-family:var(--font-mono); flex:none; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { text-align:left; font-weight:500; color:var(--ink-tertiary); font-size:11px; letter-spacing:.04em;
+  padding:8px 10px; border-bottom:1px solid var(--line-strong); }
+td { padding:9px 10px; border-bottom:1px solid var(--line); }
+
+@media (max-width:760px) {
+  .controls,.variants { grid-template-columns:1fr; } .wrap { padding:32px 16px 80px; } .stage { padding:18px; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"></span> FLASH / MGMT</div>
+  <span class="label">HAZARD FRAME · 专项演示</span>
+  <span class="sep"></span>
+  <span class="meta">← gui-style-guide.html / 07</span>
+  <button class="btn btn-ghost" id="themeBtn" type="button">切换明暗</button>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">ONE ALLOWED LOOP / 唯一被允许的常驻循环</div>
+    <h1>会流动的警示带。</h1>
+    <p class="lede">原型是你截图里那个红框：1px 红边、顶部 <span class="mono">-45°</span> 斜纹。现在让斜纹连续横移——工业设备上「危险 / 运行中」的标准语言，不是装饰流光。下面所有参数都能现场调，挑完直接定稿。</p>
+    <div class="note warn"><strong>但它是例外，不是开口子。</strong>规范 07 章原本禁止一切装饰性循环。这里为 hazard 单开一条例外，带配额、限速和无障碍约束，防止它蔓延到普通卡片和页头。约束写在最后一章。</div>
+  </div>
+
+  <!-- 01 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>主舞台 · 正式组件形态</h2></div>
+    <p class="lede">把截图的「反面示例」框换成正经用途：不可撤销的删除确认。视觉语言一比一保留。</p>
+    <div class="stage">
+      <div class="hazard-frame" id="mainFrame">
+        <div class="hz" id="mainHz"></div>
+        <div class="body">
+          <div class="title">危险操作 · 不可撤销 <span class="mono">DANGER / IRREVERSIBLE</span></div>
+          <p>删除 <span class="mono">GD25Q64ESIG</span> 将同时移除该型号的库存记录、封装图关联与 Datasheet 版本历史。此操作无法回滚。</p>
+          <div class="actions">
+            <button class="btn btn-danger">确认删除</button>
+            <button class="btn btn-ghost">取消</button>
+          </div>
+        </div>
+      </div>
+      <div class="stage-note">按钮按规范只改背景色，不位移、不缩放——警戒条动了，按钮就别再跟着动。</div>
+    </div>
+
+    <div class="controls" id="controls">
+      <div class="ctl">
+        <span class="label">配色 / Palette</span>
+        <div class="seg" data-key="palette">
+          <button data-val="red" aria-pressed="true">红黑（截图同款）</button>
+          <button data-val="yellow" aria-pressed="false">黄黑（规范母题）</button>
+          <button data-val="orange" aria-pressed="false">橙黑</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <span class="label">速度 / Speed</span>
+        <div class="seg" data-key="speed">
+          <button data-val="1.2" aria-pressed="false">慢 1.2s</button>
+          <button data-val="0.8" aria-pressed="true">标准 0.8s</button>
+          <button data-val="0.45" aria-pressed="false">快 0.45s</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <span class="label">方向 / Direction</span>
+        <div class="seg" data-key="dir">
+          <button data-val="normal" aria-pressed="true">← 左移</button>
+          <button data-val="reverse" aria-pressed="false">右移 →</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <span class="label">条纹宽 / Stripe</span>
+        <div class="seg" data-key="stripe">
+          <button data-val="6" aria-pressed="false">6px</button>
+          <button data-val="8" aria-pressed="true">8px</button>
+          <button data-val="12" aria-pressed="false">12px</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <span class="label">条高 / Height</span>
+        <div class="seg" data-key="height">
+          <button data-val="4" aria-pressed="false">4px</button>
+          <button data-val="6" aria-pressed="true">6px</button>
+          <button data-val="10" aria-pressed="false">10px</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <span class="label">触发 / Trigger</span>
+        <div class="seg" data-key="trigger">
+          <button data-val="always" aria-pressed="true">常驻滚动</button>
+          <button data-val="hover" aria-pressed="false">仅悬停</button>
+          <button data-val="still" aria-pressed="false">静止</button>
+        </div>
+      </div>
+      <div class="ctl" style="grid-column:1/-1">
+        <span class="label">无障碍 / prefers-reduced-motion</span>
+        <div class="seg" data-key="reduce">
+          <button data-val="off" aria-pressed="true">正常</button>
+          <button data-val="on" aria-pressed="false">模拟「减少动态效果」→ 立即静止</button>
+        </div>
+        <div class="readout" id="readout"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>三个候选形态</h2></div>
+    <p class="lede">同样一套滚动机制，换色和条高就是不同语气。建议全站只选一种，别混着用。</p>
+    <div class="variants">
+      <div class="variant">
+        <div class="hazard-frame">
+          <div class="hz" style="--hz-c1:var(--danger);--hz-c2:transparent;--hz-h:6px;--hz-speed:.8s"></div>
+          <div class="body" style="padding:14px 16px">
+            <div class="title" style="font-size:13px;margin-bottom:4px">危险操作</div>
+            <p style="font-size:11.5px;margin:0">删除 / 不可撤销</p>
+          </div>
+        </div>
+        <div class="cap"><b>A · 红黑 6px</b>　不可撤销操作。截图同款，最贴合现有风格。</div>
+      </div>
+      <div class="variant">
+        <div class="hazard-frame yellow">
+          <div class="hz" style="--hz-c1:var(--action);--hz-c2:#191919;--hz-h:8px;--hz-speed:.9s"></div>
+          <div class="body" style="padding:14px 16px">
+            <div class="title" style="font-size:13px;margin-bottom:4px">设备运行中</div>
+            <p style="font-size:11.5px;margin:0">扫描仪 / 打印任务</p>
+          </div>
+        </div>
+        <div class="cap"><b>B · 黄黑 8px</b>　规范原版 hazard 母题，表示「进行中」而非「危险」。</div>
+      </div>
+      <div class="variant">
+        <div class="hazard-frame orange">
+          <div class="hz" style="--hz-c1:var(--warning);--hz-c2:transparent;--hz-h:4px;--hz-speed:1.1s"></div>
+          <div class="body" style="padding:14px 16px">
+            <div class="title" style="font-size:13px;margin-bottom:4px">需要注意</div>
+            <p style="font-size:11.5px;margin:0">库存为 0 / 待补货</p>
+          </div>
+        </div>
+        <div class="cap"><b>C · 橙黑 4px</b>　低优先级提醒。细条 + 慢速，不抢内容。</div>
+      </div>
+    </div>
+    <div class="note"><strong>推荐 A。</strong>它就是你截图里看上的那个，且红框语义和「不可撤销」天然对得上。黄黑留给「扫描仪正在跑」这类进行中状态，两种语义别混用。</div>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>反面：调过头就难受</h2></div>
+    <p class="lede">同一个组件，只把速度拉到 0.22s 再加一层发光。看一眼就知道为什么要限速。</p>
+    <div class="stage bad">
+      <div class="hazard-frame">
+        <div class="hz"></div>
+        <div class="body" style="padding:16px 20px">
+          <div class="title" style="font-size:13px;margin-bottom:4px">危险操作</div>
+          <p style="font-size:12px;margin:0">0.22s/周期 + 红色发光 · 晃眼、抢内容、像报警灯</p>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <div class="forbid"><span class="x">✕</span><span>周期短于 0.45s（视觉上变成闪烁，不是流动）</span></div>
+      <div class="forbid"><span class="x">✕</span><span>给条纹加发光 / 渐变高光 / 双层叠加</span></div>
+      <div class="forbid"><span class="x">✕</span><span>同一屏出现两条同时滚动的警示条</span></div>
+      <div class="forbid"><span class="x">✕</span><span>把滚动条用到普通卡片、页头、按钮、列表行</span></div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>例外条款（写进规范）</h2></div>
+    <p class="lede">这是对 <a href="gui-style-guide.html#s7">规范 07 章</a> P5 / 禁止清单的唯一修订，其余条款不变。</p>
+    <div class="panel" style="border:1px solid var(--line);padding:20px">
+      <table>
+        <thead><tr><th>项</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">允许位置</td><td>仅危险操作区、不可撤销确认、设备运行中指示</td></tr>
+          <tr><td class="mono">配额</td><td>每屏最多 <strong>1</strong> 处；不与母题配额中的其他项叠加</td></tr>
+          <tr><td class="mono">速度</td><td>0.8–1.2s / 周期（约 19–28 px/s）；硬下限 0.45s</td></tr>
+          <tr><td class="mono">色彩</td><td>只用现有 <span class="mono">--ef-danger / --ef-action / --ef-warning</span>，不加新色、不加发光</td></tr>
+          <tr><td class="mono">循环</td><td>仅此一条允许常驻循环；等待指示器（扫光 / 骨架脉冲）仍按原规范，等待结束即移除</td></tr>
+          <tr><td class="mono">无障碍</td><td><span class="mono">prefers-reduced-motion: reduce</span> 下 <strong>立即静止</strong>，保留静态条纹</td></tr>
+          <tr><td class="mono">共存</td><td>框内按钮仍只改背景色，禁止位移 / 缩放 / 旋转</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><strong>验收口径不变：</strong>把动效全关掉，警戒框仍然一眼看出是危险区（靠红边 + 红标题 + 文案），条纹只是加强。如果关掉滚动后就不像危险区了，说明设计有问题。</div>
+    <p class="label" style="margin-top:40px;text-align:center">END · hazard frame demo · <a href="gui-style-guide.html">返回 GUI 风格方案</a></p>
+  </section>
+
+</div>
+
+<script>
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const el = document.documentElement;
+  el.dataset.theme = el.dataset.theme === 'dark' ? 'light' : 'dark';
+});
+
+const hz = document.getElementById('mainHz');
+const frame = document.getElementById('mainFrame');
+const readout = document.getElementById('readout');
+const state = { palette:'red', speed:'0.8', dir:'normal', stripe:'8', height:'6', trigger:'always', reduce:'off' };
+
+const PALETTES = {
+  red:    { c1:'var(--danger)',  c2:'transparent', frame:'',    cls:'' },
+  yellow: { c1:'var(--action)', c2:'#191919',     frame:'yellow', cls:'yellow' },
+  orange: { c1:'var(--warning)',c2:'transparent', frame:'orange', cls:'orange' }
+};
+
+function render() {
+  const p = PALETTES[state.palette];
+  const w = Number(state.stripe);
+  // -45° 条纹无缝平移量 = 2w / cos45° = 2.8284 × w
+  const period = (2.828427 * w).toFixed(3) + 'px';
+  hz.style.setProperty('--hz-c1', p.c1);
+  hz.style.setProperty('--hz-c2', p.c2);
+  hz.style.setProperty('--hz-w', w + 'px');
+  hz.style.setProperty('--hz-h', state.height + 'px');
+  hz.style.setProperty('--hz-speed', state.speed + 's');
+  hz.style.setProperty('--hz-dir', state.dir);
+  hz.style.setProperty('--hz-period', period);
+  hz.classList.toggle('hz-hover', state.trigger === 'hover');
+  hz.classList.toggle('hz-still', state.trigger === 'still');
+  frame.className = 'hazard-frame' + (p.frame ? ' ' + p.frame : '');
+  document.body.classList.toggle('sim-reduce', state.reduce === 'on');
+  readout.textContent =
+    '--hz-period:' + period + ' (2 × ' + w + 'px / cos45°)  ·  ' +
+    'speed ' + state.speed + 's  ·  ' + state.dir + '  ·  ' +
+    (state.reduce === 'on' ? 'REDUCED (静止)' : state.trigger);
+}
+
+document.querySelectorAll('.seg').forEach(seg => {
+  const key = seg.dataset.key;
+  seg.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    state[key] = btn.dataset.val;
+    seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    render();
+  });
+});
+render();
+</script>
+</body>
+</html>

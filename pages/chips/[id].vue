@@ -10,6 +10,226 @@ const chipId = route.params.id as string
 
 const { data: chip, pending, error, refresh } = await useFetch<ChipDetail>(`/api/chips/${chipId}`)
 
+// ---- 原件照片（🧪 实验功能，可选，一颗一张；重扫后加版本参数防缓存）----
+const { flags } = useLab()
+const photoOpen = ref(false)
+const photoVer = ref(Date.now())
+const photoBig = ref(false)
+const photoUrl = computed(() => chip.value?.photo ? `/api/chips/${chipId}/photo?v=${photoVer.value}` : '')
+function onPhotoSaved() {
+  photoVer.value = Date.now()
+  refresh()
+}
+async function removePhoto() {
+  if (!window.confirm('删除这张原件照片？')) return
+  try {
+    await $fetch(`/api/chips/${chipId}/photo`, { method: 'DELETE' })
+    toast.add({ title: '原件照片已删除', color: 'success' })
+    photoVer.value = Date.now()
+    refresh()
+  } catch (e: any) {
+    toast.add({ title: '删除失败', description: e?.data?.statusMessage || e?.message, color: 'error' })
+  }
+}
+
+// ---- Datasheet（规格书，按型号共享：同型号所有芯片自动关联同一份）----
+interface DatasheetInfo {
+  id: number
+  model: string
+  original_name: string | null
+  size: number | null
+  uploaded_at: string
+  version: string | null
+  current_ver: number | null
+  aliases: string | null
+}
+const dsQuery = computed(() => ({ model: chip.value?.model ?? '' }))
+const { data: datasheet, refresh: refreshDs } = await useFetch<DatasheetInfo | null>('/api/datasheets/check', {
+  query: dsQuery,
+  watch: [dsQuery],
+})
+
+const dsInput = ref<HTMLInputElement | null>(null)
+const dsBusy = ref(false)
+const dsError = ref<string | null>(null)
+const dsVersion = ref('') // 上传时可选的版本号标注（如 v3.9）
+
+// ---- 版本历史 ----
+interface DsVersionRow {
+  id: number
+  version: string | null
+  original_name: string | null
+  size: number | null
+  uploaded_at: string
+  is_current: boolean
+}
+const showVerModal = ref(false)
+const verList = ref<DsVersionRow[]>([])
+const verLoading = ref(false)
+
+function fmtSize(s: number | null | undefined): string {
+  if (!s) return ''
+  return s >= 1024 * 1024 ? `${(s / 1024 / 1024).toFixed(1)} MB` : `${Math.round(s / 1024)} KB`
+}
+
+const dsSizeLabel = computed(() => fmtSize(datasheet.value?.size))
+
+// 适用型号规则（如 STC8H*, PY32F002A）：精确型号或前缀通配
+const dsAliasList = computed(() =>
+  String(datasheet.value?.aliases || '').split(/[,，\s]+/).map(s => s.trim()).filter(Boolean),
+)
+
+const showDsAliasModal = ref(false)
+const dsAliasText = ref('')
+const dsAliasBusy = ref(false)
+const dsAliasError = ref<string | null>(null)
+
+function openDsAliasModal() {
+  dsAliasText.value = String(datasheet.value?.aliases || '')
+  dsAliasError.value = null
+  showDsAliasModal.value = true
+}
+
+async function confirmDsAlias() {
+  if (!datasheet.value) return
+  dsAliasBusy.value = true
+  dsAliasError.value = null
+  try {
+    await $fetch(`/api/datasheets/${datasheet.value.id}/aliases`, {
+      method: 'POST',
+      body: { aliases: dsAliasText.value },
+    })
+    showDsAliasModal.value = false
+    await refreshDs()
+  } catch (err: any) {
+    dsAliasError.value = err?.statusMessage || err?.message || '保存失败'
+  } finally {
+    dsAliasBusy.value = false
+  }
+}
+
+async function openVerModal() {
+  if (!datasheet.value) return
+  showVerModal.value = true
+  verLoading.value = true
+  try {
+    verList.value = await $fetch<DsVersionRow[]>(`/api/datasheets/${datasheet.value.id}/versions`)
+  } catch (err: any) {
+    dsError.value = err?.statusMessage || err?.message || '获取版本历史失败'
+  } finally {
+    verLoading.value = false
+  }
+}
+
+async function revertTo(verId: number) {
+  if (!datasheet.value) return
+  dsBusy.value = true
+  dsError.value = null
+  try {
+    await $fetch(`/api/datasheets/${datasheet.value.id}/revert`, { method: 'POST', body: { verId } })
+    showVerModal.value = false
+    await refreshDs()
+  } catch (err: any) {
+    dsError.value = err?.statusMessage || err?.message || '回滚失败'
+  } finally {
+    dsBusy.value = false
+  }
+}
+
+// ---- URL 导入（服务器直接抓厂商 DS 链接入库，免手动下载再上传）----
+const showDsUrlModal = ref(false)
+const dsUrl = ref('')
+const dsUrlVersion = ref('')
+const dsUrlBusy = ref(false)
+const dsUrlError = ref<string | null>(null)
+
+function openDsUrlModal() {
+  dsUrl.value = ''
+  dsUrlVersion.value = ''
+  dsUrlError.value = null
+  showDsUrlModal.value = true
+}
+
+async function confirmDsUrl() {
+  if (!chip.value) return
+  const url = dsUrl.value.trim()
+  if (!url) {
+    dsUrlError.value = '请填写 DS 链接'
+    return
+  }
+  dsUrlBusy.value = true
+  dsUrlError.value = null
+  try {
+    await $fetch('/api/datasheets/url', {
+      method: 'POST',
+      body: {
+        model: chip.value.model,
+        url,
+        version: dsUrlVersion.value.trim() || undefined,
+      },
+    })
+    showDsUrlModal.value = false
+    await refreshDs()
+  } catch (err: any) {
+    dsUrlError.value = err?.statusMessage || err?.message || '导入失败'
+  } finally {
+    dsUrlBusy.value = false
+  }
+}
+
+function dsPick() {
+  dsInput.value?.click()
+}
+
+async function onDsFile(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // 允许重选同一文件
+  if (!file || !chip.value) return
+  dsBusy.value = true
+  dsError.value = null
+  try {
+    const fd = new FormData()
+    fd.append('model', chip.value.model)
+    fd.append('file', file)
+    if (dsVersion.value.trim()) fd.append('version', dsVersion.value.trim())
+    await $fetch('/api/datasheets', { method: 'POST', body: fd })
+    dsVersion.value = ''
+    await refreshDs()
+  } catch (err: any) {
+    dsError.value = err?.statusMessage || err?.message || '上传失败'
+  } finally {
+    dsBusy.value = false
+  }
+}
+
+async function dsDelete() {
+  if (!datasheet.value) return
+  if (!window.confirm(`删除「${datasheet.value.model}」的 Datasheet？同型号所有芯片将失去关联`)) return
+  dsBusy.value = true
+  dsError.value = null
+  try {
+    await $fetch(`/api/datasheets/${datasheet.value.id}`, { method: 'DELETE' })
+    await refreshDs()
+  } catch (err: any) {
+    dsError.value = err?.statusMessage || err?.message || '删除失败'
+  } finally {
+    dsBusy.value = false
+  }
+}
+
+/** 查看 PDF = 用系统默认程序（本机为 Acrobat）直接打开；网页内嵌预览已弃（Edge PDFium 渲染大 DS 卡顿） */
+async function dsOpenLocal(verId?: number) {
+  if (!datasheet.value) return
+  dsError.value = null
+  try {
+    const q = verId ? { ver: verId } : undefined
+    await $fetch(`/api/datasheets/${datasheet.value.id}/open`, { method: 'POST', query: q })
+  } catch (err: any) {
+    dsError.value = err?.statusMessage || err?.message || '打开失败'
+  }
+}
+
 const logs = computed(() => chip.value?.operation_logs ?? [])
 
 // 芯片类型徽章文案与配色（flash / mcu / other）
@@ -503,6 +723,164 @@ async function confirmEdit() {
               <template v-if="chip.location_c">{{ chip.location_c }}</template>
             </dd>
           </div>
+          <div v-if="flags.chipPhoto">
+            <dt class="text-xs text-ink-tertiary">原件照片</dt>
+            <dd class="mt-1 flex flex-wrap items-center gap-2">
+              <template v-if="chip.photo">
+                <button
+                  type="button"
+                  class="group relative inline-block"
+                  title="点击放大"
+                  @click="photoBig = true"
+                >
+                  <img
+                    :src="photoUrl"
+                    alt="芯片原件照片"
+                    class="h-16 max-w-40 rounded-md border border-special-500/10 object-contain"
+                  />
+                </button>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="soft"
+                  icon="i-lucide-scanner-line"
+                  @click="photoOpen = true"
+                >
+                  重扫
+                </UButton>
+                <UButton
+                  size="xs"
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  @click="removePhoto"
+                >
+                  删除
+                </UButton>
+              </template>
+              <template v-else>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="soft"
+                  icon="i-lucide-scanner-line"
+                  @click="photoOpen = true"
+                >
+                  补扫
+                </UButton>
+                <span class="text-xs text-ink-tertiary">可选，芯片放扫描仪玻璃板丝印朝下</span>
+              </template>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs text-ink-tertiary">Datasheet</dt>
+            <dd class="mt-1 flex flex-wrap items-center gap-2">
+              <template v-if="datasheet">
+                <UButton
+                  size="xs"
+                  color="info"
+                  variant="outline"
+                  icon="i-lucide-file-text"
+                  :disabled="dsBusy"
+                  @click="dsOpenLocal"
+                >
+                  查看 PDF（Acrobat）
+                </UButton>
+                <UBadge v-if="datasheet.version" color="info" variant="subtle" size="xs">
+                  {{ datasheet.version }}
+                </UBadge>
+                <UBadge
+                  v-for="rule in dsAliasList"
+                  :key="rule"
+                  color="special"
+                  variant="subtle"
+                  size="xs"
+                  class="font-mono"
+                >
+                  {{ rule }}
+                </UBadge>
+                <span v-if="dsSizeLabel" class="text-xs text-ink-tertiary">{{ dsSizeLabel }}</span>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-crosshair"
+                  @click="openDsAliasModal"
+                >
+                  适用型号
+                </UButton>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-history"
+                  :disabled="dsBusy"
+                  @click="openVerModal"
+                >
+                  历史
+                </UButton>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-upload"
+                  :loading="dsBusy"
+                  @click="dsPick"
+                >
+                  上传新版本
+                </UButton>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-link"
+                  @click="openDsUrlModal"
+                >
+                  URL 导入
+                </UButton>
+                <UButton
+                  size="xs"
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  :disabled="dsBusy"
+                  @click="dsDelete"
+                >
+                  删除
+                </UButton>
+              </template>
+              <template v-else>
+                <UInput
+                  v-model="dsVersion"
+                  size="xs"
+                  placeholder="版本号（选填）"
+                  class="w-28"
+                />
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="outline"
+                  icon="i-lucide-upload"
+                  :loading="dsBusy"
+                  @click="dsPick"
+                >
+                  上传 DS
+                </UButton>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="outline"
+                  icon="i-lucide-link"
+                  @click="openDsUrlModal"
+                >
+                  URL 导入
+                </UButton>
+                <span class="text-xs text-ink-tertiary">PDF ≤ 50MB，同型号自动关联共享</span>
+              </template>
+              <input ref="dsInput" type="file" accept="application/pdf,.pdf" class="hidden" @change="onDsFile">
+            </dd>
+            <p v-if="dsError" class="mt-1 text-xs text-alert-400">{{ dsError }}</p>
+          </div>
           <div v-if="chip.chip_type === 'flash'">
             <dt class="text-xs text-ink-tertiary">JEDEC ID</dt>
             <dd class="mt-1 font-mono text-action">{{ formatJedecId(chip.jedec_id) }}</dd>
@@ -853,6 +1231,128 @@ async function confirmEdit() {
     </UModal>
 
     <!-- 打印标签对话框 -->
+    <UModal v-model:open="showVerModal" title="Datasheet 版本历史">
+      <template #body>
+        <div class="space-y-2">
+          <p v-if="verLoading" class="text-sm text-ink-tertiary">加载中…</p>
+          <p v-else-if="!verList.length" class="text-sm text-ink-tertiary">无历史版本</p>
+          <div
+            v-for="v in verList"
+            :key="v.id"
+            class="flex items-center justify-between rounded-md px-3 py-2 ring-1 ring-line"
+          >
+            <div>
+              <div class="flex items-center gap-2 text-sm text-ink">
+                <span class="font-medium">{{ v.version || '（未标版本）' }}</span>
+                <UBadge v-if="v.is_current" color="info" variant="subtle" size="xs">当前</UBadge>
+              </div>
+              <p class="mt-0.5 text-xs text-ink-tertiary">
+                {{ v.original_name }}<template v-if="fmtSize(v.size)"> · {{ fmtSize(v.size) }}</template> · {{ v.uploaded_at }}
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <UButton
+                size="xs"
+                variant="ghost"
+                icon="i-lucide-file-text"
+                :disabled="dsBusy"
+                @click="dsOpenLocal(v.id)"
+              >
+                打开
+              </UButton>
+              <UButton
+                v-if="!v.is_current"
+                size="xs"
+                variant="soft"
+                :disabled="dsBusy"
+                @click="revertTo(v.id)"
+              >
+                设为当前
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="showDsUrlModal" title="从 URL 导入 Datasheet">
+      <template #body>
+        <div class="space-y-3">
+          <p class="text-xs text-ink-tertiary">
+            服务器直接抓取链接（自动跟随 302 跳转），校验 PDF 后存为新版本——免手动下载再上传。链接需直指 PDF 文件。
+          </p>
+          <UInput
+            v-model="dsUrl"
+            placeholder="https://www.wch.cn/downloads/xxx-zip.html 的直链 / 厂商官网 PDF 链接"
+            class="w-full font-mono"
+          />
+          <UInput
+            v-model="dsUrlVersion"
+            placeholder="版本号（选填，如 V3.9）"
+            class="w-40"
+          />
+          <p v-if="dsUrlError" class="text-xs text-alert-400">{{ dsUrlError }}</p>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton variant="ghost" color="neutral" @click="showDsUrlModal = false">
+            取消
+          </UButton>
+          <UButton
+            color="info"
+            icon="i-lucide-download"
+            :loading="dsUrlBusy"
+            @click="confirmDsUrl"
+          >
+            抓取入库
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="showDsAliasModal" title="DS 适用型号规则">
+      <template #body>
+        <div class="space-y-3">
+          <p class="text-xs text-ink-tertiary">
+            一份 DS 覆盖多个型号时在此登记：每条规则为「精确型号」或「前缀通配」（尾缀 *），
+            逗号分隔。例：STC8H*, PY32F002A。命中规则的型号自动关联本 DS（列表亮 DS 徽章、录入免上传）。留空 = 仅当前型号。
+          </p>
+          <UInput
+            v-model="dsAliasText"
+            placeholder="STC8H*, PY32F002A"
+            class="w-full font-mono"
+          />
+          <p v-if="dsAliasError" class="text-xs text-alert-400">{{ dsAliasError }}</p>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton variant="ghost" color="neutral" @click="showDsAliasModal = false">
+            取消
+          </UButton>
+          <UButton color="info" icon="i-lucide-check" :loading="dsAliasBusy" @click="confirmDsAlias">
+            保存
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
     <PrintLabelModal v-model:open="showPrintModal" mode="chip" :chip="chip" />
+
+    <!-- 原件照片：补扫/重扫 -->
+    <ChipPhotoScan :key="photoVer" v-model:open="photoOpen" :chip-id="Number(chipId)" @saved="onPhotoSaved" />
+
+    <!-- 原件照片放大查看 -->
+    <UModal v-model:open="photoBig" title="芯片原件照片">
+      <template #body>
+        <img
+          v-if="photoUrl"
+          :src="photoUrl"
+          alt="芯片原件照片"
+          class="max-h-[70vh] w-full rounded-md object-contain"
+        />
+      </template>
+    </UModal>
   </div>
 </template>

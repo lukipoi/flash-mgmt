@@ -51,15 +51,6 @@ async function fetchStats() {
 onMounted(() => {
   fetchChips()
   fetchStats()
-  // 从 sessionStorage 恢复识别结果（防止页面刷新丢失）
-  try {
-    const saved = sessionStorage.getItem('chips-identify-result')
-    if (saved) {
-      identifyResult.value = JSON.parse(saved)
-    }
-  } catch {
-    // ignore
-  }
 })
 
 const modelItems = computed(() => [
@@ -146,7 +137,11 @@ const columns: TableColumn<Chip>[] = [
       h(ULink, {
         to: `/chips/${row.original.id}`,
         class: 'font-medium text-action hover:text-data-300'
-      }, () => row.getValue('model') || '(未知)')
+      }, () => row.getValue('model') || '(未知)'),
+      // Datasheet 徽章：该型号已上传 DS（同型号共享一份）
+      row.original.has_ds
+        ? h(UBadge, { color: 'info', variant: 'subtle', size: 'xs', class: 'font-mono' }, () => 'DS')
+        : null
     ])
   },
   {
@@ -246,70 +241,6 @@ const columns: TableColumn<Chip>[] = [
 
 function handleRowClick(row: Chip) {
   navigateTo(`/chips/${row.id}`)
-}
-
-// ---- 芯片识别 ----
-interface IdentifyResult {
-  matched: boolean
-  match_by: 'uid' | 'jedec_id' | null
-  reason?: string
-  chip?: Chip
-  candidates?: { id: number; model: string; jedec_id: string; uid: string; chip_type?: string }[]
-}
-
-const identifying = ref(false)
-const identifyResult = ref<IdentifyResult | null>(null)
-// 标记是否由用户主动关闭（不删除 sessionStorage）
-let userDismissedIdentify = false
-
-// 识别结果变化时保存到 sessionStorage（仅在非用户关闭时更新）
-watch(identifyResult, (val) => {
-  if (userDismissedIdentify) {
-    // 用户主动关闭，清除 sessionStorage
-    try { sessionStorage.removeItem('chips-identify-result') } catch { /* ignore */ }
-    userDismissedIdentify = false
-    return
-  }
-  try {
-    if (val) {
-      sessionStorage.setItem('chips-identify-result', JSON.stringify(val))
-    }
-  } catch {
-    // ignore
-  }
-})
-
-async function identifyChip() {
-  identifying.value = true
-  identifyResult.value = null
-  try {
-    const probe = await $fetch('/api/probe', { method: 'POST' })
-    if (probe.error) {
-      identifyResult.value = { matched: false, match_by: null, reason: probe.error }
-      return
-    }
-    // 根据 JEDEC ID 判断芯片类型
-    const jedecId = (probe.jedec_id || '').trim()
-    const chipType = jedecId ? 'flash' : 'mcu'
-    const result = await $fetch<IdentifyResult>('/api/identify', {
-      method: 'POST',
-      body: {
-        jedec_id: probe.jedec_id,
-        uid: probe.uid,
-        uid_length: probe.uid_length,
-        chip_type: chipType
-      }
-    })
-    identifyResult.value = result
-  } catch (e: any) {
-    identifyResult.value = {
-      matched: false,
-      match_by: null,
-      reason: e.data?.message || e.message || '识别失败'
-    }
-  } finally {
-    identifying.value = false
-  }
 }
 
 // ---- 编辑 ----
@@ -510,65 +441,6 @@ function confirmContainerParam() {
   showContainerPrintModal.value = true
 }
 
-// ---- 核查厂商 ----
-const vendorChecking = ref(false)
-const vendorCheckResults = ref<any[]>([])
-const vendorCheckSummary = ref<{ total: number; autoFillCount: number; conflictCount: number; unknownCount: number } | null>(null)
-const showVendorModal = ref(false)
-
-async function checkVendors() {
-  vendorChecking.value = true
-  try {
-    const data = await $fetch('/api/admin/backfill-vendors', { method: 'POST' })
-    vendorCheckSummary.value = {
-      total: data.total ?? data.results?.length ?? 0,
-      autoFillCount: data.autoFillCount ?? data.updated ?? 0,
-      conflictCount: data.conflictCount ?? 0,
-      unknownCount: data.unknownCount ?? 0,
-    }
-    vendorCheckResults.value = data.results || []
-    showVendorModal.value = true
-  } catch (err: any) {
-    alert('核查失败: ' + (err?.statusMessage || err?.message))
-  } finally {
-    vendorChecking.value = false
-  }
-}
-
-async function applyVendorAutoFill() {
-  if (!confirm('确认自动填充所有"可自动填入"的空厂商吗？\n(冲突和未知的不会动)')) return
-  vendorChecking.value = true
-  try {
-    const data = await $fetch('/api/admin/backfill-vendors', { method: 'POST', body: { apply: true } })
-    await fetchChips()
-    vendorCheckSummary.value = {
-      total: data.results?.length ?? 0,
-      autoFillCount: data.updated ?? 0,
-      conflictCount: data.conflictCount ?? 0,
-      unknownCount: data.unknownCount ?? 0,
-    }
-    vendorCheckResults.value = data.results || []
-  } catch (err: any) {
-    alert('回填失败: ' + (err?.statusMessage || err?.message))
-  } finally {
-    vendorChecking.value = false
-  }
-}
-
-function vendorStatusBadge(status: string) {
-  const map: Record<string, { text: string; cls: string }> = {
-    ok:        { text: '✓ 已正确', cls: 'bg-gain-500/10 text-gain-300 ring-gain-500/20' },
-    ok_manual: { text: '✓ 手动值', cls: 'bg-gain-500/10 text-gain-300 ring-gain-500/20' },
-    auto_fill: { text: '可自动填', cls: 'bg-action/10 text-data-300 ring-data-500/20' },
-    conflict:  { text: '⚠ 冲突',  cls: 'bg-notice-500/10 text-notice-300 ring-notice-500/20' },
-    unknown:   { text: '✗ 未知',  cls: 'bg-alert-500/10 text-alert-300 ring-alert-500/20' },
-  }
-  const m = map[status] || { text: status, cls: 'bg-surface-muted/10 text-ink-secondary' }
-  return h('span', {
-    class: ['inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ring-1', m.cls]
-  }, m.text)
-}
-
 function openDeleteModal(chip: Chip) {
   chipToDelete.value = chip
   deleteError.value = null
@@ -603,26 +475,6 @@ async function confirmDelete() {
         </p>
       </div>
       <div class="flex gap-2">
-        <UButton
-          icon="i-lucide-scan"
-          color="data"
-          variant="solid"
-          size="sm"
-          :loading="identifying"
-          @click="identifyChip"
-        >
-          识别芯片
-        </UButton>
-        <UButton
-          icon="i-lucide-sparkles"
-          color="data"
-          variant="outline"
-          size="sm"
-          :loading="vendorChecking"
-          @click="checkVendors"
-        >
-          核查厂商
-        </UButton>
         <UButton
           icon="i-lucide-printer"
           color="notice"
@@ -694,83 +546,6 @@ async function confirmDelete() {
       >
         清除
       </UButton>
-    </div>
-
-    <!-- 识别结果提示 -->
-    <div
-      v-if="identifyResult && identifyResult.matched && identifyResult.chip"
-      class="mb-4 rounded-md bg-data-500/5 p-4 ring-1 ring-action/30"
-    >
-      <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-fingerprint" class="h-5 w-5 text-action" />
-        <span class="text-sm font-semibold text-data-300">已识别档案</span>
-        <UBadge color="info" variant="subtle" size="xs" class="font-mono">
-          by {{ identifyResult.match_by }}
-        </UBadge>
-      </div>
-      <div class="mt-3 space-y-1 rounded-md bg-surface-muted p-3 font-mono text-xs text-ink-secondary">
-        <div>型号：<span class="text-action">{{ identifyResult.chip.model }}</span></div>
-        <div>类型：<span class="text-action">{{ chipTypeLabel(identifyResult.chip.chip_type) }}</span></div>
-        <div>JEDEC ID：<span class="text-action">{{ formatJedecId(identifyResult.chip.jedec_id) }}</span></div>
-        <div>容量：<span class="text-action">{{ identifyResult.chip.capacity || '-' }}</span></div>
-      </div>
-      <div class="mt-3 flex justify-end gap-2">
-        <UButton color="neutral" variant="ghost" size="sm" @click="userDismissedIdentify = true; identifyResult = null">
-          关闭
-        </UButton>
-        <UButton
-          color="primary"
-          variant="solid"
-          size="sm"
-          icon="i-lucide-external-link"
-          :to="`/chips/${identifyResult.chip.id}`"
-        >
-          查看档案详情
-        </UButton>
-      </div>
-    </div>
-
-    <!-- 识别结果提示（未命中时显示） -->
-    <div
-      v-else-if="identifyResult && !identifyResult.matched"
-      class="mb-4 rounded-md bg-notice-500/5 p-4 ring-1 ring-notice-500/30"
-    >
-      <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-package-plus" class="h-5 w-5 text-notice-400" />
-        <span class="text-sm font-semibold text-notice-300">未识别到档案</span>
-      </div>
-      <p class="mt-2 text-sm text-ink-secondary">{{ identifyResult.reason }}</p>
-      <div v-if="identifyResult.candidates?.length" class="mt-3 space-y-2">
-        <p class="text-xs text-ink-tertiary">同 JEDEC ID 的已存在芯片：</p>
-        <div
-          v-for="c in identifyResult.candidates"
-          :key="c.id"
-          class="flex items-center justify-between rounded-md bg-surface-muted p-2 text-xs"
-        >
-          <div class="font-mono text-ink-secondary">
-            <span class="text-ink-tertiary">#{{ c.id }}</span>
-            <span class="ml-2 text-action">{{ c.model }}</span>
-            <span v-if="c.chip_type" class="ml-1" :class="c.chip_type === 'mcu' ? 'text-region' : 'text-action'">[{{ chipTypeLabel(c.chip_type) }}]</span>
-            <span class="ml-2 text-ink-tertiary">UID: {{ truncateUid(c.uid, 12) }}</span>
-          </div>
-          <UButton
-            :to="`/chips/${c.id}`"
-            variant="ghost"
-            size="xs"
-            color="neutral"
-          >
-            查看
-          </UButton>
-        </div>
-      </div>
-      <div class="mt-3 flex justify-end gap-2">
-        <UButton color="neutral" variant="ghost" size="sm" @click="userDismissedIdentify = true; identifyResult = null">
-          关闭
-        </UButton>
-        <UButton color="primary" variant="solid" size="sm" to="/chips/new">
-          去录入
-        </UButton>
-      </div>
     </div>
 
     <!-- 错误提示 -->
@@ -1017,84 +792,5 @@ async function confirmDelete() {
       :container-subtitle="containerForm.subtitle.trim() || null"
     />
 
-    <!-- 厂商核查结果 -->
-    <UModal v-model:open="showVendorModal" title="厂商核查结果">
-      <template #body>
-        <div v-if="vendorCheckSummary" class="mb-4 grid grid-cols-4 gap-3">
-          <div class="rounded-md bg-surface-muted p-3 ring-1 ring-line">
-            <div class="text-xs text-ink-secondary">总数</div>
-            <div class="mt-1 text-lg font-semibold text-ink">{{ vendorCheckSummary.total }}</div>
-          </div>
-          <div class="rounded-md bg-action/10 p-3 ring-1 ring-data-500/20">
-            <div class="text-xs text-data-300">可自动填</div>
-            <div class="mt-1 text-lg font-semibold text-data-200">{{ vendorCheckSummary.autoFillCount }}</div>
-          </div>
-          <div class="rounded-md bg-notice-500/10 p-3 ring-1 ring-notice-500/20">
-            <div class="text-xs text-notice-300">冲突</div>
-            <div class="mt-1 text-lg font-semibold text-notice-200">{{ vendorCheckSummary.conflictCount }}</div>
-          </div>
-          <div class="rounded-md bg-alert-500/10 p-3 ring-1 ring-alert-500/20">
-            <div class="text-xs text-alert-300">未知</div>
-            <div class="mt-1 text-lg font-semibold text-alert-200">{{ vendorCheckSummary.unknownCount }}</div>
-          </div>
-        </div>
-
-        <div class="max-h-[400px] overflow-y-auto rounded-md bg-surface-sunken/30 ring-1 ring-line">
-          <table class="w-full text-sm">
-            <thead class="sticky top-0 bg-surface-raised/80 backdrop-blur">
-              <tr class="border-b border-line text-left text-xs text-ink-secondary">
-                <th class="px-3 py-2">型号</th>
-                <th class="px-3 py-2">JEDEC</th>
-                <th class="px-3 py-2">当前厂商</th>
-                <th class="px-3 py-2">推荐厂商</th>
-                <th class="px-3 py-2">状态</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="r in vendorCheckResults"
-                :key="r.id"
-                class="border-b border-line hover:bg-surface-muted"
-              >
-                <td class="px-3 py-2 text-ink">{{ r.model }}</td>
-                <td class="px-3 py-2 font-mono text-xs text-ink-tertiary">{{ r.jedec_id || '-' }}</td>
-                <td class="px-3 py-2">
-                  <span :class="r.current_vendor ? 'text-ink' : 'text-ink-tertiary italic'">
-                    {{ r.current_vendor || '(空)' }}
-                  </span>
-                </td>
-                <td class="px-3 py-2">
-                  <span :class="r.suggested_vendor ? 'text-data-300' : 'text-ink-tertiary italic'">
-                    {{ r.suggested_vendor || '—' }}
-                  </span>
-                </td>
-                <td class="px-3 py-2">
-                  <component :is="vendorStatusBadge(r.status)" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-between items-center w-full">
-          <div class="text-xs text-ink-tertiary">
-            冲突条目不自动覆盖，未知的需要手动填
-          </div>
-          <div class="flex gap-2">
-            <UButton color="neutral" variant="ghost" @click="showVendorModal = false">关闭</UButton>
-            <UButton
-              v-if="vendorCheckSummary && vendorCheckSummary.autoFillCount > 0"
-              color="data"
-              variant="solid"
-              :loading="vendorChecking"
-              @click="applyVendorAutoFill"
-            >
-              自动填 {{ vendorCheckSummary.autoFillCount }} 条空厂商
-            </UButton>
-          </div>
-        </div>
-      </template>
-    </UModal>
   </div>
 </template>

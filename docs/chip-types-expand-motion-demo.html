@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flash-mgmt · 二级分类展开动效样板</title>
+<style>
+/* ==================================================================
+   芯片类型列表 · 二级展开动效样板（G1 已落地）
+   还原 pages/chip-types/index.vue 的真实结构：
+   一级卡片(overflow-hidden / ring-1) → 二级区(border-t / pl-11 子行)
+
+   设计约束（沿用 gui-style-guide.html 06 章修订 3）：
+   - 直角、1px 描边、等宽数据；信号黄只作「进行中」状态线
+   - 只动 grid-rows / clip-path / opacity / 一条 1px 线的 scale
+   - 禁止：子项错峰 stagger、子项位移上浮、缩放变形、spring 回弹、
+     装饰性旋转（折叠箭头 rotate 90° 是状态过渡，唯一例外）
+   - 展开与收起必须双向对称：全部用 transition，不用一次性 animation
+   - 21:52 用户拍板 G1 + 箭头旋转：项目已改成常驻 DOM + .ct-card.is-open，
+     折叠箭头改用单个 chevron + rotate(90deg)，不再硬换字形
+
+   色值 / 缓动取自 assets/css/endfield/theme.css
+   ================================================================== */
+:root, [data-theme="light"] {
+  --surface:#ffffff; --surface-raised:#fafafa; --surface-sunken:#f2f2f2; --surface-muted:#e6e6e6;
+  --ink:#191919; --ink-secondary:#626262; --ink-tertiary:#8a8a8a;
+  --line:#d9d9d9; --line-strong:#b3b3b3;
+  --action:#fffa00; --action-pressed:#eeea00; --on-action:#191919;
+  --button:#383838; --button-hover:#484848; --on-button:#eeeeee;
+  --danger:#de0909; --focus:#191919; --scrim:rgba(0,0,0,.5);
+}
+[data-theme="dark"] {
+  --surface:#141414; --surface-raised:#1f1f1f; --surface-sunken:#000000; --surface-muted:#282828;
+  --ink:#fafafa; --ink-secondary:#b3b3b3; --ink-tertiary:#8a8a8a;
+  --line:#383838; --line-strong:#626262;
+  --action:#fffa00; --action-pressed:#eeea00; --on-action:#191919;
+  --button:rgba(255,255,255,.2); --button-hover:rgba(255,255,255,.3); --on-button:#d9d9d9;
+  --danger:#f74040; --focus:#fffa00;
+}
+:root {
+  --font-sans:"HarmonyOS Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-display:"Archivo","Montserrat","HarmonyOS Sans SC",sans-serif;
+  --font-mono:"JetBrains Mono","Cascadia Code",ui-monospace,Consolas,monospace;
+  --ease-exit:ease-out;
+  --ease-emphasis:ease-in-out;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--surface); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:1.6; }
+.label { font-family:var(--font-mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-tertiary); }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+a { color:var(--action); }
+.btn { display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:0 14px;
+  font-size:13px; font-family:inherit; border:1px solid transparent; border-radius:0; cursor:pointer;
+  transition:background-color 50ms ease, border-color 50ms ease, color 50ms ease; }
+.btn-primary { background:var(--action); color:var(--on-action); }
+.btn-primary:hover { background:var(--action-pressed); }
+.btn-secondary { background:var(--button); color:var(--on-button); border-color:var(--line-strong); }
+.btn-secondary:hover { background:var(--button-hover); }
+.btn-ghost { background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn-ghost:hover { background:var(--surface-muted); }
+.btn:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+
+.topbar { position:sticky; top:0; z-index:100; height:56px; display:flex; align-items:center; gap:16px;
+  padding:0 24px; background:var(--surface-raised); border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; }
+.brand-mark { width:20px; height:20px; background:var(--action);
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%); }
+.topbar .sep { flex:1; }
+.topbar .meta { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.wrap { max-width:1000px; margin:0 auto; padding:48px 24px 120px; }
+.hero { padding-bottom:36px; border-bottom:1px solid var(--line); }
+.eyebrow { color:var(--action); font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; }
+h1 { font-family:var(--font-display); font-size:clamp(30px,4vw,48px); line-height:1.08; margin:12px 0 14px; letter-spacing:-.02em; }
+h2 { font-family:var(--font-display); font-size:20px; margin:0 0 6px; }
+.lede { color:var(--ink-secondary); font-size:15px; max-width:740px; margin:0 0 20px; }
+section { padding:44px 0 8px; border-bottom:1px solid var(--line); }
+section:last-of-type { border-bottom:0; }
+.sec-head { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; }
+.sec-num { font-family:var(--font-mono); font-size:12px; color:var(--action); }
+.note { border-left:3px solid var(--action); background:var(--surface-raised); padding:12px 16px;
+  font-size:13px; color:var(--ink-secondary); margin:20px 0; }
+.note strong { color:var(--ink); }
+.note.rev { border-left-color:var(--danger); }
+
+.toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+.readout { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.samples { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:20px; }
+.sample { border:1px solid var(--line); background:var(--surface-raised); padding:18px; display:flex; flex-direction:column; gap:10px; }
+.sample.pick { border-color:var(--action); }
+.sample .top { display:flex; align-items:baseline; gap:10px; }
+.sample .key { font-family:var(--font-mono); font-size:18px; color:var(--action); }
+.sample .name { font-size:15px; font-weight:700; }
+.sample .badge { margin-left:auto; font-family:var(--font-mono); font-size:9px; padding:2px 6px;
+  border:1px solid var(--action); color:var(--action); }
+.sample .spec { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.sample .what { font-size:12.5px; color:var(--ink-secondary); flex:1; }
+.sample .what b { color:var(--ink); font-weight:600; }
+.sample .play { align-self:flex-start; }
+
+/* ==================================================================
+   舞台：还原 chip-types/index.vue 的两级分类树
+   ================================================================== */
+.stage { border:1px solid var(--line); background:var(--surface); padding:16px; }
+.stage-bar { display:flex; align-items:center; gap:10px; margin-bottom:14px; padding-bottom:12px;
+  border-bottom:1px solid var(--line); }
+.stage-bar h3 { font-size:16px; font-weight:700; margin:0; }
+.stage-bar .sub { font-size:12px; color:var(--ink-tertiary); }
+.stage-bar .sep { flex:1; }
+.stage-bar .fake-input { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary);
+  border:1px solid var(--line); padding:5px 10px; min-width:140px; }
+.stage-bar .fake-btn { font-family:var(--font-mono); font-size:11px; color:var(--on-action);
+  background:var(--action); padding:6px 10px; }
+
+.ct-card { border:1px solid var(--line); background:var(--surface-raised); overflow:hidden; }
+.ct-card + .ct-card { margin-top:8px; }
+.ct-head { position:relative; display:flex; align-items:center; gap:8px; padding:10px 12px;
+  cursor:pointer; user-select:none; transition:background-color 50ms ease; }
+.ct-head:hover { background:var(--surface-muted); }
+.ct-caret { width:20px; height:20px; flex:none; display:flex; align-items:center;
+  justify-content:center; color:var(--ink-tertiary); }
+.ct-caret svg, .ct-folder, .ct-row svg, .ct-ops svg { width:14px; height:14px; flex:none;
+  fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:square; stroke-linejoin:miter; }
+.ct-caret { transform-origin:center; transition:transform 220ms var(--ease-exit); }
+.ct-card.is-open .ct-caret { transform:rotate(90deg); }
+.ct-folder { color:var(--action); }
+.ct-name { flex:1; min-width:0; font-size:13px; font-weight:600; color:var(--ink); }
+.ct-meta { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); flex:none; }
+.ct-ops { display:flex; align-items:center; gap:6px; flex:none; color:var(--ink-tertiary); }
+.ct-ops span { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; }
+.ct-ops .op-plus { width:auto; padding:0 6px; font-family:var(--font-mono); font-size:10px;
+  border:1px solid var(--line); }
+.ct-ops .op-del { color:var(--danger); }
+
+/* 折叠箭头旋转是「状态过渡」，不是被禁的装饰性旋转；只转这 20px 图标 */
+/* 二级区：grid 0fr→1fr 撑开高度，无需 JS 测量 auto 高度 */
+.ct-children { display:grid; grid-template-rows:0fr;
+  transition:grid-template-rows 220ms var(--ease-exit); }
+.ct-card.is-open > .ct-children { grid-template-rows:1fr; }
+.ct-children-inner { min-height:0; overflow:hidden; position:relative; }
+/* border-t 必须放 inner 里：0fr 时一起被裁掉，折叠状态不留孤零零一条线 */
+.ct-pad { border-top:1px solid var(--line); padding:4px 0; }
+.ct-row { display:flex; align-items:center; gap:8px; padding:6px 12px 6px 44px;
+  font-size:13px; color:var(--ink-secondary); transition:background-color 50ms ease; }
+.ct-row:hover { background:var(--surface-muted); }
+.ct-row .n { flex:1; min-width:0; }
+.ct-row .c { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.ct-row svg { width:12px; height:12px; color:var(--ink-tertiary); }
+
+/* 两条 1px 装饰线，默认不出现，按方案启用 */
+.ct-guide, .ct-scan { display:none; }
+.ct-guide { position:absolute; left:28px; top:4px; bottom:4px; width:1px;
+  background:var(--line-strong); transform:scaleY(0); transform-origin:top; }
+.ct-scan { position:absolute; left:0; right:0; bottom:0; height:1px;
+  background:var(--action); transform:scaleX(0); transform-origin:left; }
+
+/* ---------- G1 · 引导线生长 + 子项整体淡入（已落地 / 项目默认） ---------- */
+.stage[data-motion="g1"] .ct-children { transition-duration:240ms; }
+.stage[data-motion="g1"] .ct-guide { display:block;
+  transition:transform 220ms var(--ease-exit); }
+.stage[data-motion="g1"] .ct-card.is-open .ct-guide { transform:scaleY(1); }
+.stage[data-motion="g1"] .ct-pad { opacity:0; transition:opacity 160ms ease; }
+.stage[data-motion="g1"] .ct-card.is-open .ct-pad { opacity:1;
+  transition:opacity 180ms ease 60ms; }
+
+/* ---------- G2 · 纯高度撑开（什么都不加） ---------- */
+.stage[data-motion="g2"] .ct-children { transition-duration:220ms; }
+
+/* ---------- G3 · 撑开 + 横向擦除 ---------- */
+.stage[data-motion="g3"] .ct-children { transition-duration:160ms; }
+.stage[data-motion="g3"] .ct-children-inner {
+  clip-path:inset(0 100% 0 0);
+  transition:clip-path 240ms var(--ease-exit); }
+.stage[data-motion="g3"] .ct-card.is-open .ct-children-inner {
+  clip-path:inset(0 0 0 0);
+  transition:clip-path 260ms var(--ease-exit) 40ms; }
+
+/* ---------- G4 · 状态线先行（信号黄扫出 → 再撑开） ---------- */
+.stage[data-motion="g4"] .ct-scan { display:block;
+  transform:scaleX(0); transition:transform 180ms var(--ease-exit) 140ms; }
+.stage[data-motion="g4"] .ct-card.is-open .ct-scan { transform:scaleX(1);
+  transition:transform 180ms var(--ease-exit) 0ms; }
+/* 黄线已承担分隔，去掉原有 border-t 的颜色，避免叠成「黄+灰」双线 */
+.stage[data-motion="g4"] .ct-pad { border-top-color:transparent; }
+.stage[data-motion="g4"] .ct-children {
+  transition:grid-template-rows 220ms var(--ease-exit); }
+.stage[data-motion="g4"] .ct-card.is-open > .ct-children {
+  transition:grid-template-rows 220ms var(--ease-exit) 140ms; }
+
+/* ---------- G5 · G1 慢速版 ---------- */
+.stage[data-motion="g5"] .ct-children { transition-duration:400ms; }
+.stage[data-motion="g5"] .ct-guide { display:block;
+  transition:transform 360ms var(--ease-exit); }
+.stage[data-motion="g5"] .ct-card.is-open .ct-guide { transform:scaleY(1); }
+.stage[data-motion="g5"] .ct-pad { opacity:0; transition:opacity 220ms ease; }
+.stage[data-motion="g5"] .ct-card.is-open .ct-pad { opacity:1;
+  transition:opacity 240ms ease 120ms; }
+
+/* 无障碍：直接完整切换，不把人卡在半展开状态 */
+body.sim-reduce .stage *, body.sim-reduce .stage *::before, body.sim-reduce .stage *::after {
+  transition:none !important; animation:none !important; }
+@media (prefers-reduced-motion:reduce) {
+  .stage *, .stage *::before, .stage *::after { transition:none !important; animation:none !important; }
+}
+
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { text-align:left; font-weight:500; color:var(--ink-tertiary); font-size:11px; letter-spacing:.04em;
+  padding:8px 10px; border-bottom:1px solid var(--line-strong); }
+td { padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+code { font-family:var(--font-mono); font-size:11.5px; color:var(--action); }
+pre { margin:12px 0; padding:14px 16px; background:var(--surface-sunken); border:1px solid var(--line);
+  overflow-x:auto; font-family:var(--font-mono); font-size:11.5px; line-height:1.7; color:var(--ink-secondary); }
+pre b { color:var(--action); font-weight:400; }
+@media (max-width:760px) { .samples { grid-template-columns:1fr; } .wrap { padding:32px 16px 80px; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"></span> FLASH / MGMT</div>
+  <span class="label">LIST EXPAND MOTION · G 组</span>
+  <span class="sep"></span>
+  <span class="meta">← gui-style-guide.html / 06</span>
+  <button class="btn btn-ghost" id="themeBtn" type="button">切换明暗</button>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">EXPAND / COLLAPSE · TWO-LEVEL CATEGORY TREE</div>
+    <h1>展开要有来路，收起要有回路。</h1>
+    <p class="lede">芯片类型页点开二级分类原本是 <code>v-if</code> 硬切，一按就整块蹦出来。<strong>G1 已落地</strong>：只动高度、透明度和一条 1px 引导线，子项<strong>整体一起出现，绝不逐条错峰</strong>；<strong>收起按原路逆向</strong>，所以全用双向 <code>transition</code>。折叠箭头也跟着转 90°——同一个 chevron 旋转，不再硬换字形。</p>
+    <div class="note rev"><strong>G1 已落到项目代码。</strong><code>pages/chip-types/index.vue</code> 的 <code>v-if</code> 换成常驻 DOM + <code>is-open</code>，样式在 <code>assets/css/endfield/utilities.css</code>，规范页 06 章已同步。下面舞台仍可切 G2–G5 对比，挑中别的再说一声。仍然禁止：子项错峰入场、上浮位移、内容缩放变形、spring 回弹、<strong>箭头以外的装饰性旋转</strong>。</div>
+    <p class="label">舞台用的是真实分类数据；右侧操作按钮仅作版式示意，点整行都会展开。</p>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>舞台 · 点一级分类看展开 / 收起</h2></div>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="playAll">→ 依次播放 G1–G5（含逆向收起）</button>
+      <button class="btn btn-secondary" id="openAll">全部展开</button>
+      <button class="btn btn-secondary" id="closeAll">全部收起</button>
+      <button class="btn btn-ghost" id="reduceBtn" aria-pressed="false">模拟「减少动态效果」：关</button>
+      <span class="readout" id="readout">当前 G1 · 点一级分类展开 / 收起</span>
+    </div>
+
+    <div class="stage" id="stage" data-motion="g1">
+      <div class="stage-bar">
+        <h3>芯片类型列表</h3>
+        <span class="sub">两级分类 · 「其他」类型芯片只能选择二级分类</span>
+        <span class="sep"></span>
+        <span class="fake-input">搜索分类</span>
+        <span class="fake-btn">＋ 新增一级</span>
+      </div>
+      <div id="tree"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>五个候选</h2></div>
+    <p class="lede"><strong>G1 是项目当前方案</strong>，其余四个留作对照。点「试用」会切到该方案并自动展开第一项；也可以直接点任意一级分类，反复体会展开 / 收起与箭头旋转。五个方案共用同一套箭头旋转——那是状态过渡，不随方案变化。</p>
+
+    <div class="samples">
+      <div class="sample pick" data-motion="g1">
+        <div class="top"><span class="key">G1</span><span class="name">引导线生长 + 整体淡入</span><span class="badge">已落地</span></div>
+        <div class="spec">高度 240ms · 引导线 220ms · 子项 180ms@60ms · 箭头旋转 220ms · 总约 300ms</div>
+        <div class="what"><b>怎么动：</b>容器从上撑开的同时，左侧 <code>pl-11</code> 空区里一条 1px 竖线自顶端长到底；子项作为一整块淡入（不是一条一条来）；折叠箭头由 <code>▸</code> 转到 <code>▾</code>，220ms 同步跟上。呼应危险弹窗「点 → 线」的生长语言，但收得更轻。<strong>收起时箭头转回、线缩回、子项先淡出、高度最后收回。</strong></div>
+        <button class="btn btn-secondary play">试用 G1</button>
+      </div>
+
+      <div class="sample" data-motion="g2">
+        <div class="top"><span class="key">G2</span><span class="name">纯高度撑开</span></div>
+        <div class="spec">高度 220ms · 无附加 · 总 220ms</div>
+        <div class="what"><b>怎么动：</b>只有 <code>grid-template-rows: 0fr → 1fr</code>，内容被容器边缘自然揭示，不加任何淡入或线条。最贴常规 200ms 规范，最像「原生就该有的细节」，存在感也最低。</div>
+        <button class="btn btn-secondary play">试用 G2</button>
+      </div>
+
+      <div class="sample" data-motion="g3">
+        <div class="top"><span class="key">G3</span><span class="name">撑开 + 横向擦除</span></div>
+        <div class="spec">高度 160ms · 擦除 260ms@40ms · 总约 300ms</div>
+        <div class="what"><b>怎么动：</b>位置先落下（高度快），内容再用 <code>clip-path</code> 从左往右擦出来（慢一点）。和弹窗 F1 的「线长成窗」同源，但方向横过来。拉开层级感，比 G1 更「仪器读数刷出来」。</div>
+        <button class="btn btn-secondary play">试用 G3</button>
+      </div>
+
+      <div class="sample" data-motion="g4">
+        <div class="top"><span class="key">G4</span><span class="name">状态线先行</span></div>
+        <div class="spec">黄线 180ms → 高度 220ms@140ms · 总约 360ms</div>
+        <div class="what"><b>怎么动：</b>先在一级行底部亮起一条 <code>--ef-action</code> 1px 信号黄线，从左扫到右；线扫满，二级内容才落下。<strong>信号黄在这里是「正在展开」的进行中信号</strong>，不装饰。收起时容器先收、黄线最后缩回，最贴工业控制台的因果顺序。</div>
+        <button class="btn btn-secondary play">试用 G4</button>
+      </div>
+
+      <div class="sample" data-motion="g5">
+        <div class="top"><span class="key">G5</span><span class="name">G1 慢速版</span></div>
+        <div class="spec">高度 400ms · 线 360ms · 子项 240ms@120ms · 总约 520ms</div>
+        <div class="what"><b>怎么动：</b>动作与 G1 完全一样，只是整体拉慢到能看清每一段。适合拿来做评审，不适合天天点——分类树是高频操作，超过 400ms 就会觉得粘手。</div>
+        <button class="btn btn-secondary play">试用 G5</button>
+      </div>
+
+      <div class="sample" style="border-style:dashed">
+        <div class="top"><span class="key" style="color:var(--danger)">✕</span><span class="name">仍然不做</span></div>
+        <div class="spec">stagger / translateY / scale / spring / 装饰性旋转</div>
+        <div class="what">二级分类一屏能有好几组，逐条错峰会像「刷榜」，正是你说的乱飞；子项上浮会把文字拖虚。<strong>箭头旋转是唯一放行的旋转</strong>：它是「展开 / 收起」的状态过渡，只转这一个 20px 图标、双向同一条曲线，不带动整行或内容。3D 封装自动旋转、按钮 hover 旋转仍一律禁止。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>G1 落地清单</h2></div>
+    <p class="lede">已按下面结构落到项目里。核心是把 <code>v-if</code> 换成常驻 DOM + 状态类；高度用 CSS Grid 的 <code>0fr / 1fr</code>，<strong>不需要 JS 去量 <code>auto</code> 高度</strong>，也不用给容器拍一个不精确的 <code>max-height</code>。</p>
+
+<pre><b>&lt;!-- index.vue：is-open 挂在一级卡片上，箭头与二级区共用同一状态 --&gt;</b>
+&lt;div class="ct-card ..." :class="{ 'is-open': isExpanded(root) }"&gt;
+  &lt;button class="ct-caret-icon" :aria-expanded="isExpanded(root)"&gt;
+    &lt;UIcon name="i-lucide-chevron-right" /&gt;   <b>// 单个图标，靠 CSS 旋转 90°</b>
+  &lt;/button&gt;
+  …
+  &lt;div class="ct-children" :aria-hidden="!isExpanded(root)"
+       :inert="!isExpanded(root) || undefined"&gt;   <b>// 别写 false：inert 存在即生效</b>
+    &lt;div class="ct-children-inner"&gt;
+      &lt;span class="ct-guide" aria-hidden="true"&gt;&lt;/span&gt;
+      &lt;div class="ct-pad"&gt;
+        &lt;div v-for="child in childrenFor(root)" :key="child.id"&gt;…&lt;/div&gt;
+        &lt;p v-if="!childrenFor(root).length"&gt;暂无二级分类…&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+<b>/* utilities.css · G1 关键几条 */</b>
+.ct-children             { display:grid; grid-template-rows:0fr;
+                           transition:grid-template-rows 240ms var(--ease-exit); }
+.ct-card.is-open > .ct-children { grid-template-rows:1fr; }
+.ct-children-inner       { min-height:0; overflow:hidden; position:relative; }
+.ct-pad                  { border-top:1px solid var(--ef-line); padding:4px 0;
+                           opacity:0; transition:opacity 160ms ease; }
+.ct-card.is-open .ct-pad { opacity:1; transition:opacity 180ms ease 60ms; }
+.ct-guide                { transform:scaleY(0); transition:transform 220ms var(--ease-exit); }
+.ct-card.is-open .ct-guide { transform:scaleY(1); }
+.ct-caret-icon           { transition:transform 220ms var(--ease-exit); }
+.ct-card.is-open .ct-caret-icon { transform:rotate(90deg); }</pre>
+
+    <div style="border:1px solid var(--line);padding:16px">
+      <table>
+        <thead><tr><th>样板</th><th>在共用骨架上追加什么</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">G1</td><td><strong>已落地。</strong><code>.ct-guide</code> 的 <code>scaleY(0→1)</code> 220ms + <code>.ct-pad</code> <code>opacity 0→1</code> 180ms@60ms + <code>.ct-caret-icon</code> 的 <code>rotate(0→90deg)</code> 220ms；全部写成双向 <code>transition</code></td></tr>
+          <tr><td class="mono">G2</td><td>什么都不加，只留共用的高度过渡</td></tr>
+          <tr><td class="mono">G3</td><td>高度缩到 160ms；<code>.ct-children-inner</code> 加 <code>clip-path: inset(0 100% 0 0) → inset(0 0 0 0)</code> 260ms@40ms</td></tr>
+          <tr><td class="mono">G4</td><td>一级行底部加一条 1px <code>--ef-action</code> 线，<code>scaleX(0→1)</code> 180ms；展开时高度加 140ms 延迟，收起时不加</td></tr>
+          <tr><td class="mono">G5</td><td>G1 的三段时长整体放大到 400 / 360 / 240ms@120ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note"><strong>五个落地坑，先记下：</strong><br>
+      ① <code>border-t</code> 必须挪进 <code>.ct-children-inner</code>（现在是 <code>.ct-pad</code>），否则 <code>0fr</code> 时那条分隔线还留着，折叠态看着像没展开干净；<br>
+      ② 一级卡片外层本来就有 <code>overflow-hidden</code>，别再叠一层；<br>
+      ③ 搜索时 <code>isExpanded()</code> 恒为 <code>true</code>，所有命中的一级会同时展开——<strong>同时，不要错峰</strong>，否则一输入关键字整页乱闪；<br>
+      ④ <code>grid-template-rows</code> 过渡需要 Chrome 107+ / Safari 16+，旧浏览器会直接硬切（等于回到现状，不会坏）。<code>prefers-reduced-motion</code> 下全部直接切换；<br>
+      ⑤ 常驻 DOM 后折叠态的二级按钮仍在文档里，必须加 <code>:inert</code> + <code>:aria-hidden</code>，否则键盘能 Tab 进看不见的「编辑 / 删除」。<strong>inert 要写 <code>!isExpanded(root) || undefined</code></strong>——部分 Vue 版本会把 <code>:inert="false"</code> 渲染成 <code>inert="false"</code>，而这个布尔属性「存在即生效」，会把展开态按钮一起废掉。箭头则用<strong>单个 chevron + rotate</strong>，换字形是没法做旋转过渡的。</div>
+
+    <div class="note rev"><strong>验收口径：</strong>关掉动效后，分类树仍要能完整展开 / 收起，<strong>箭头方向仍要正确</strong>（旋转是过渡，不是方向的唯一来源），子项文字不被裁切、计数不重叠、搜索命中的一级全部可见。动效只负责「这一块是刚从上面长出来的」，不负责表达层级——层级靠缩进和 <code>corner-down-right</code> 图标。</div>
+
+    <p class="label" style="margin-top:40px;text-align:center">END · list expand motion · <a href="gui-style-guide.html">返回 GUI 风格方案</a> · <a href="modal-motion-demo.html">弹窗动效样板</a></p>
+  </section>
+
+</div>
+
+<script>
+/* ---- 真实分类数据，还原列表版式 ---- */
+const ICON = {
+  right: '<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>',
+  folder:'<svg class="ct-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>',
+  corner:'<svg viewBox="0 0 24 24"><path d="M4 4v7a4 4 0 004 4h10"/></svg>',
+  plus:  '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  pencil:'<svg viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M14 6l4 4"/></svg>',
+  trash: '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>'
+};
+
+const DATA = [
+  { name:'存储器', total:128, children:[['NOR FLASH',42],['NAND FLASH',31],['EEPROM',28],['SRAM',17],['FRAM',10]] },
+  { name:'电源管理', total:96, children:[['LDO 线性稳压',34],['DC-DC 转换器',29],['电压基准',18],['电池管理',15]] },
+  { name:'微控制器 / MCU', total:214, children:[['8 位 MCU',58],['32 位 MCU',92],['RISC-V MCU',47],['DSP',17]] },
+  { name:'接口芯片', total:73, children:[['USB 转换',26],['RS232 / RS485',21],['CAN 收发',14],['电平转换',12]] },
+  { name:'传感器', total:61, children:[['温湿度',22],['加速度 / 陀螺',19],['压力',12],['光照',8]] }
+];
+
+const tree = document.getElementById('tree');
+tree.innerHTML = DATA.map(g => `
+  <div class="ct-card">
+    <div class="ct-head" role="button" tabindex="0" aria-expanded="false">
+      <span class="ct-caret">${ICON.right}</span>
+      ${ICON.folder}
+      <span class="ct-name">${g.name}</span>
+      <span class="ct-meta">${g.children.length} 个子类 · ${g.total} 颗</span>
+      <span class="ct-ops">
+        <span class="op-plus">＋ 二级</span>
+        <span>${ICON.pencil}</span>
+        <span class="op-del">${ICON.trash}</span>
+      </span>
+      <span class="ct-scan" aria-hidden="true"></span>
+    </div>
+    <div class="ct-children">
+      <div class="ct-children-inner">
+        <span class="ct-guide" aria-hidden="true"></span>
+        <div class="ct-pad">
+          ${g.children.map(([n,c]) => `
+            <div class="ct-row">${ICON.corner}<span class="n">${n}</span><span class="c">${c} 颗</span></div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+`).join('');
+
+const stage = document.getElementById('stage');
+const readout = document.getElementById('readout');
+const cards = [...tree.querySelectorAll('.ct-card')];
+let playing = false;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function setOpen(card, v) {
+  card.classList.toggle('is-open', v);
+  card.querySelector('.ct-head').setAttribute('aria-expanded', String(v));
+}
+function collapseAll() { cards.forEach(c => setOpen(c, false)); }
+function expandAll() { cards.forEach(c => setOpen(c, true)); }
+
+function setMotion(m) {
+  stage.dataset.motion = m;
+  document.querySelectorAll('.sample[data-motion]').forEach(s =>
+    s.classList.toggle('pick', s.dataset.motion === m));
+  readout.textContent = '当前 ' + m.toUpperCase() + ' · 点一级分类展开 / 收起';
+}
+
+/* 事件委托：整行（含示意按钮）都触发展开 */
+tree.addEventListener('click', e => {
+  const head = e.target.closest('.ct-head');
+  if (!head) return;
+  playing = false;
+  const card = head.closest('.ct-card');
+  setOpen(card, !card.classList.contains('is-open'));
+});
+tree.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const head = e.target.closest('.ct-head');
+  if (!head) return;
+  e.preventDefault();
+  playing = false;
+  const card = head.closest('.ct-card');
+  setOpen(card, !card.classList.contains('is-open'));
+});
+
+function trial(m) {
+  playing = false;
+  collapseAll();
+  setMotion(m);
+  void stage.offsetWidth;              // 强制重排，让过渡从头播
+  requestAnimationFrame(() => setOpen(cards[0], true));
+}
+
+document.querySelectorAll('.sample[data-motion]').forEach(card => {
+  card.querySelector('.play').addEventListener('click', () => trial(card.dataset.motion));
+});
+
+document.getElementById('openAll').addEventListener('click', () => {
+  playing = false; collapseAll(); void stage.offsetWidth;
+  requestAnimationFrame(expandAll);
+  readout.textContent = '全部展开 · 注意：同时展开，没有错峰';
+});
+document.getElementById('closeAll').addEventListener('click', () => {
+  playing = false; collapseAll();
+  readout.textContent = '全部收起 · 观察逆向收回';
+});
+
+async function playSequence(list) {
+  if (playing) return;
+  playing = true;
+  for (const m of list) {
+    if (!playing) return;
+    collapseAll(); setMotion(m);
+    void stage.offsetWidth;
+    await new Promise(r => requestAnimationFrame(r));
+    setOpen(cards[0], true);
+    readout.textContent = '播放 ' + m.toUpperCase() + ' · 展开';
+    await wait(760);
+    if (!playing) return;
+    setOpen(cards[0], false);
+    readout.textContent = '播放 ' + m.toUpperCase() + ' · 逆向收起';
+    await wait(460);
+  }
+  readout.textContent = '播放完毕 · 挑一个告诉我';
+  playing = false;
+}
+document.getElementById('playAll').addEventListener('click', () =>
+  playSequence(['g1','g2','g3','g4','g5']));
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const el = document.documentElement;
+  el.dataset.theme = el.dataset.theme === 'dark' ? 'light' : 'dark';
+});
+
+const reduceBtn = document.getElementById('reduceBtn');
+reduceBtn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('sim-reduce');
+  reduceBtn.setAttribute('aria-pressed', String(on));
+  reduceBtn.textContent = '模拟「减少动态效果」：' + (on ? '开（直接切换）' : '关');
+  readout.textContent = on ? 'reduced-motion = on · 展开收起直接到位' : '就绪';
+});
+</script>
+</body>
+</html>

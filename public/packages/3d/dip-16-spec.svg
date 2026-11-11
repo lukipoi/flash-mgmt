@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 470" width="720" height="470">
+  <!-- DIP-16 正俯视工程图（依据 Microchip PDIP COMMON DIMENSIONS 尺寸表，单位 mm，32 px/mm）
+       D 18.95–19.15（NOM 19.05） E1 6.25–6.45（NOM 6.35） E 7.62–8.25（NOM 7.87） e 2.54
+       b1 0.38–0.51（NOM 0.46） b 0.38–0.55  L 2.92–3.81（NOM 3.30）
+       A ≤4.80  A2 3.10–3.50（TYP 3.30）  A1 ≥0.50  eB 7.62–10.90  θ 0–15° -->
+  <defs>
+    <marker id="arwE" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arwS" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M7 1 L1 4 L7 7 Z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- 尺寸辅助线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="0.9" stroke-opacity="0.55">
+    <path d="M58 86 V30 M667.6 86 V30"/>
+    <path d="M54 90 H34 M54 293.2 H34"/>
+    <path d="M322.14 321.5 V352 M403.42 321.5 V352"/>
+    <path d="M658.6 65.68 H706 M658.6 317.52 H706"/>
+  </g>
+
+  <!-- 尺寸线 -->
+  <g fill="none" stroke="#22d3ee" stroke-width="1.2">
+    <path d="M58 36 H667.6" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M40 90 V293.2" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M322.14 346 H403.42" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+    <path d="M700 65.68 V317.52" marker-start="url(#arwS)" marker-end="url(#arwE)"/>
+  </g>
+
+  <!-- 尺寸标注 -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#67e8f9" letter-spacing="0.3">
+    <text x="362.8" y="26" text-anchor="middle">D 19.05</text>
+    <text transform="translate(28 191.6) rotate(-90)" text-anchor="middle">E1 6.35</text>
+    <text x="362.8" y="370" text-anchor="middle">e 2.54</text>
+    <text transform="translate(692 191.6) rotate(-90)" text-anchor="middle">E 7.87</text>
+  </g>
+
+  <!-- 引脚：上排 16–9，下排 1–8（缺口示 pin1） -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="57.98" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="139.26" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="220.54" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="301.82" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="383.1" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="464.38" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="545.66" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="626.94" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="57.98" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="139.26" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="220.54" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="301.82" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="383.1" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="464.38" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="545.66" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="626.94" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+  </g>
+
+  <!-- 本体 -->
+  <rect x="58" y="90" width="609.6" height="203.2" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+  <!-- 左侧 pin1 缺口（塑封凹坑，非通孔）：深一档实心半圆 -->
+  <path d="M 58 159.6 A 32 32 0 0 1 58 223.6 Z" fill="#262c38"/>
+
+  <!-- caption -->
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12" fill="#94a3b8" letter-spacing="0.3">
+    <text x="360" y="396" text-anchor="middle">DIP-16 · 16 脚 · 顶视 Top View · D 18.95–19.15</text>
+    <text x="360" y="414" text-anchor="middle">E1 6.25–6.45 · E 7.62–8.25 · e 2.54 · b1 0.38–0.51 · b 0.38–0.55</text>
+    <text x="360" y="432" text-anchor="middle">L 2.92–3.81 · A ≤4.80 · A2 3.10–3.50（TYP 3.30） · A1 ≥0.50</text>
+    <text x="360" y="450" text-anchor="middle">eB 7.62–10.90 · θ 0–15° · 脚1 = 缺口（左）下排最左脚</text>
+  </g>
+</svg>

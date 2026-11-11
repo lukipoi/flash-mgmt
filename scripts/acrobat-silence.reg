@@ -1,0 +1,45 @@
+Windows Registry Editor Version 5.00
+
+; Silence Adobe Acrobat DC popups (Adobe Enterprise Toolkit official policy keys).
+; Effects:
+;   - No "What's New" / first-run tips screens
+;   - No upsell / "try Pro" promos at launch or while viewing docs
+;   - No sign-in UI / Document Cloud services / web connectors
+;   - Product updates are NOT touched (auto-update still works)
+; Revert: delete key HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Adobe\Adobe Acrobat
+; Requires: run once as Administrator (double-click -> confirm UAC), then restart Acrobat.
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown]
+"bAcroSuppressUpsell"=dword:00000001
+"bToggleFTE"=dword:00000001
+"bWhatsNewExp"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown\cIPM]
+"bShowMsgAtLaunch"=dword:00000000
+"bDontShowMsgWhenViewingDoc"=dword:00000000
+"bAllowUserToChangeMsgPrefs"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown\cServices]
+"bUpdater"=dword:00000000
+"bToggleAdobeDocumentServices"=dword:00000001
+"bToggleAdobeSign"=dword:00000001
+"bTogglePrefsSync"=dword:00000001
+"bToggleWebConnectors"=dword:00000001
+
+; Mirror for 32-bit components (harmless if unused)
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown]
+"bAcroSuppressUpsell"=dword:00000001
+"bToggleFTE"=dword:00000001
+"bWhatsNewExp"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown\cIPM]
+"bShowMsgAtLaunch"=dword:00000000
+"bDontShowMsgWhenViewingDoc"=dword:00000000
+"bAllowUserToChangeMsgPrefs"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown\cServices]
+"bUpdater"=dword:00000000
+"bToggleAdobeDocumentServices"=dword:00000001
+"bToggleAdobeSign"=dword:00000001
+"bTogglePrefsSync"=dword:00000001
+"bToggleWebConnectors"=dword:00000001

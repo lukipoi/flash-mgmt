@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flash-mgmt · GUI 风格方案 / ENFIELD 工业装备清单</title>
+<style>
+/* ==================================================================
+   flash-mgmt GUI Style Guide
+   本页所有色值 / 字阶 / 圆角 / 时长 / 缓动 / 母题尺寸均取自项目现有令牌：
+     assets/css/endfield/theme.css
+     assets/css/endfield/utilities.css
+   本页是「规范的可视化」，不是新风格提案，不修改任何项目代码。
+   ================================================================== */
+
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --surface:#ffffff; --surface-raised:#fafafa; --surface-sunken:#f2f2f2; --surface-muted:#e6e6e6;
+  --ink:#191919; --ink-secondary:#626262; --ink-tertiary:#8a8a8a; --ink-disabled:#b3b3b3;
+  --line:#d9d9d9; --line-strong:#b3b3b3;
+  --action:#fffa00; --action-pressed:#eeea00; --on-action:#191919;
+  --button:#383838; --button-hover:#484848; --button-pressed:#282828; --on-button:#eeeeee;
+  --danger:#de0909; --success:#007f43; --warning:#b74e00; --info:#25759f;
+  --focus:#191919; --scrim:rgba(0,0,0,.5);
+  --hatch:rgba(25,25,25,.055); --shadow:0 0 12px rgba(0,0,0,.12);
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface:#141414; --surface-raised:#1f1f1f; --surface-sunken:#000000; --surface-muted:#282828;
+  --ink:#fafafa; --ink-secondary:#b3b3b3; --ink-tertiary:#8a8a8a; --ink-disabled:#626262;
+  --line:#383838; --line-strong:#626262;
+  --action:#fffa00; --action-pressed:#eeea00; --on-action:#191919;
+  --button:rgba(255,255,255,.2); --button-hover:rgba(255,255,255,.3);
+  --button-pressed:rgba(255,255,255,.15); --on-button:#d9d9d9;
+  --danger:#f74040; --success:#00d872; --warning:#fc6c00; --info:#2d8fc2;
+  --focus:#fffa00; --scrim:rgba(0,0,0,.7);
+  --hatch:rgba(250,250,250,.05); --shadow:0 0 12px rgba(0,0,0,.3);
+}
+
+/* 原始令牌 */
+:root {
+  --n0:#ffffff; --n50:#fafafa; --n100:#f2f2f2; --n200:#e6e6e6; --n300:#d9d9d9;
+  --n400:#b3b3b3; --n500:#8a8a8a; --n600:#626262; --n700:#484848; --n800:#383838;
+  --n850:#282828; --n900:#191919; --n950:#141414;
+  --signal-deep:#e6de01; --signal-ink:#6b5d00;
+  --gain:#bce41d; --notice:#fc6c00; --data:#2a84b4; --region:#06a2a2; --alert:#f62a2a; --special:#904ef0;
+
+  /* 全站直角化（2026-11-08 用户拍板）：三档圆角令牌归零，圆形元素豁免 */
+  --radius-xs:0px; --radius-sm:0px; --radius-md:0px;
+  --cut-sm:6px; --cut-md:10px; --cut-lg:16px; --hatch-size:6px;
+  --ease-standard:ease; --ease-emphasis:ease-in-out; --ease-exit:ease-out;
+  --duration-instant:50ms; --duration-fast:200ms; --duration-base:300ms;
+  --duration-slow:400ms; --duration-slower:600ms;
+  --motion-shift:4px; --motion-shift-lg:8px;
+  --font-sans:"HarmonyOS Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-display:"Archivo","Montserrat","HarmonyOS Sans SC",sans-serif;
+  --font-tech:"Space Grotesk","HarmonyOS Sans SC",sans-serif;
+  --font-mono:"JetBrains Mono","Cascadia Code",ui-monospace,Consolas,monospace;
+}
+
+* { box-sizing:border-box; }
+html { background:var(--surface); }
+body {
+  margin:0; background:var(--surface); color:var(--ink);
+  font-family:var(--font-sans); font-size:14px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+::selection { background:var(--action); color:var(--on-action); }
+a { color:inherit; text-decoration:none; }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+.label {
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--ink-tertiary);
+}
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  position:sticky; top:0; z-index:200; height:56px; display:flex; align-items:center;
+  gap:16px; padding:0 24px; background:var(--surface-raised);
+  border-bottom:1px solid var(--line);
+}
+.brand { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; letter-spacing:.02em; }
+.brand-mark {
+  width:20px; height:20px; background:var(--action);
+  clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+}
+.topbar .sep { flex:1; }
+.topbar .meta { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+
+/* ---------- 布局 ---------- */
+.shell { display:grid; grid-template-columns:220px minmax(0,1fr); max-width:1440px; margin:0 auto; }
+.rail {
+  position:sticky; top:56px; align-self:start; height:calc(100vh - 56px);
+  padding:28px 16px; border-right:1px solid var(--line); overflow:auto;
+}
+.rail .label { display:block; margin:0 0 14px 8px; }
+.rail a {
+  display:flex; gap:10px; align-items:center; padding:7px 8px; font-size:13px;
+  color:var(--ink-secondary); border-left:2px solid transparent;
+}
+.rail a:hover { color:var(--ink); background:var(--surface-raised); border-left-color:var(--action); }
+.rail a span { font-family:var(--font-mono); font-size:10px; color:var(--ink-tertiary); }
+main { padding:0 48px 120px; min-width:0; }
+
+/* ---------- 章节 ---------- */
+section { padding:56px 0 8px; scroll-margin-top:70px; border-bottom:1px solid var(--line); }
+section:last-child { border-bottom:0; }
+.sec-head { display:flex; align-items:baseline; gap:14px; margin-bottom:8px; }
+.sec-num { font-family:var(--font-mono); font-size:12px; color:var(--action); }
+h1 { font-family:var(--font-display); font-size:clamp(32px,4.4vw,56px); line-height:1.05; margin:0; letter-spacing:-.02em; }
+h2 { font-family:var(--font-display); font-size:24px; line-height:1.2; margin:0; letter-spacing:-.01em; }
+h3 { font-size:14px; margin:0 0 12px; font-weight:600; }
+.lede { color:var(--ink-secondary); max-width:760px; margin:12px 0 32px; font-size:15px; }
+p { margin:0 0 12px; }
+.note {
+  border-left:3px solid var(--action); background:var(--surface-raised);
+  padding:12px 16px; font-size:13px; color:var(--ink-secondary); margin:20px 0;
+}
+.note strong { color:var(--ink); }
+.grid { display:grid; gap:20px; }
+.g2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.g3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.g4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.panel { background:var(--surface-raised); border:1px solid var(--line); padding:20px; }
+.panel-flat { border:1px solid var(--line); padding:20px; }
+
+/* ---------- Hero ---------- */
+.hero { position:relative; padding:72px 0 48px; overflow:hidden; border-bottom:1px solid var(--line); }
+.hero::before {
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.9;
+  background-image:radial-gradient(circle, var(--hatch) 1px, transparent 1.5px);
+  background-size:16px 16px;
+  -webkit-mask:linear-gradient(90deg,#000,transparent 70%); mask:linear-gradient(90deg,#000,transparent 70%);
+}
+.hero > * { position:relative; }
+.hero .eyebrow { color:var(--action); font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; }
+.hero h1 { margin:14px 0 16px; }
+.hero .sub { font-size:17px; color:var(--ink-secondary); max-width:680px; }
+.hero .tagrow { display:flex; flex-wrap:wrap; gap:8px; margin-top:28px; }
+.tag {
+  font-family:var(--font-mono); font-size:11px; padding:5px 10px;
+  border:1px solid var(--line-strong); color:var(--ink-secondary);
+}
+.tag.hi { background:var(--action); color:var(--on-action); border-color:var(--action); }
+
+/* ---------- 原则卡 ---------- */
+.principle { border-top:2px solid var(--ink); padding-top:14px; }
+.principle .idx { font-family:var(--font-mono); font-size:11px; color:var(--action); }
+.principle h3 { margin:8px 0 6px; font-size:15px; }
+.principle p { font-size:12.5px; color:var(--ink-secondary); margin:0; }
+
+/* ---------- 色卡 ---------- */
+.swatches { display:grid; grid-template-columns:repeat(13,minmax(0,1fr)); gap:2px; }
+.swatch { aspect-ratio:1/1.5; display:flex; align-items:flex-end; padding:5px; font-family:var(--font-mono); font-size:8px; }
+.role-row { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px dashed var(--line); }
+.role-row:last-child { border-bottom:0; }
+.chip { width:34px; height:20px; border:1px solid var(--line); flex:none; }
+.role-row .desc { color:var(--ink-secondary); font-size:12px; flex:1; }
+.role-row code { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+
+/* ---------- 字体 / 字阶 ---------- */
+.type-row { display:flex; align-items:baseline; gap:16px; padding:10px 0; border-bottom:1px dashed var(--line); }
+.type-row .spec { font-family:var(--font-mono); font-size:10px; color:var(--ink-tertiary); width:130px; flex:none; }
+.t-micro{font-size:10px;line-height:1} .t-xs{font-size:12px;line-height:1.25}
+.t-sm{font-size:14px;line-height:1.4} .t-base{font-size:16px;line-height:1.6}
+.t-lg{font-size:20px;line-height:1.2} .t-xl{font-size:24px;line-height:1.1}
+.t-2xl{font-size:32px;line-height:1.1} .t-3xl{font-size:40px;line-height:1}
+
+/* ---------- 母题 ---------- */
+.cut-demo {
+  height:76px; display:flex; align-items:center; justify-content:center;
+  background:var(--surface-muted); font-family:var(--font-mono); font-size:11px;
+  color:var(--ink-secondary);
+}
+.cut-tr { clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
+.cut-br { clip-path:polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+.cut-diag { clip-path:polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+.hatch-demo {
+  height:76px; background-image:repeating-linear-gradient(-45deg,
+    var(--hatch) 0 1.9px, transparent 0 calc(var(--hatch-size) * .7071));
+  border:1px solid var(--line);
+}
+.hazard-demo {
+  height:20px; background-image:repeating-linear-gradient(-45deg,
+    var(--action) 0 12px, #191919 12px 24px);
+}
+.brackets { position:relative; height:76px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; }
+.brackets::after {
+  content:""; position:absolute; inset:-4px; pointer-events:none;
+  --c:var(--ink); --w:2px; --l:12px;
+  background:
+    linear-gradient(var(--c) 0 0) 0 0/var(--l) var(--w), linear-gradient(var(--c) 0 0) 0 0/var(--w) var(--l),
+    linear-gradient(var(--c) 0 0) 100% 0/var(--l) var(--w), linear-gradient(var(--c) 0 0) 100% 0/var(--w) var(--l),
+    linear-gradient(var(--c) 0 0) 0 100%/var(--l) var(--w), linear-gradient(var(--c) 0 0) 0 100%/var(--w) var(--l),
+    linear-gradient(var(--c) 0 0) 100% 100%/var(--l) var(--w), linear-gradient(var(--c) 0 0) 100% 100%/var(--w) var(--l);
+  background-repeat:no-repeat;
+}
+
+/* ---------- 组件 ---------- */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:36px; padding:0 14px; font-size:13px; font-family:inherit; font-weight:500;
+  border:1px solid transparent; border-radius:var(--radius-sm); cursor:pointer;
+  transition:background-color var(--duration-instant) var(--ease-standard),
+             border-color var(--duration-instant) var(--ease-standard),
+             color var(--duration-instant) var(--ease-standard);
+}
+.btn-primary { background:var(--action); color:var(--on-action); }
+.btn-primary:hover { background:var(--action-pressed); }
+.btn-primary:active { background:var(--signal-deep); }
+.btn-secondary { background:var(--button); color:var(--on-button); border-color:var(--line); }
+.btn-secondary:hover { background:var(--button-hover); }
+.btn-secondary:active { background:var(--button-pressed); }
+.btn-ghost { background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn-ghost:hover { background:var(--surface-muted); }
+.btn-danger { background:transparent; color:var(--danger); border-color:var(--danger); }
+.btn-danger:hover { background:var(--danger); color:#fff; }
+.btn:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+.btn:disabled { opacity:.42; cursor:not-allowed; }
+.btn-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.field {
+  display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--ink-secondary);
+}
+.input {
+  height:36px; padding:0 10px; background:var(--surface-sunken); color:var(--ink);
+  border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+  font-family:var(--font-mono); font-size:13px;
+  transition:border-color var(--duration-instant) var(--ease-standard);
+}
+.input:focus { outline:none; border-color:var(--action); }
+.badge {
+  display:inline-flex; align-items:center; padding:2px 8px; font-family:var(--font-mono);
+  font-size:10px; letter-spacing:.03em; border:1px solid var(--line-strong); color:var(--ink-secondary);
+}
+.badge.on { background:var(--action); color:var(--on-action); border-color:var(--action); }
+.badge.err { color:var(--danger); border-color:var(--danger); }
+.badge.ok { color:var(--success); border-color:var(--success); }
+.card {
+  background:var(--surface-raised); border:1px solid var(--line); padding:16px;
+  border-radius:var(--radius-sm);
+}
+.card .k { font-size:11px; color:var(--ink-tertiary); }
+.card .v { font-family:var(--font-mono); font-size:28px; color:var(--action); line-height:1.2; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { text-align:left; font-weight:500; color:var(--ink-tertiary); font-size:11px;
+     letter-spacing:.04em; padding:8px 10px; border-bottom:1px solid var(--line-strong); }
+td { padding:9px 10px; border-bottom:1px solid var(--line); }
+tbody tr:hover { background:var(--surface-raised); }
+.toast {
+  display:flex; gap:10px; align-items:flex-start; background:var(--surface-raised);
+  border:1px solid var(--line-strong); border-left:3px solid var(--success); padding:12px 14px;
+  box-shadow:var(--shadow); font-size:13px;
+}
+.state-table td:first-child { font-family:var(--font-mono); font-size:11px; color:var(--ink-secondary); }
+
+/* ---------- 动效 ---------- */
+.motion-table th, .motion-table td { font-size:12px; }
+.demo {
+  border:1px solid var(--line); background:var(--surface-raised); padding:18px;
+  display:flex; flex-direction:column; gap:14px;
+}
+.demo .demo-title { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.demo .demo-title h3 { margin:0; }
+.demo .hint { font-size:11px; color:var(--ink-tertiary); }
+.stage { min-height:64px; display:flex; align-items:center; }
+
+/* D1 扫描等待：仅等待期间出现的功能性循环扫光 */
+.scanbar { position:relative; height:4px; background:var(--surface-sunken); overflow:hidden; display:none; }
+.scanbar.on { display:block; }
+.scanbar::after {
+  content:""; position:absolute; inset:0; width:38%;
+  background:linear-gradient(90deg,transparent,var(--action),transparent);
+  animation:scanSweep 1.1s linear infinite;
+}
+@keyframes scanSweep { from { transform:translateX(-110%); } to { transform:translateX(360%); } }
+.scanphase { font-family:var(--font-mono); font-size:11px; color:var(--action); min-height:16px; }
+
+/* D2 命中锁定：150ms 四角收紧 + 一道黄线 */
+.viewfinder { position:relative; width:100%; height:96px; border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.viewfinder .vf-text { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.vf-corner { position:absolute; width:16px; height:16px; border:2px solid var(--ink-secondary);
+  transition:transform var(--duration-instant) var(--ease-exit), border-color var(--duration-instant) var(--ease-exit); }
+.vf-tl{top:8px;left:8px;border-right:0;border-bottom:0}
+.vf-tr{top:8px;right:8px;border-left:0;border-bottom:0}
+.vf-bl{bottom:8px;left:8px;border-right:0;border-top:0}
+.vf-br{bottom:8px;right:8px;border-left:0;border-top:0}
+.viewfinder.hit .vf-corner { transform:scale(.55); border-color:var(--action); }
+.viewfinder.hit .vf-text { color:var(--action); }
+.vf-flash { position:absolute; left:0; right:0; height:2px; background:var(--action); opacity:0; }
+.viewfinder.hit .vf-flash { animation:vfLine var(--duration-fast) var(--ease-exit); }
+@keyframes vfLine { 0%{opacity:0;transform:translateY(-34px)} 40%{opacity:1} 100%{opacity:0;transform:translateY(34px)} }
+
+/* D3 结果落定：200ms 纯 opacity，零位移 */
+.fade-in { animation:fadeIn var(--duration-fast) var(--ease-exit); }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.skeleton { height:12px; background:var(--surface-muted); border-radius:var(--radius-xs); }
+.skeleton.pulse { animation:pulse var(--duration-slower) var(--ease-emphasis) infinite alternate; }
+@keyframes pulse { from{opacity:.45} to{opacity:1} }
+
+/* D4 原地状态高亮：200ms 颜色一闪 */
+.flash { animation:stateFlash var(--duration-fast) var(--ease-exit); }
+@keyframes stateFlash { 0%{background-color:var(--action);color:var(--on-action)} 100%{background-color:transparent} }
+
+/* 反面示例 */
+.bad-zone { border:1px solid var(--danger); }
+/* 唯一例外：hazard 警示条滚动（见 07 章）
+   -45° 条纹水平无缝周期 = 2 × 8px / cos45° = 22.627px，平移整周期无跳帧 */
+.bad-zone .cz-head { position:relative; height:6px; overflow:hidden; }
+.bad-zone .cz-head::before {
+  content:""; position:absolute; top:0; bottom:0; left:-48px; right:-48px;
+  background:repeating-linear-gradient(-45deg,var(--danger) 0 8px,transparent 8px 16px);
+  animation:hzRoll .8s linear infinite;
+}
+@keyframes hzRoll { to { transform:translateX(-22.627px); } }
+.btn-bad {
+  transition:transform var(--duration-base) var(--ease-emphasis), box-shadow var(--duration-base) var(--ease-emphasis);
+}
+.btn-bad:hover { transform:translateY(-5px) rotate(-2deg) scale(1.06); box-shadow:0 12px 24px rgba(0,0,0,.4); }
+.forbid { display:flex; gap:10px; align-items:flex-start; padding:8px 0; font-size:12.5px; color:var(--ink-secondary); }
+.forbid .x { color:var(--danger); font-family:var(--font-mono); flex:none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important;
+    transition-duration:.01ms!important; animation-delay:0s!important; transition-delay:0s!important; }
+}
+@media (max-width:900px) {
+  .shell { grid-template-columns:1fr; } .rail { display:none; }
+  main { padding:0 20px 80px; } .g3,.g4 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .swatches { grid-template-columns:repeat(7,minmax(0,1fr)); }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"></span> FLASH / MGMT</div>
+  <span class="label">GUI STYLE GUIDE · v1.0</span>
+  <span class="sep"></span>
+  <span class="meta">SOURCE: endfield-ui tokens</span>
+  <button class="btn btn-ghost" id="themeBtn" type="button">切换明暗</button>
+</header>
+
+<div class="shell">
+  <nav class="rail">
+    <span class="label">目录 / Contents</span>
+    <a href="#s0"><span>00</span> 定调</a>
+    <a href="#s1"><span>01</span> 设计原则</a>
+    <a href="#s2"><span>02</span> 色彩系统</a>
+    <a href="#s3"><span>03</span> 字体与字阶</a>
+    <a href="#s4"><span>04</span> 形状与母题</a>
+    <a href="#s5"><span>05</span> 组件与状态</a>
+    <a href="#s6"><span>06</span> 动效规范 · 可点</a>
+    <a href="#s7"><span>07</span> 禁止清单</a>
+  </nav>
+
+  <main>
+    <!-- 00 -->
+    <div class="hero" id="s0">
+      <div class="eyebrow">DESIGN LANGUAGE / ENFIELD · 装备清单</div>
+      <h1>工业控制台，<br>不是消费级后台。</h1>
+      <p class="sub">这份方案不发明新风格。它把 flash-mgmt 已经在用的 endfield-ui 令牌——信号黄、直角切角、1px 描边、等宽数据、零偏移阴影——提炼成一套明确的规则，并给动效划好边界。</p>
+      <div class="tagrow">
+        <span class="tag hi">单一行动色</span>
+        <span class="tag">硬边 / 切角</span>
+        <span class="tag">数据优先</span>
+        <span class="tag">标注感</span>
+        <span class="tag">动效只做状态可读</span>
+      </div>
+      <div class="note" style="margin-top:32px;max-width:760px">
+        <strong>一句话总纲：</strong>界面像一张可核对的装备清单，所有视觉重量让给「型号、数量、状态」；黄色只表示「可点 / 选中 / 进行中」，不表示好看。动效只在人需要知道系统在干嘛的瞬间出现，其余全静。
+      </div>
+      <div class="btn-row" style="margin-top:20px">
+        <a class="btn btn-primary" href="#s6">→ 直接看动效演示</a>
+        <span class="label" style="align-self:center">所有示例可现场点击</span>
+      </div>
+    </div>
+
+    <!-- 01 -->
+    <section id="s1">
+      <div class="sec-head"><span class="sec-num">01</span><h2>设计原则</h2></div>
+      <p class="lede">五条硬规则，用来判断任何新组件 / 新动效该不该做。有冲突时，序号小的优先。</p>
+      <div class="grid g3">
+        <div class="principle"><div class="idx">P1</div><h3>黄色是信号，不是装饰</h3><p>#fffa00 全站只用于主行动、当前选中、进行中指示。禁止拿它做背景块、渐变、大标题、装饰条。明暗主题下它同值，是唯一不随主题变化的锚点。</p></div>
+        <div class="principle"><div class="idx">P2</div><h3>硬边优先，圆角克制</h3><p>默认直角；圆角只有 2 / 4 / 6px 三档，且只给小控件。卡片、表格、弹窗一律靠 1px 描边分层，不靠投影堆叠。</p></div>
+        <div class="principle"><div class="idx">P3</div><h3>母题有配额</h3><p>切角、斜纹、角括号、警示条纹是「标注语言」，每屏最多出现 1–2 处，用在页头、强调卡、危险区。列表和表格里一律不用。</p></div>
+        <div class="principle"><div class="idx">P4</div><h3>数据用等宽</h3><p>型号、编号、数量、十六进制、日期、ID 一律 mono + tabular-nums，保证逐行对齐。正文用无衬线，标题可用 display，但字重不夸张。</p></div>
+        <div class="principle"><div class="idx">P5</div><h3>动效服务可读性</h3><p>只回答三件事：在忙吗 / 成功了吗 / 变的是哪一项。不回答这三件的动效，一律不做。状态变化只改颜色、透明度、描边，不改尺寸与位置。</p></div>
+        <div class="principle" style="border-top-color:var(--action)"><div class="idx">P0</div><h3>先对齐现有令牌</h3><p>任何新样式必须先从 theme.css 里找现成变量。找不到再提案新增，不许就地写十六进制硬编码——这是风格漂移的头号来源。</p></div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="s2">
+      <div class="sec-head"><span class="sec-num">02</span><h2>色彩系统</h2></div>
+      <p class="lede">十三阶中性灰 + 一个信号黄 + 四个状态色。明暗主题只换中性阶和状态色亮度，行动色恒定。</p>
+
+      <h3>中性阶 / Neutral</h3>
+      <div class="swatches">
+        <div class="swatch" style="background:#ffffff;color:#191919;border:1px solid #d9d9d9">0</div>
+        <div class="swatch" style="background:#fafafa;color:#191919">50</div>
+        <div class="swatch" style="background:#f2f2f2;color:#191919">100</div>
+        <div class="swatch" style="background:#e6e6e6;color:#191919">200</div>
+        <div class="swatch" style="background:#d9d9d9;color:#191919">300</div>
+        <div class="swatch" style="background:#b3b3b3;color:#191919">400</div>
+        <div class="swatch" style="background:#8a8a8a;color:#191919">500</div>
+        <div class="swatch" style="background:#626262;color:#fff">600</div>
+        <div class="swatch" style="background:#484848;color:#fff">700</div>
+        <div class="swatch" style="background:#383838;color:#fff">800</div>
+        <div class="swatch" style="background:#282828;color:#fff">850</div>
+        <div class="swatch" style="background:#191919;color:#fff">900</div>
+        <div class="swatch" style="background:#141414;color:#fff">950</div>
+      </div>
+
+      <div class="grid g2" style="margin-top:28px">
+        <div class="panel">
+          <h3>语义角色 / 暗色主题</h3>
+          <div class="role-row"><span class="chip" style="background:#141414"></span><span class="desc">页面底</span><code>--ef-surface</code></div>
+          <div class="role-row"><span class="chip" style="background:#1f1f1f"></span><span class="desc">卡片 / 面板</span><code>--ef-surface-raised</code></div>
+          <div class="role-row"><span class="chip" style="background:#000000"></span><span class="desc">凹槽 / 输入底</span><code>--ef-surface-sunken</code></div>
+          <div class="role-row"><span class="chip" style="background:#383838"></span><span class="desc">1px 描边</span><code>--ef-line</code></div>
+          <div class="role-row"><span class="chip" style="background:#fafafa"></span><span class="desc">主文字</span><code>--ef-ink</code></div>
+          <div class="role-row"><span class="chip" style="background:#b3b3b3"></span><span class="desc">次级文字</span><code>--ef-ink-secondary</code></div>
+        </div>
+        <div class="panel">
+          <h3>行动色与状态色</h3>
+          <div class="role-row"><span class="chip" style="background:#fffa00;border-color:#fffa00"></span><span class="desc">主行动 / 选中 / 进行中（明暗同值）</span><code>--ef-action</code></div>
+          <div class="role-row"><span class="chip" style="background:#eeea00;border-color:#eeea00"></span><span class="desc">按下态</span><code>--ef-action-pressed</code></div>
+          <div class="role-row"><span class="chip" style="background:#f74040;border-color:#f74040"></span><span class="desc">危险 / 删除 / 失败</span><code>--ef-danger</code></div>
+          <div class="role-row"><span class="chip" style="background:#00d872;border-color:#00d872"></span><span class="desc">成功</span><code>--ef-success</code></div>
+          <div class="role-row"><span class="chip" style="background:#fc6c00;border-color:#fc6c00"></span><span class="desc">提醒 / 待处理</span><code>--ef-warning</code></div>
+          <div class="role-row"><span class="chip" style="background:#2d8fc2;border-color:#2d8fc2"></span><span class="desc">信息</span><code>--ef-info</code></div>
+        </div>
+      </div>
+      <div class="note"><strong>扩展角色色</strong>（gain / notice / data / region / alert / special）已在令牌里，但本项目目前只用于徽章与图表，<strong>不要</strong>引入新的界面底色。注册色条与稀有度色阶保留给标签打印，不上屏。</div>
+    </section>
+
+    <!-- 03 -->
+    <section id="s3">
+      <div class="sec-head"><span class="sec-num">03</span><h2>字体与字阶</h2></div>
+      <p class="lede">16px 正文基准。四套字族各有分工，禁止混用；等宽字族承担所有「需要逐行核对」的信息。</p>
+      <div class="grid g2">
+        <div class="panel">
+          <h3>字族分工</h3>
+          <div class="type-row"><span class="spec">--font-display</span><span style="font-family:var(--font-display);font-size:22px;font-weight:700">Archivo / 页头大标题</span></div>
+          <div class="type-row"><span class="spec">--font-sans</span><span style="font-size:15px">HarmonyOS Sans SC / 正文、按钮、说明</span></div>
+          <div class="type-row"><span class="spec">--font-tech</span><span style="font-family:var(--font-tech);font-size:15px">Space Grotesk / 数值强调 (tnum)</span></div>
+          <div class="type-row"><span class="spec">--font-mono</span><span class="mono">GD25Q64ESIG · 0x1F · 1 280 PCS</span></div>
+          <p style="margin-top:14px;font-size:12px;color:var(--ink-secondary)">标签类小字统一 <span class="mono">letter-spacing: .05em</span>、大写、10–11px，克制使用。</p>
+        </div>
+        <div class="panel">
+          <h3>字阶</h3>
+          <div class="type-row"><span class="spec">micro 10 / 1.0</span><span class="t-micro mono">ID 0001 · REV A</span></div>
+          <div class="type-row"><span class="spec">xs 12 / 1.25</span><span class="t-xs">表格辅助说明</span></div>
+          <div class="type-row"><span class="spec">sm 14 / 1.4</span><span class="t-sm">表格主体、按钮文字</span></div>
+          <div class="type-row"><span class="spec">base 16 / 1.6</span><span class="t-base">正文基准</span></div>
+          <div class="type-row"><span class="spec">lg 20 / 1.2</span><span class="t-lg">区块标题</span></div>
+          <div class="type-row"><span class="spec">xl 24 / 1.1</span><span class="t-xl">页面标题</span></div>
+          <div class="type-row"><span class="spec">2xl 32 / 1.1</span><span class="t-2xl" style="font-family:var(--font-display)">仪表盘大标题</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section id="s4">
+      <div class="sec-head"><span class="sec-num">04</span><h2>形状与母题</h2></div>
+      <p class="lede">形状是这套风格最容易被滥用的部分。下面四种母题各有明确配额，超过就变「稀奇古怪」。</p>
+      <div class="grid g4">
+        <div><span class="label">cut-tr · 右上切角</span><div class="cut-demo cut-tr" style="margin-top:8px">页头 / 强调卡</div></div>
+        <div><span class="label">cut-br · 右下切角</span><div class="cut-demo cut-br" style="margin-top:8px">主行动按钮</div></div>
+        <div><span class="label">cut-diagonal · 对角</span><div class="cut-demo cut-diag" style="margin-top:8px">仅 Hero / 封面</div></div>
+        <div><span class="label">hatch · 斜纹底</span><div class="hatch-demo" style="margin-top:8px"></div></div>
+        <div style="grid-column:span 2"><span class="label">corner-brackets · 角括号（取景 / 锁定态专用）</span><div class="brackets" style="margin-top:8px"><span class="mono" style="font-size:11px;color:var(--ink-tertiary)">扫码取景框</span></div></div>
+        <div style="grid-column:span 2"><span class="label">hazard · 黄黑警示条（危险区专用，高度 ≤ 6px）</span><div class="hazard-demo" style="margin-top:14px"></div></div>
+      </div>
+      <div class="grid g2" style="margin-top:28px">
+        <div class="panel">
+          <h3>圆角 / 描边 / 阴影</h3>
+          <div class="note" style="margin:0 0 14px;padding:8px 12px;font-size:11.5px"><strong>修订 2026-11-08 · 全站直角化已拍板。</strong>下表三档是原始令牌，现已在 <span class="mono">main.css</span> 全部归零（含 <span class="mono">--ui-radius</span>）。圆形元素（rounded-full / 50% 圆点 / spinner）不走这些变量，自动豁免。本页样式同步归零。</div>
+          <div class="role-row"><span class="chip" style="border-radius:2px;border-color:var(--line-strong)"></span><span class="desc">2px · 徽章、小色块</span><code>--radius-xs</code></div>
+          <div class="role-row"><span class="chip" style="border-radius:4px;border-color:var(--line-strong)"></span><span class="desc">4px · 按钮、输入框</span><code>--radius-sm</code></div>
+          <div class="role-row"><span class="chip" style="border-radius:6px;border-color:var(--line-strong)"></span><span class="desc">6px · 卡片上限</span><code>--radius-md</code></div>
+          <div class="role-row"><span class="chip" style="border:1px solid var(--line-strong);background:transparent"></span><span class="desc">分层靠 1px 线，不靠投影</span><code>--ef-line</code></div>
+          <p style="margin-top:14px;font-size:12px;color:var(--ink-secondary)">阴影一律零偏移（<span class="mono">0 0 12px</span>）只用于浮层：弹窗、Toast、下拉。卡片不加阴影。切角容器用背景层实现，不要依赖 border（会被裁掉）。</p>
+        </div>
+        <div class="panel">
+          <h3>母题配额表</h3>
+          <table class="motion-table">
+            <thead><tr><th>母题</th><th>允许位置</th><th>每屏上限</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">cut-*</td><td>页头、强调卡、主按钮</td><td class="mono">2</td></tr>
+              <tr><td class="mono">hatch</td><td>Hero 背景、空态底纹</td><td class="mono">1</td></tr>
+              <tr><td class="mono">corner-brackets</td><td>扫码取景框、锁定反馈</td><td class="mono">1</td></tr>
+              <tr><td class="mono">hazard</td><td>删除 / 危险区顶部细条（可滚动，见 07 章唯一例外）</td><td class="mono">1</td></tr>
+              <tr><td class="mono">ghost / dot-grid</td><td>仅设计展示，业务页不用</td><td class="mono">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section id="s5">
+      <div class="sec-head"><span class="sec-num">05</span><h2>组件与状态</h2></div>
+      <p class="lede">用真实业务语境展示基准形态。重点是下面那张状态表——它直接决定「按钮会不会乱飞」。</p>
+
+      <h3>按钮</h3>
+      <div class="btn-row" style="margin-bottom:24px">
+        <button class="btn btn-primary">新增芯片</button>
+        <button class="btn btn-secondary">刷新</button>
+        <button class="btn btn-ghost">取消</button>
+        <button class="btn btn-danger">删除</button>
+        <button class="btn btn-primary" disabled>提交中</button>
+      </div>
+
+      <div class="grid g2">
+        <div class="panel">
+          <h3>状态变化规则（P5 的具体化）</h3>
+          <table class="state-table">
+            <thead><tr><th>状态</th><th>允许变化</th><th>禁止变化</th></tr></thead>
+            <tbody>
+              <tr><td>hover</td><td>背景色 / 描边色</td><td>位移、缩放、阴影上浮</td></tr>
+              <tr><td>pressed</td><td>背景色再深一档</td><td>缩放、回弹</td></tr>
+              <tr><td>focus</td><td>2px 焦点环</td><td>发光、脉动</td></tr>
+              <tr><td>loading</td><td>内置 spinner + 文案</td><td>按钮形变、进度填充</td></tr>
+              <tr><td>disabled</td><td>opacity .42</td><td>抖动提示</td></tr>
+            </tbody>
+          </table>
+          <div class="note" style="margin-bottom:0">变化时长统一 <span class="mono">--duration-instant 50ms</span>，曲线 <span class="mono">--ease-standard ease</span>。快到像开关，不像动画。</div>
+        </div>
+        <div class="panel">
+          <h3>其他基准件</h3>
+          <div class="field" style="margin-bottom:16px"><span>型号 / Part No.</span><input class="input" value="GD25Q64ESIG" readonly></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            <span class="badge on">NOR Flash</span><span class="badge">SOP-8</span>
+            <span class="badge ok">在库</span><span class="badge err">缺货</span>
+          </div>
+          <div class="toast"><span class="mono" style="color:var(--success)">OK</span><span>已保存 · GD25Q64ESIG 数量更新为 <span class="mono">1 280</span></span></div>
+        </div>
+      </div>
+      <div class="note"><strong>Toast 定案（21:13 修订 6）：</strong>原来 04 章只有一行 <span class="mono">OK</span> 基准件，没有 error 变体与长文本排版。现按状态分流 —— <strong>ERR / WARN 走 R4</strong>（顶部 6px <strong>静止</strong>红黑 / 橙黑斜纹带 + 状态色 1px 描边 + 等宽 <span class="mono">ERR ·</span> 前缀），<strong>OK / INFO / NOTE 走 R1</strong>（等宽状态码 + 3px 状态条 + 深底 1px 描边等宽日志块 + 右上角切角三角）。<strong>斜纹刻意不加 animation</strong>：hazard 滚动条按 07 章仅限危险操作区 / 不可撤销确认 / 设备运行中且每屏 1 处，读取失败是故障回执还会堆叠，所以不占第 1 个特批例外名额。信号黄不做错误色，错误一律 <span class="mono">--ef-danger</span>。<br><strong>⚠️ 落地坑（21:40 实测修复）：</strong><span class="mono">appConfig.ui.toast.slots</span> 是<strong>替换</strong>而非合并，只写自定义类会丢掉 Nuxt UI 的布局契约（wrapper 的 <span class="mono">flex-1</span>、progress 的 <span class="mono">absolute inset-x-0 bottom-0</span> 等）；更不能在 <span class="mono">.ef-toast</span> 里写 <span class="mono">position: relative</span> —— 它会盖掉 Toaster 传进来的 <span class="mono">absolute inset-x-0</span>，让 ToastRoot 参与 viewport 的 <span class="mono">h-(--height)</span> 固定高度 flex 流、被压到 40–56px，<span class="mono">overflow:hidden</span> 顺势把整段错误描述裁掉（表现为「只剩标题的窄横幅」）。现在每个 slot 都保留默认类再追加 <span class="mono">ef-toast-*</span>，CSS 不碰 position。</div>
+
+      <h3 style="margin-top:32px">卡片 / 表格</h3>
+      <div class="grid g4" style="margin-bottom:20px">
+        <div class="card"><div class="k">芯片总数</div><div class="v">1 280</div></div>
+        <div class="card"><div class="k">型号数</div><div class="v">86</div></div>
+        <div class="card"><div class="k">设备</div><div class="v">12</div></div>
+        <div class="card"><div class="k">耗材</div><div class="v">34</div></div>
+      </div>
+      <div class="panel-flat">
+        <table>
+          <thead><tr><th>型号</th><th>封装</th><th>数量</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">GD25Q64ESIG</td><td class="mono">SOP-8</td><td class="mono">1 280</td><td><span class="badge ok">在库</span></td></tr>
+            <tr><td class="mono">CH32V003F4P6</td><td class="mono">TSSOP-20</td><td class="mono">640</td><td><span class="badge ok">在库</span></td></tr>
+            <tr><td class="mono">PY32F002AW15S</td><td class="mono">SOP-16</td><td class="mono">0</td><td><span class="badge err">缺货</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section id="s6">
+      <div class="sec-head"><span class="sec-num">06</span><h2>动效规范 · 可点演示</h2></div>
+      <p class="lede">允许上动效的操作全部按现有令牌实现（200ms / ease-out / 只动透明度、颜色、一条线）。点一下看实际感觉——不满意现在改，比铺到全站再返工便宜。第五项「二级分类展开」采用 G1 已落地；第六项「录入页类型切换」已定案为<strong>选中框平移（S1）</strong>，左侧功能菜单 20:21 也沿用同一语言（<strong>N1，不换色</strong>）；内容区卷帘换页整套已否并撤回，见下方修订 4 / 修订 5。</p>
+
+      <h3>节奏表</h3>
+      <div class="panel-flat" style="margin-bottom:28px">
+        <table class="motion-table">
+          <thead><tr><th>令牌</th><th>时长</th><th>曲线</th><th>唯一用途</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">--duration-instant</td><td class="mono">50ms</td><td class="mono">ease</td><td>按钮 / 输入 / 徽章状态色切换、取景框收紧</td></tr>
+            <tr><td class="mono">--duration-fast</td><td class="mono">200ms</td><td class="mono">ease-out</td><td>结果淡入、命中黄线、原地状态高亮</td></tr>
+            <tr><td class="mono">--duration-base</td><td class="mono">300ms</td><td class="mono">ease</td><td>预留：弹窗（组件库已自带，本项目不覆盖）</td></tr>
+            <tr><td class="mono">--duration-slow / slower</td><td class="mono">400 / 600ms</td><td class="mono">ease-in-out</td><td>仅骨架屏脉冲（等待态）</td></tr>
+            <tr><td class="mono">修订 2：形状生长</td><td class="mono">390–880ms</td><td class="mono">ease-out</td><td><strong>仅危险确认弹窗</strong>入场，点 → 线 → 窗两段展开（样板见 modal-motion-demo.html）</td></tr>
+            <tr><td class="mono">修订 3：列表展开 G1</td><td class="mono">220–300ms</td><td class="mono">ease-out</td><td><strong>仅两级分类树</strong>展开 / 收起：高度 240ms + 引导线 220ms + 子项整块淡入 180ms@60ms + 折叠箭头旋转 220ms（样板见 chip-types-expand-motion-demo.html）</td></tr>
+            <tr><td class="mono">修订 4：选中框平移（S1 已落地）</td><td class="mono">260ms</td><td class="mono">cubic-bezier(.4,0,.2,1)</td><td><strong>录入页三个类型按钮 + 左侧功能菜单（同一特批两处，见修订 5）</strong>：唯一一个框 <code>translateX</code> + <code>width</code> 平移，颜色同步渐变；<strong>按钮本体与文字仍零位移 / 零缩放 / 零旋转</strong>；<strong>内容区零动效、瞬时切换</strong>。第 4 个特批例外，见修订 5；样板 chip-type-frame-motion-demo.html</td></tr>
+            <tr><td class="mono">修订 5：特批例外登记</td><td class="mono">—</td><td class="mono">—</td><td>目前共 4 个：① hazard 警示条滚动 ② 危险确认弹窗 F1 形状生长 ③ 折叠箭头 rotate(90deg) ④ <strong>选中框平移（录入页 translateX / 侧栏 translateY）</strong>；严格限定在框这一层，侧栏是同一例外的第二个位置，<strong>仍不得推广到按钮本体 / 菜单项</strong></td></tr>
+            <tr><td class="mono">修订 6：Toast 按状态分流（已落地）</td><td class="mono">150ms</td><td class="mono">ease-out</td><td><strong>error / warning → R4 静止斜纹警戒带；success / info / neutral → R1 等宽状态码 + 深底日志块</strong>。入场仅 <code>opacity</code>，零位移 / 零缩放 / 零旋转；<strong>斜纹静止、不是 hazard 滚动条、不占例外名额</strong>；通过 <code>app.config.ts</code> 的 <code>ui.toast</code> 注入类名，26 处调用零改动。样板 <a href="read-error-toast-design.html">read-error-toast-design.html</a></td></tr>
+            <tr><td class="mono">--motion-shift</td><td class="mono">4px</td><td>—</td><td>本项目设为 <strong>0</strong>：不做元素位移 <strong>（唯一例外：选中框平移，录入页 + 侧栏两处，见修订 5）</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><strong>关于循环动画：</strong>仅允许出现在「进行中」状态指示器上，且只在等待期间挂载，结束即移除。装饰性循环（呼吸、浮动、边框流光、自动旋转）一律禁止——<strong>hazard 警示条滚动是唯一允许常驻循环的例外</strong>。<span class="mono">prefers-reduced-motion</span> 兜底已在 theme.css 里，无需重复实现。</div>
+      <div class="note" style="border-left-color:var(--danger)"><strong>修订 2（21:17）· 危险确认弹窗入场特批「形状生长」。</strong>用户否掉「遮罩淡入」——跟没加一样。改为两段式：中心一个点横向拉成 2px 生长线，面板再以这条线为轴用 <span class="mono">clip-path</span> 展开成窗，总 390–880ms（21:22 嫌慢，标准版由 540ms 收紧到 390ms：线 280ms / 窗 240ms@150ms，慢速样板仍 880ms）。允许几何裁剪，但<strong>内容始终保持原尺寸</strong>：不缩放、不位移、不旋转、不回弹。这是继 hazard 滚动条之后的第二个特例，<strong>只用于危险确认弹窗</strong>；普通弹窗 / 列表 / 按钮 / 卡片仍按 200ms 规范。<span class="mono">prefers-reduced-motion</span> 下直接完整显示。退场按原路逆向收回约 400ms（窗 → 线 → 点），由组件延迟卸载保证四条关闭路径一致。样板与落地方式见 <a href="modal-motion-demo.html">modal-motion-demo.html</a>。</div>
+      <div class="note"><strong>修订 3（21:52）· 两级分类树展开 / 收起采用 G1，折叠箭头同步旋转。</strong>第五个允许动效的位置：芯片类型页点开二级分类。三条动作 + 一个状态过渡全部是双向 <span class="mono">transition</span>，<strong>收起按原路逆向</strong>；子项作为一整块淡入，<strong>不做 stagger 错峰</strong>；内容不缩放、不位移。<strong>折叠箭头由单个 chevron 旋转 90°</strong>（220ms，与引导线同速）——这是「展开 / 收起」的状态过渡，是唯一放行的旋转，不属于禁止清单里的装饰性旋转。高度走 <span class="mono">grid-template-rows: 0fr → 1fr</span>，无需 JS 量高度；<span class="mono">prefers-reduced-motion</span> 下直接切换。样板与落地清单见 <a href="chip-types-expand-motion-demo.html">chip-types-expand-motion-demo.html</a>。</div>
+      <div class="note" style="border-left-color:var(--danger)"><strong>修订 4（2026-11-10 19:07 最终更正）· 动效作用对象是「三个类型按钮」，不是内容区。</strong>⚠️ 这条最重要，别再带偏：用户原话「<strong>其实不要卷页帘，是按钮的切换，不是对应页面的切换</strong>」。三轮纠偏的完整脉络：① 17:56 否掉「按钮底部 2px 信号黄线」（不好看，且是选中态指示不是切换过程）；② 随后从 H1–H5 中拍板 H1 卷帘换页并落地到内容区；③ 19:07 明确整套卷帘<strong>方向错了并否决</strong>——要做的是点 MCU 时<strong>选中态怎么从 Flash 按钮换到 MCU 按钮</strong>，下面表单保持瞬时切换。<br><br><strong>已执行撤回：</strong><span class="mono">pages/chips/new.vue</span> 的 4 个 <span class="mono">.type-slot</span> / 5 个 <span class="mono">.type-pane</span> / 4 层 <span class="mono">&lt;Transition name="type-swap"&gt;</span> 全部撤销，5 处类型字段恢复原生 <span class="mono">v-if</span> 瞬时切换、零动效；<span class="mono">utilities.css</span> 的 <span class="mono">.type-slot</span> / <span class="mono">type-swap-wipe-out</span> 规则清空。<strong>内容区不要再挂任何 Transition / clip-path / 卷帘。</strong>旧 H 组样板 <a href="chip-type-switch-motion-demo.html">chip-type-switch-motion-demo.html</a> 仅作归档，不是现行方案。<br><br><strong>现行方向：</strong>专项样板 <a href="chip-type-tab-motion-demo.html">chip-type-tab-motion-demo.html</a> 给出 T1–T4，全部只作用在三个按钮上：T1 选中态擦除交接（推荐，方向随切换方向）／T2 一条 2px 信号黄线扫过按钮组（呼应修订 2 的 F1 生长线）／T3 只擦入（最轻）／T4 交叉淡变 + 内描边点亮（下限对照）。<strong>按钮本体零位移、零缩放、零旋转</strong>，动的只是按钮里那层「选中态颜色」和至多一条线；信号黄只作「动作中的线」，不是常驻选中指示器。禁止内容左右平移、stagger 错峰点亮、装饰性循环、spring。<span class="mono">prefers-reduced-motion</span> 下直接落定。落地时只改 <span class="mono">new.vue</span> 里 <span class="mono">&lt;div class="flex gap-3"&gt;</span> 那三个按钮，内容区一行都不碰。</div>
+
+      <div class="note" style="border-left-color:var(--danger)"><strong>修订 5（2026-11-10 19:40）· 第 4 个特批例外：选中框平移。</strong>用户从 <a href="chip-type-frame-motion-demo.html">S1–S4</a> 中拍板 <strong>S1「整框平移 + 同步换色」</strong>（原话「这样才符合我胃口」）。与 T1–T4「各按钮内部擦除交接」不同，S1 是<strong>只有一个框</strong>在按钮组上整体滑动，可跨过中间按钮，位置与颜色同时 260ms 过渡。<strong>这是规范里第一次放行位移，但严格限定在「选中框」这一层</strong>：三个按钮连同文字仍零位移 / 零缩放 / 零旋转，框 <code>pointer-events:none</code>，文字层 <code>z-index:3</code> 压过框的 <code>z-index:2</code>。不做 spring 回弹、不做过冲、不做 stagger；颜色复用三个按钮原有的按类型分色（flash 蓝 / mcu 紫 / other 中性），不引入新色。位移走 CSS <code>transition</code> 而非 <code>animation + forwards</code>，快速连点天然可打断；位置用 <code>getBoundingClientRect()</code> 实测 + <code>ResizeObserver</code> 重算并临时关过渡。<strong>内容区 5 处 <code>v-if</code> 仍是瞬时切换、零动效。</strong>落地文件：<code>pages/chips/new.vue</code>（三个按钮 + 定位 JS）、<code>assets/css/endfield/utilities.css</code>（<code>.type-frame</code> 一套规则）。T1–T4 样板未采用，留作备选；<code>prefers-reduced-motion</code> 由 theme.css 全局兜底。<br><br><strong>修订 5 补充（20:21）· 同一特批扩展到左侧功能菜单：</strong>用户从 <a href="side-nav-frame-motion-demo.html">N1–N4</a> 中拍板 <strong>N1 纵向整框平移</strong>并明确「<strong>不用换色</strong>」——统一信号黄，<strong>不按菜单项 / 功能组分色</strong>，没有引入任何新颜色。侧栏 12 项竖排，框改走 <code>translateY</code> + 实测 <code>top/height</code>，左侧 4px 竖条（原 <code>before:marker-bar</code>）跟着框一起走。<strong>这不是第 5 个特批例外，而是第 4 个例外「选中框平移」的第二个位置</strong>（录入页 + 侧栏），约束不变：只放行框，菜单项连同图标文字零位移 / 零缩放 / 零旋转，右侧主内容区零动效。落地文件：<code>layouts/default.vue</code>（nav + <code>placeNavFrame()</code>，用 <code>watch(() =&gt; route.path)</code> 而非 click）、<code>utilities.css</code>（<code>.nav-frame</code> / <code>.nav-bar</code>）。长距离策略按样板默认固定 260ms，跨 11 格若晃眼再单独加保护；未匹配菜单项的详情页让框瞬时隐藏，不悬空。</div>
+
+      <div class="grid g2" style="margin-top:28px">
+        <!-- D1 -->
+        <div class="demo">
+          <div class="demo-title"><h3>D1 · 扫描仪快扫等待</h3><span class="hint">6~8s 长等待 / 演示已加速</span></div>
+          <div class="stage" style="flex-direction:column;align-items:stretch;justify-content:center;gap:8px">
+            <button class="btn btn-primary" id="scanBtn" style="align-self:flex-start">扫描仪快扫（eSCL · 约 6~8 秒）</button>
+            <div class="scanbar" id="scanBar"></div>
+            <div class="scanphase" id="scanPhase"></div>
+          </div>
+          <p class="hint" style="margin:0">只做 indeterminate 扫光 + 阶段文字。后端一次性返回，<strong>不做假百分比</strong>。扫光条是唯一允许的循环动画。</p>
+        </div>
+        <!-- D2 -->
+        <div class="demo">
+          <div class="demo-title"><h3>D2 · 扫码命中 → 交接</h3><span class="hint">50ms 收紧 + 200ms 黄线</span></div>
+          <div class="viewfinder" id="vf">
+            <i class="vf-corner vf-tl"></i><i class="vf-corner vf-tr"></i>
+            <i class="vf-corner vf-bl"></i><i class="vf-corner vf-br"></i>
+            <span class="vf-flash"></span>
+            <span class="vf-text" id="vfText">等待识别…</span>
+          </div>
+          <div><button class="btn btn-secondary" id="hitBtn">模拟识别到 #1024</button></div>
+          <p class="hint" style="margin:0">回答「读到了吗」。四角收紧不移动容器，页面跳转前给 150ms 落点反馈。</p>
+        </div>
+        <!-- D3 -->
+        <div class="demo">
+          <div class="demo-title"><h3>D3 · 列表 / 筛选结果落定</h3><span class="hint">200ms 纯 opacity</span></div>
+          <div class="stage" id="listStage" style="display:block">
+            <div style="display:flex;gap:10px;flex-direction:column">
+              <div class="skeleton pulse" style="width:70%"></div>
+              <div class="skeleton pulse" style="width:90%"></div>
+              <div class="skeleton pulse" style="width:55%"></div>
+            </div>
+          </div>
+          <div><button class="btn btn-secondary" id="listBtn">重新加载结果</button></div>
+          <p class="hint" style="margin:0">骨架屏已有脉冲；补的只是「数据回来那一刻」的淡入。不逐行错峰、不位移、不重排动画。</p>
+        </div>
+        <!-- D4 -->
+        <div class="demo">
+          <div class="demo-title"><h3>D4 · 原地状态高亮</h3><span class="hint">200ms 颜色一闪</span></div>
+          <div class="stage" style="justify-content:flex-start">
+            <table style="width:100%"><tbody>
+              <tr><td class="mono">CH32X033F8P6</td><td class="mono">TSSOP-20</td>
+                <td><span class="badge" id="stateBadge">正常</span></td></tr>
+            </tbody></table>
+          </div>
+          <div><button class="btn btn-secondary" id="stateBtn">改为「维修中」</button></div>
+          <p class="hint" style="margin:0">回答「改的是哪一行」，比 Toast 精准。只闪背景色，字不动、行不动。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section id="s7">
+      <div class="sec-head"><span class="sec-num">07</span><h2>禁止清单</h2></div>
+      <p class="lede">下面这些加进去，风格立刻崩。左边是反面示例，鼠标移过去就能体会为什么难受。</p>
+      <div class="grid g2">
+        <div class="panel bad-zone">
+          <div class="cz-head"></div>
+          <h3 style="margin-top:14px;color:var(--danger)">反面示例 · 别这么做</h3>
+          <div style="padding:18px 0"><button class="btn btn-primary btn-bad">鼠标移上来试试</button></div>
+          <p class="hint" style="font-size:12px;color:var(--ink-secondary);margin:0">位移 + 旋转 + 缩放 + 悬浮投影，还带 300ms 缓动——按钮「乱飞」的标准形态。这个按钮只存在于本框内。</p>
+        </div>
+        <div class="panel">
+          <h3>明确禁止</h3>
+          <div class="forbid"><span class="x">✕</span><span>按钮 hover 位移 / 缩放 / 旋转 / 涟漪 / 悬浮投影<br><span style="color:var(--ink-tertiary);font-size:11px">例外 → 折叠箭头的 rotate(90deg) 是状态过渡（修订 3）；<strong>选中框平移（录入页 / 侧栏）</strong>是第 4 个特批例外，但只放行框这一层，按钮与菜单项本体仍然禁止位移（修订 5）</span></span></div>
+          <div class="forbid"><span class="x">✕</span><span>列表卡片逐个错峰入场（stagger）——库存表天天点，第三次就烦</span></div>
+          <div class="forbid"><span class="x">✕</span><span>路由整页淡入淡出、页面切换滑动</span></div>
+          <div class="forbid"><span class="x">✕</span><span>StatCard 数字滚动计数</span></div>
+          <div class="forbid"><span class="x">✕</span><span>装饰性循环：呼吸、浮动、闪烁、边框流光、3D 封装自动旋转<br><span style="color:var(--ink-tertiary);font-size:11px">例外 → 见下方「唯一例外」条款</span></span></div>
+          <div class="forbid"><span class="x">✕</span><span>弹性 / 回弹 / spring 曲线（令牌里根本没有，也不该加）</span></div>
+          <div class="forbid"><span class="x">✕</span><span><strong>主题切换加全站颜色过渡</strong>——会和 nuxt.config 的首屏防闪烁脚本打架，首屏反而闪一下</span></div>
+          <div class="forbid"><span class="x">✕</span><span>任何超过 300ms 的界面动效（长等待指示器、<strong>危险确认弹窗形状生长</strong>除外见修订 2；<strong>两级分类树展开 300ms</strong> 见修订 3；<strong>选中框平移 260ms</strong> 见修订 4 / 5，已在 300ms 内）</span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:28px;border-left:3px solid var(--danger)">
+        <h3>常驻循环的唯一例外 · hazard 警示条滚动</h3>
+        <p style="font-size:12.5px;color:var(--ink-secondary);margin-bottom:12px">工业设备上「危险 / 运行中」的标准语言，上方红框已启用（0.8s / 周期）。仅此一条允许常驻循环，其余装饰性循环仍然禁止。</p>
+        <table class="motion-table">
+          <thead><tr><th>项</th><th>约束</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">位置 / 配额</td><td>仅危险操作区、不可撤销确认、设备运行中；每屏最多 1 处</td></tr>
+            <tr><td class="mono">速度</td><td>0.8–1.2s / 周期，硬下限 0.45s；不加发光、不双层叠加</td></tr>
+            <tr><td class="mono">色彩</td><td>只用现有 danger / action / warning，不引入新色</td></tr>
+            <tr><td class="mono">无障碍</td><td>prefers-reduced-motion 下立即静止，保留静态条纹</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:14px"><a class="btn btn-secondary" href="hazard-frame-demo.html">→ 打开专项演示（配色 / 速度 / 条高可现场调）</a></div>
+      </div>
+
+      <div class="note" style="margin-top:28px"><strong>验收口径：</strong>把动效全部关掉，界面信息仍然完整、操作仍然能走通，就说明动效没越界。反过来，如果关掉动效后某个操作「不知道成没成」，那才是该补动效的地方。</div>
+      <p class="label" style="margin-top:40px;text-align:center">END OF SPEC · flash-mgmt GUI Style Guide v1.0 · 所有令牌取自 assets/css/endfield/</p>
+    </section>
+  </main>
+</div>
+
+<script>
+// 明暗切换：故意不加全站颜色过渡（与项目防闪烁脚本保持一致）
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const el = document.documentElement;
+  el.dataset.theme = el.dataset.theme === 'dark' ? 'light' : 'dark';
+});
+
+// D1 扫描等待：阶段文案轮播 + 仅等待期间挂载扫光
+const scanBtn = document.getElementById('scanBtn');
+const scanBar = document.getElementById('scanBar');
+const scanPhase = document.getElementById('scanPhase');
+let scanTimers = [];
+scanBtn.addEventListener('click', () => {
+  scanTimers.forEach(clearTimeout); scanTimers = [];
+  scanBtn.disabled = true;
+  scanBar.classList.add('on');
+  const phases = ['启动扫描仪…', '取图中…', '解码条码…', '匹配系统物品…', '已命中 #1024 · 正在打开详情'];
+  phases.forEach((t, i) => {
+    scanTimers.push(setTimeout(() => { scanPhase.textContent = t; }, i * 480));
+  });
+  scanTimers.push(setTimeout(() => {
+    scanBar.classList.remove('on'); scanBtn.disabled = false;
+    scanPhase.textContent = '';
+  }, phases.length * 480 + 700));
+});
+
+// D2 命中锁定
+const vf = document.getElementById('vf');
+const vfText = document.getElementById('vfText');
+document.getElementById('hitBtn').addEventListener('click', () => {
+  vf.classList.remove('hit'); void vf.offsetWidth; vf.classList.add('hit');
+  vfText.textContent = '已命中 #1024 · GD25Q64ESIG';
+  setTimeout(() => { vf.classList.remove('hit'); vfText.textContent = '等待识别…'; }, 1200);
+});
+
+// D3 结果落定
+const listStage = document.getElementById('listStage');
+const rows = `<table style="width:100%"><tbody>
+  <tr><td class="mono">GD25Q64ESIG</td><td class="mono">SOP-8</td><td class="mono">1 280</td></tr>
+  <tr><td class="mono">CH32V003F4P6</td><td class="mono">TSSOP-20</td><td class="mono">640</td></tr>
+  <tr><td class="mono">PY32F002AW15S</td><td class="mono">SOP-16</td><td class="mono">0</td></tr>
+</tbody></table>`;
+document.getElementById('listBtn').addEventListener('click', () => {
+  listStage.innerHTML = '<div style="display:flex;gap:10px;flex-direction:column">'
+    + '<div class="skeleton pulse" style="width:70%"></div>'
+    + '<div class="skeleton pulse" style="width:90%"></div>'
+    + '<div class="skeleton pulse" style="width:55%"></div></div>';
+  setTimeout(() => {
+    listStage.innerHTML = '<div class="fade-in">' + rows + '</div>';
+  }, 700);
+});
+
+// D4 原地状态高亮
+const stateBadge = document.getElementById('stateBadge');
+document.getElementById('stateBtn').addEventListener('click', () => {
+  stateBadge.classList.remove('flash'); void stateBadge.offsetWidth;
+  stateBadge.textContent = '维修中';
+  stateBadge.classList.add('flash');
+});
+</script>
+</body>
+</html>

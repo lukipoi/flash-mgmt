@@ -86,9 +86,15 @@ export const PACKAGES: PackageMeta[] = [
   // QFN-56 7x7：依 ESP32-S3 技术规格书 v2.2 §7（D/E 7.00，D2/E2 4.00，e 0.40，b 0.20），底视图
   { name: 'QFN-56 7x7', image: '/packages/3d/qfn-56-7x7.svg', drawing: '/packages/3d/qfn-56-7x7-spec.svg', aliases: ['qfn56', 'qfn 56', 'qfn-56', 'qfn56 7x7', 'qfn56-7x7'] },
   // ===== 直插 =====
-  { name: 'DIP-8',    image: '/packages/builtin/dip-8.svg',    aliases: ['dip8', 'dip 8', 'pdip8', 'pdip-8'] },
+  // DIP-8：依 DIP-8 规格书一般尺寸表（INCH×25.4）绘制（D 9.27，E1 6.35，E 7.62，e 2.54，缺口示 pin1，顶视图）
+  { name: 'DIP-8',    image: '/packages/3d/dip-8.svg',    drawing: '/packages/3d/dip-8-spec.svg', aliases: ['dip8', 'dip 8', 'pdip8', 'pdip-8'] },
   { name: 'DIP-14',   image: '/packages/builtin/dip-14.svg',   aliases: ['dip14', 'dip 14', 'pdip14'] },
-  { name: 'DIP-16',   image: '/packages/builtin/dip-16.svg',   aliases: ['dip16', 'dip 16', 'pdip16'] },
+  // DIP-16：依 Microchip PDIP COMMON DIMENSIONS 尺寸表绘制（D 19.05，E1 6.35，E 7.87，e 2.54，缺口示 pin1，顶视图）
+  { name: 'DIP-16',   image: '/packages/3d/dip-16.svg',   drawing: '/packages/3d/dip-16-spec.svg', aliases: ['dip16', 'dip 16', 'pdip16'] },
+  // DIP-20：依 DIP-20 规格书一般尺寸表（INCH×25.4）绘制（D 26.06，E1 6.35，E 7.62，e 2.54，缺口示 pin1，顶视图）
+  { name: 'DIP-20',   image: '/packages/3d/dip-20.svg',   drawing: '/packages/3d/dip-20-spec.svg', aliases: ['dip20', 'dip 20', 'pdip20', 'pdip-20', 'dip-20'] },
+  // PDIP-40：依 PDIP-40 规格书尺寸表绘制（D 52.00，E1 13.84，E 15.24，e 2.54，缺口示 pin1，顶视图）
+  { name: 'PDIP-40', image: '/packages/3d/pdip-40.svg', drawing: '/packages/3d/pdip-40-spec.svg', aliases: ['pdip40', 'dip40', 'dip 40', 'pdip-40', 'dip-40'] },
   // ===== 四边引脚 / 阵列 =====
   { name: 'LQFP-32',  image: '/packages/builtin/lqfp-32.svg',  aliases: ['lqfp32', 'lqfp 32'] },
   // LQFP-48 7x7：依 STM32F103x4/x6 手册 6.5（D/E 9.00，D1/E1 7.00，e 0.50，b 0.22）

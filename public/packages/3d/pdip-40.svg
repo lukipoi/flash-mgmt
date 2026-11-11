@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="69 68 552 172" width="552" height="172">
+  <!-- PDIP-40 顶视图（11 px/mm） 本体 52.00×13.84，引脚跨 15.24，e 2.54，缺口示 pin1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="72.87" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="100.81" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="128.75" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="156.69" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="184.63" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="212.57" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="240.51" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="268.45" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="296.39" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="324.33" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="352.27" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="380.21" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="408.15" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="436.09" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="464.03" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="491.97" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="519.91" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="547.85" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="575.79" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="603.73" y="70.3" width="15.4" height="7.7" rx="1"/>
+    <rect x="72.87" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="100.81" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="128.75" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="156.69" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="184.63" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="212.57" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="240.51" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="268.45" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="296.39" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="324.33" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="352.27" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="380.21" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="408.15" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="436.09" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="464.03" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="491.97" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="519.91" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="547.85" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="575.79" y="230.2" width="15.4" height="7.7" rx="1"/>
+    <rect x="603.73" y="230.2" width="15.4" height="7.7" rx="1"/>
+  </g>
+  <!-- 本体 -->
+  <rect x="60" y="78" width="572" height="152.2" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+  <!-- 左侧 pin1 缺口（塑封凹坑，非通孔）：深一档实心半圆 -->
+  <path d="M 60 130.1 A 24 24 0 0 1 60 178.1 Z" fill="#262c38"/>
+  <!-- 顶面凹坑（模具标记，不通） -->
+  <circle cx="203" cy="154.1" r="8" fill="#262c38"/>
+  <circle cx="489" cy="154.1" r="8" fill="#262c38"/>
+</svg>

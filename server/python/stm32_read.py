@@ -45,10 +45,15 @@ FAMILIES = {
     0x453: ('STM32C031xx', 0x1FFF7550, 12, 0x1FFF75A0),            # RM0490 Rev6 Table 178
     0x44C: ('STM32C051xx', 0x1FFF7550, 12, 0x1FFF75A0),            # RM0490 Rev6 Table 178
     0x444: ('STM32F030x4/x6', 0x1FFFF7AC, 12, 0x1FFFF7CC),         # RM0360 Table 110（F030F4P6 实测 DEV_ID 吻合；UID/容量真机实证）
+    0x466: ('STM32G0', 0x1FFF7590, 12, 0x1FFF75E0),                # RM0454：G0 全系 DEV_ID=0x466（G030F6P6 真机实测 DBG_IDCODE=0x01001466 @0x40015800）；UID/容量 = ST 官方 HAL 头文件实锤（UID_BASE 0x1FFF7590 / FLASHSIZE_BASE 0x1FFF75E0，低16位=KB）
     0x445: ('STM32F070x6', 0x1FFFF7AC, 12, 0x1FFFF7CC),            # RM0360 Table 110
     0x440: ('STM32F030x8', 0x1FFFF7AC, 12, 0x1FFFF7CC),            # RM0360 Table 110
     0x448: ('STM32F070xB', 0x1FFFF7AC, 12, 0x1FFFF7CC),            # RM0360 Table 110
+    0x064: ('PY32F002B', 0x1FFF0000, 16, None),                    # Puya PY32F002B RM V1.1 §4.3：UID 16B 基址 0x1FFF0000（布局同 002A：Lot ASCII+Wafer+坐标+偏移12固定0x78）；DEV_ID=0x064 实测自 PY32F002BF15P6TU 真机（DBG_IDCODE=0x60028004）；无 Flash 密度寄存器（容量报 None）
 }
+
+# Puya PY32（B 系新 die，有 DEV_ID）：命中这些 DEV_ID 时厂商报 Puya 而非 ST
+PY32_DEV_IDS = {0x064}
 
 
 def log(msg):
@@ -59,6 +64,38 @@ def log(msg):
 def out_json(obj):
     print(json.dumps(obj, ensure_ascii=False))
     sys.stdout.flush()
+
+
+def read_uid_verified(target, addr, n, label='UID', tries=5):
+    """双读校验：同一地址连读两次，一致才采信；不一致自动重试。
+    防极小概率误码/供电不稳读数污染（VCAP 悬空血泪教训，2026-11-06）。
+    耗尽 tries 轮仍不一致则抛 RuntimeError（由 main 统一转 read_failed）。"""
+    a = b = None
+    for i in range(1, tries + 1):
+        a = bytes(target.read_memory_block8(addr, n))
+        b = bytes(target.read_memory_block8(addr, n))
+        if a == b:
+            if i > 1:
+                log('[INFO] %s 第 %d 轮双读一致' % (label, i))
+            return a
+        log('[WARN] %s 第 %d 轮双读不一致: %s / %s，重试...'
+            % (label, i, a.hex().upper(), b.hex().upper()))
+    raise RuntimeError('%s 连续 %d 轮双读均不一致（疑似 VCAP/供电问题）: %s / %s'
+                       % (label, tries, a.hex().upper(), b.hex().upper()))
+
+
+# pyOCD 常见 attach 异常 → 中文提示（原始英文报错仍附在 hint 尾部与日志，便于精确定位）
+def friendly_error(e):
+    s = str(e)
+    low = s.lower()
+    if 'no ack' in low:
+        return ('SWD 无应答（No ACK）：九成是杜邦线接触不良——压紧或换线；'
+                '再核对 SWDIO/SWCLK/GND/3V3 四线有无接错、芯片是否上电')
+    if 'timeout' in low:
+        return 'SWD 通信超时：检查接线与芯片供电，可尝试降低调试时钟'
+    if 'not found' in low or 'no probe' in low:
+        return '未检测到调试探针：确认 LinkE 已插 USB 且处于 DAP 模式'
+    return 'SWD 附加失败'
 
 
 def main():
@@ -84,8 +121,9 @@ def main():
         session = Session(probe, target_override='cortex_m')
         session.open()
     except Exception as e:
+        log('[ERR] attach failed: %s' % e)
         out_json({'ok': False, 'error': 'attach_failed',
-                  'hint': 'SWD 附加失败: %s（确认 SWDIO/SWCLK/GND/3V3 四线、芯片已上电、LinkE 为 DAP 模式）' % e})
+                  'hint': '%s（原始报错: %s）' % (friendly_error(e), e)})
         sys.exit(0)
 
     target = session.target
@@ -112,17 +150,19 @@ def main():
         rev_id = (pid >> 16) & 0xFFFF
         log('[INFO] DEV_ID=0x%03X REV_ID=0x%04X (via 0x%08X)' % (dev_id, rev_id, used_addr))
 
-        # ---- PY32（Puya 特征码识别）：DBG_IDCODE bits[11:0]=0（DEV_ID 缺席）----
-        # 特征：UID @0x1FFF0E00（16B），偏移 12 固定 0x78（PY32 RM 表 4-2）
+        # ---- PY32（Puya 老 die 特征码识别）：DBG_IDCODE bits[11:0]=0（DEV_ID 缺席）----
+        # 特征：UID @0x1FFF0E00（16B），偏移 12 固定 0x78（PY32F003 RM V1.1 §4.3 / PY32F002A 同布局）
+        # PY32F002A 与 PY32F003 均为老 die（DEV_ID=0）、UID 布局/基址相同，仅凭 UID 无法区分，
+        # 型号报 'PY32F003/002A'，由录入时人工确认；若真机报出非 0 DEV_ID 再按 002B 流程补家族表
         if dev_id == 0 and pid:
             try:
-                uid16 = bytes(target.read_memory_block8(0x1FFF0E00, 16))
+                uid16 = read_uid_verified(target, 0x1FFF0E00, 16, 'PY32 UID16')
                 if uid16[12] == 0x78:
                     log('[INFO] PY32 特征码命中（UID[12]=0x78）')
                     log('[INFO] UID: %s' % uid16.hex().upper())
                     out_json({
                         'ok': True,
-                        'model': 'PY32F002A',
+                        'model': 'PY32F003/002A',
                         'vendor': 'Puya',
                         'uid': uid16.hex().upper(),
                         'uid_length': 16,
@@ -150,16 +190,18 @@ def main():
             sys.exit(0)
 
         family, uid_addr, uid_len, size_addr = FAMILIES[dev_id]
+        vendor = 'Puya' if dev_id in PY32_DEV_IDS else 'ST'
 
-        # ---- Flash 容量 ----
+        # ---- Flash 容量（无密度寄存器的家族报 None）----
         flash_kb = None
         try:
-            flash_kb = int.from_bytes(target.read_memory_block8(size_addr, 2), 'little')
+            if size_addr:
+                flash_kb = int.from_bytes(target.read_memory_block8(size_addr, 2), 'little')
         except Exception:
             pass
 
-        # ---- UID 96bit ----
-        uid_bytes = target.read_memory_block8(uid_addr, uid_len)
+        # ---- UID 96bit（双读校验）----
+        uid_bytes = read_uid_verified(target, uid_addr, uid_len, family + ' UID')
         uid = bytes(uid_bytes).hex().upper()
         log('[INFO] family: %s' % family)
         log('[INFO] flash: %s KB' % flash_kb)
@@ -168,7 +210,7 @@ def main():
         out_json({
             'ok': True,
             'model': family,
-            'vendor': 'ST',
+            'vendor': vendor,
             'uid': uid,
             'uid_length': uid_len,
             'dev_id': '0x%03X' % dev_id,
@@ -176,8 +218,9 @@ def main():
             'flash_kb': flash_kb,
         })
     except Exception as e:
+        log('[ERR] read failed: %s' % e)
         out_json({'ok': False, 'error': 'read_failed',
-                  'hint': 'SWD 读取失败: %s（确认四线接触良好、芯片未锁 SWD、已上电）' % e})
+                  'hint': 'SWD 读取失败：%s（原始报错: %s）' % (friendly_error(e), e)})
     finally:
         try:
             session.close()

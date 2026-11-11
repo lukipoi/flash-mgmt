@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flash-mgmt · 弹窗入场动效样板（形状生长）</title>
+<style>
+/* ==================================================================
+   弹窗入场动效样板 v2 · 形状生长
+   模拟弹窗 = 已落地的新形态：直角红边 / 顶部滚动警示条 / 两行标题
+   色值、缓动取自 assets/css/endfield/theme.css
+
+   v2 修订：用户否掉「遮罩淡入」——跟没加一样。
+   改为「点 → 线 → 窗」两段式几何展开；21:22 提速：标准版 390ms，慢速样板 880ms。
+   面板只做 clip-path 裁剪，内容保持原尺寸：不缩放、不位移、不旋转。
+   ================================================================== */
+:root, [data-theme="light"] {
+  --surface:#ffffff; --surface-raised:#fafafa; --surface-sunken:#f2f2f2; --surface-muted:#e6e6e6;
+  --ink:#191919; --ink-secondary:#626262; --ink-tertiary:#8a8a8a;
+  --line:#d9d9d9; --line-strong:#b3b3b3;
+  --action:#fffa00; --action-pressed:#eeea00; --on-action:#191919;
+  --button:#383838; --button-hover:#484848; --on-button:#eeeeee;
+  --danger:#de0909; --focus:#191919; --scrim:rgba(0,0,0,.5);
+}
+[data-theme="dark"] {
+  --surface:#141414; --surface-raised:#1f1f1f; --surface-sunken:#000000; --surface-muted:#282828;
+  --ink:#fafafa; --ink-secondary:#b3b3b3; --ink-tertiary:#8a8a8a;
+  --line:#383838; --line-strong:#626262;
+  --action:#fffa00; --action-pressed:#eeea00; --on-action:#191919;
+  --button:rgba(255,255,255,.2); --button-hover:rgba(255,255,255,.3); --on-button:#d9d9d9;
+  --danger:#f74040; --focus:#fffa00; --scrim:rgba(0,0,0,.7);
+}
+:root {
+  --font-sans:"HarmonyOS Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-display:"Archivo","Montserrat","HarmonyOS Sans SC",sans-serif;
+  --font-mono:"JetBrains Mono","Cascadia Code",ui-monospace,Consolas,monospace;
+  --ease-exit:ease-out;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--surface); color:var(--ink); font-family:var(--font-sans); font-size:14px; line-height:1.6; }
+.label { font-family:var(--font-mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-tertiary); }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+a { color:var(--action); }
+.btn { display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:0 14px;
+  font-size:13px; font-family:inherit; border:1px solid transparent; border-radius:0; cursor:pointer;
+  transition:background-color 50ms ease, border-color 50ms ease, color 50ms ease; }
+.btn-primary { background:var(--action); color:var(--on-action); }
+.btn-primary:hover { background:var(--action-pressed); }
+.btn-secondary { background:var(--button); color:var(--on-button); border-color:var(--line-strong); }
+.btn-secondary:hover { background:var(--button-hover); }
+.btn-ghost { background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn-ghost:hover { background:var(--surface-muted); }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-danger:hover { filter:brightness(.9); }
+.btn:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+
+.topbar { position:sticky; top:0; z-index:100; height:56px; display:flex; align-items:center; gap:16px;
+  padding:0 24px; background:var(--surface-raised); border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; }
+.brand-mark { width:20px; height:20px; background:var(--action);
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%); }
+.topbar .sep { flex:1; }
+.topbar .meta { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.wrap { max-width:1000px; margin:0 auto; padding:48px 24px 120px; }
+.hero { padding-bottom:36px; border-bottom:1px solid var(--line); }
+.eyebrow { color:var(--action); font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; }
+h1 { font-family:var(--font-display); font-size:clamp(30px,4vw,48px); line-height:1.08; margin:12px 0 14px; letter-spacing:-.02em; }
+h2 { font-family:var(--font-display); font-size:20px; margin:0 0 6px; }
+h3 { font-size:14px; margin:0 0 8px; }
+.lede { color:var(--ink-secondary); font-size:15px; max-width:740px; margin:0 0 20px; }
+section { padding:44px 0 8px; border-bottom:1px solid var(--line); }
+section:last-of-type { border-bottom:0; }
+.sec-head { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; }
+.sec-num { font-family:var(--font-mono); font-size:12px; color:var(--action); }
+.note { border-left:3px solid var(--action); background:var(--surface-raised); padding:12px 16px;
+  font-size:13px; color:var(--ink-secondary); margin:20px 0; }
+.note strong { color:var(--ink); }
+.note.rev { border-left-color:var(--danger); }
+
+.samples { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.sample { border:1px solid var(--line); background:var(--surface-raised); padding:18px; display:flex; flex-direction:column; gap:10px; }
+.sample.pick { border-color:var(--action); }
+.sample.muted { opacity:.72; }
+.sample .top { display:flex; align-items:baseline; gap:10px; }
+.sample .key { font-family:var(--font-mono); font-size:18px; color:var(--action); }
+.sample .name { font-size:15px; font-weight:700; }
+.sample .badge { margin-left:auto; font-family:var(--font-mono); font-size:9px; padding:2px 6px;
+  border:1px solid var(--action); color:var(--action); }
+.sample .spec { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+.sample .what { font-size:12.5px; color:var(--ink-secondary); flex:1; }
+.sample .what b { color:var(--ink); font-weight:600; }
+.sample .play { align-self:flex-start; }
+.toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+.readout { font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); }
+
+/* ---------- 模拟弹窗 ---------- */
+.demo-overlay { position:fixed; inset:0; z-index:1000; display:flex; align-items:center;
+  justify-content:center; padding:16px; }
+.demo-overlay[hidden] { display:none; }
+.demo-scrim { position:absolute; inset:0; background:var(--scrim); }
+.demo-modal { position:relative; display:flex; flex-direction:column; width:100%; max-width:560px;
+  max-height:calc(100vh - 32px); overflow:hidden;
+  border:1px solid var(--danger); background:var(--surface-raised);
+  box-shadow:0 0 24px rgba(0,0,0,.3); }
+.demo-strip { position:relative; height:6px; overflow:hidden; flex:none; }
+.demo-strip::before { content:""; position:absolute; top:0; bottom:0; left:-48px; right:-48px;
+  background:repeating-linear-gradient(-45deg, var(--danger) 0 8px, transparent 8px 16px);
+  animation:stripRoll .8s linear infinite; }
+@keyframes stripRoll { to { transform:translateX(-22.627px); } }
+.demo-head { position:relative; padding:16px 18px 12px; border-bottom:1px solid var(--line); }
+.demo-title { padding-right:36px; font-size:16px; font-weight:700; color:var(--ink); }
+.demo-danger { margin-top:6px; color:var(--danger); font-size:12px; font-weight:700; letter-spacing:.02em; }
+.demo-code { margin-left:8px; font-family:var(--font-mono); font-size:10px; font-weight:400; letter-spacing:.05em; opacity:.8; }
+.demo-close { position:absolute; top:12px; right:12px; width:28px; height:28px; display:flex;
+  align-items:center; justify-content:center; padding:0; color:var(--ink-secondary);
+  background:transparent; border:1px solid transparent; border-radius:0; cursor:pointer; }
+.demo-close:hover { color:var(--ink); background:var(--surface-muted); border-color:var(--line-strong); }
+.demo-body { padding:16px 18px; overflow-y:auto; font-size:13px; color:var(--ink-secondary); }
+.demo-body ul { margin:8px 0 0; padding-left:20px; }
+.demo-body li { margin-bottom:4px; }
+.demo-body b { color:var(--danger); }
+.demo-foot { padding:12px 18px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:10px; }
+
+/* 生长线：overlay 的兄弟节点，z-index 1 盖在「被裁成一条线」的面板之上 */
+.demo-grow { display:none; position:absolute; z-index:1; top:50%; left:50%;
+  width:min(560px, calc(100% - 32px)); height:2px;
+  background:var(--action); transform:translate(-50%,-50%) scaleX(0);
+  transform-origin:center; pointer-events:none; }
+
+/* ---------- 关键帧 ---------- */
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes riseIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+@keyframes wipe { from { clip-path:inset(0 100% 0 0); } to { clip-path:inset(0 0 0 0); } }
+@keyframes scanDown { from { top:0; opacity:1; } to { top:100%; opacity:0; } }
+.demo-scanline { position:absolute; left:0; right:0; top:0; height:1px; background:var(--action); opacity:0; pointer-events:none; }
+
+@keyframes growH {
+  0%   { transform:translate(-50%,-50%) scaleX(0); opacity:1; }
+  62%  { transform:translate(-50%,-50%) scaleX(1); opacity:1; }
+  100% { transform:translate(-50%,-50%) scaleX(1); opacity:0; }
+}
+@keyframes growV {
+  0%   { transform:translate(-50%,-50%) scaleY(0); opacity:1; }
+  62%  { transform:translate(-50%,-50%) scaleY(1); opacity:1; }
+  100% { transform:translate(-50%,-50%) scaleY(1); opacity:0; }
+}
+@keyframes revealV {
+  from { clip-path:inset(calc(50% - 1px) 0 calc(50% - 1px) 0); }
+  to   { clip-path:inset(0 0 0 0); }
+}
+@keyframes revealH {
+  from { clip-path:inset(0 calc(50% - 1px) 0 calc(50% - 1px)); }
+  to   { clip-path:inset(0 0 0 0); }
+}
+@keyframes revealGeom {
+  0%   { clip-path:inset(calc(50% - 1px) 50% calc(50% - 1px) 50%); }
+  45%  { clip-path:inset(calc(50% - 1px) 0 calc(50% - 1px) 0); }
+  100% { clip-path:inset(0 0 0 0); }
+}
+
+/* ---- 展开组 F ---- */
+.grow-group .demo-scrim { animation:fadeIn 240ms var(--ease-exit); }
+.grow-group .demo-grow { display:block; }
+
+/* 21:22 提速：标准节奏 540ms → 390ms，F1/F2/F4 同步；F3 慢速版保留 */
+.m-f1 .demo-grow { animation:growH 280ms var(--ease-exit) forwards; }
+.m-f1 .demo-modal { animation:revealV 240ms var(--ease-exit) 150ms backwards; }
+
+.m-f2 .demo-grow { width:2px; height:min(360px, calc(100vh - 64px));
+  transform:translate(-50%,-50%) scaleY(0); animation:growV 280ms var(--ease-exit) forwards; }
+.m-f2 .demo-modal { animation:revealH 240ms var(--ease-exit) 150ms backwards; }
+
+.m-f3 .demo-grow { animation:growH 700ms var(--ease-exit) forwards; }
+.m-f3 .demo-modal { animation:revealV 460ms var(--ease-exit) 420ms backwards; }
+
+.m-f4 .demo-grow { background:var(--danger); animation:growH 280ms var(--ease-exit) forwards; }
+.m-f4 .demo-modal { animation:revealV 240ms var(--ease-exit) 150ms backwards; }
+
+.m-f5 .demo-grow { display:none; }
+.m-f5 .demo-modal { animation:revealGeom 560ms var(--ease-exit) backwards; }
+
+/* ---- 克制组 A–E（上一轮，留作对照） ---- */
+/* A · 硬切：显式清空动画，保留 class 只为播放逻辑统一 */
+.m-a .demo-scrim, .m-a .demo-modal { animation:none; }
+.m-b .demo-scrim { animation:fadeIn 200ms var(--ease-exit); }
+.m-c .demo-scrim { animation:fadeIn 150ms var(--ease-exit); }
+.m-c .demo-modal { animation:fadeIn 150ms var(--ease-exit); }
+.m-c .demo-strip { animation:wipe 220ms var(--ease-exit); }
+.m-d .demo-scrim { animation:fadeIn 200ms var(--ease-exit); }
+.m-d .demo-modal { animation:riseIn 200ms var(--ease-exit); }
+.m-e .demo-scrim { animation:fadeIn 150ms var(--ease-exit); }
+.m-e .demo-modal { animation:fadeIn 150ms var(--ease-exit); }
+.m-e .demo-scanline { animation:scanDown 220ms var(--ease-exit); }
+
+/* ---- 退场：F 组逆向收回（21:30 用户拍板）----
+   窗 → 收成线 → 线缩回点 → 遮罩淡出，约 400ms，与入场对称。
+   克制组 A–E 仍保持 120ms 快速淡出。 */
+@keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+@keyframes collapseV { from { clip-path:inset(0 0 0 0); } to { clip-path:inset(calc(50% - 1px) 0 calc(50% - 1px) 0); } }
+@keyframes collapseH { from { clip-path:inset(0 0 0 0); } to { clip-path:inset(0 calc(50% - 1px) 0 calc(50% - 1px)); } }
+@keyframes collapseGeom {
+  0%   { clip-path:inset(0 0 0 0); }
+  55%  { clip-path:inset(calc(50% - 1px) 0 calc(50% - 1px) 0); }
+  100% { clip-path:inset(calc(50% - 1px) 50% calc(50% - 1px) 50%); }
+}
+@keyframes shrinkH { from { transform:translate(-50%,-50%) scaleX(1); opacity:1; } to { transform:translate(-50%,-50%) scaleX(0); opacity:1; } }
+@keyframes shrinkV { from { transform:translate(-50%,-50%) scaleY(1); opacity:1; } to { transform:translate(-50%,-50%) scaleY(0); opacity:1; } }
+
+.demo-overlay.closing { animation:fadeIn 120ms var(--ease-exit) reverse forwards; }
+
+/* F 组不整层淡出，逐件收回 */
+.grow-group.closing { animation:none; }
+.grow-group.closing .demo-scrim { animation:fadeOut 300ms ease-in-out forwards; }
+.grow-group.closing .demo-modal { animation:none; }
+.grow-group.closing .demo-grow { animation:none; }
+
+.m-f1.closing .demo-modal, .m-f4.closing .demo-modal { animation:collapseV 240ms ease-in-out forwards; }
+.m-f1.closing .demo-grow,  .m-f4.closing .demo-grow  { animation:shrinkH 280ms ease-in-out 120ms both; }
+.m-f2.closing .demo-modal { animation:collapseH 240ms ease-in-out forwards; }
+.m-f2.closing .demo-grow  { animation:shrinkV 280ms ease-in-out 120ms both; }
+.m-f3.closing .demo-modal { animation:collapseV 460ms ease-in-out forwards; }
+.m-f3.closing .demo-grow  { animation:shrinkH 360ms ease-in-out 200ms both; }
+.m-f5.closing .demo-modal { animation:collapseGeom 400ms ease-in-out forwards; }
+
+/* 无障碍：直接完整显示，不做任何生长 */
+body.sim-reduce .demo-overlay,
+body.sim-reduce .demo-overlay *,
+body.sim-reduce .demo-strip::before { animation:none!important; }
+body.sim-reduce .demo-grow { display:none!important; }
+@media (prefers-reduced-motion:reduce) {
+  .demo-overlay, .demo-overlay *, .demo-strip::before { animation:none!important; }
+  .demo-grow { display:none!important; }
+}
+
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { text-align:left; font-weight:500; color:var(--ink-tertiary); font-size:11px; letter-spacing:.04em;
+  padding:8px 10px; border-bottom:1px solid var(--line-strong); }
+td { padding:9px 10px; border-bottom:1px solid var(--line); }
+details { border:1px solid var(--line); background:var(--surface-raised); padding:14px 18px; margin-top:16px; }
+summary { cursor:pointer; font-size:13px; color:var(--ink-secondary); }
+
+@media (max-width:760px) { .samples { grid-template-columns:1fr; } .wrap { padding:32px 16px 80px; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"></span> FLASH / MGMT</div>
+  <span class="label">MODAL MOTION · v2 形状生长</span>
+  <span class="sep"></span>
+  <span class="meta">← gui-style-guide.html / 06</span>
+  <button class="btn btn-ghost" id="themeBtn" type="button">切换明暗</button>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">v2 / POINT → LINE → WINDOW</div>
+    <h1>点拉成线，线长成窗。</h1>
+    <p class="lede">上一轮的「遮罩淡入」被否了——跟没加一样。这轮按你说的做<strong>两段式形状生长</strong>：中心一个点横向拉开成线，再从这条线展开成完整窗口；另一个方向是<strong>先竖后横</strong>。标准版 <strong>390ms</strong>（21:22 提速），慢速样板最长 880ms，看得见过程又不拖。<strong>关闭按原路逆向收回</strong>：窗收成线、线缩回点、遮罩淡出。</p>
+    <div class="note rev"><strong>修订 2 · 危险确认弹窗入场特批「形状生长」。</strong>允许 <span class="mono">clip-path</span> 几何展开 + 一条 2px 生长线，总时长 380–900ms、分 2–3 段。退场同样特批：按原路逆向收回约 400ms，不做整层淡出。这是继 hazard 滚动条之后的第二个特例，<strong>只用于危险确认弹窗</strong>；普通弹窗 / 列表 / 按钮 / 卡片仍按 200ms 规范。仍然禁止：缩放变形、位移、旋转、回弹、错峰入场、整页转场。<span class="mono">reduced-motion</span> 下入场退场都直接切换。</div>
+    <p class="label">项目里已先换上 F1（入场 390ms / 退场 400ms）；<strong>点 × / 取消 / ESC / 遮罩都能看到逆向收回</strong>。挑中别的说一声就切，改动只在 utilities.css。</p>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>展开组 · 五个样板</h2></div>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="playF">→ 依次播放 F 组（每个约 1.7s，含逆向收回）</button>
+      <button class="btn btn-secondary" id="reduceBtn" aria-pressed="false">模拟「减少动态效果」：关</button>
+      <span class="readout" id="readout">就绪</span>
+    </div>
+
+    <div class="samples">
+      <div class="sample pick" data-motion="f1" data-group="f">
+        <div class="top"><span class="key">F1</span><span class="name">点 → 横线 → 上下展开</span><span class="badge">当前项目</span></div>
+        <div class="spec">线 280ms（约 175ms 拉满）· 窗 240ms @150ms · 总 390ms <span style="color:var(--action)">← 提速</span></div>
+        <div class="what"><b>怎么动：</b>中心一个 2px 点，信号黄线向两侧拉开；线满的瞬间面板以这条线为轴向上下展开，内容随之露出。线在展开时淡出，不留痕。<strong>你说的第一种，21:22 已从 540ms 收紧到 390ms。</strong></div>
+        <button class="btn btn-secondary play">播放 F1</button>
+      </div>
+
+      <div class="sample" data-motion="f2" data-group="f">
+        <div class="top"><span class="key">F2</span><span class="name">点 → 竖线 → 左右展开</span></div>
+        <div class="spec">竖线 280ms · 窗 240ms @150ms · 总 390ms</div>
+        <div class="what"><b>怎么动：</b>先竖后横。中心点先纵向拉成一条竖线，面板再以竖线为轴向左右摊开。比 F1 更像"拉开一道帘子"，纵向感强一点。</div>
+        <button class="btn btn-secondary play">播放 F2</button>
+      </div>
+
+      <div class="sample" data-motion="f3" data-group="f">
+        <div class="top"><span class="key">F3</span><span class="name">慢速仪式版</span></div>
+        <div class="spec">线 700ms · 窗 460ms @420ms · 总 880ms</div>
+        <div class="what"><b>怎么动：</b>F1 的节奏整体拉慢，线长得从容、窗展开得更稳。最有"设备自检 / 仪器启动"的味道。代价是每次确认都要等近 1 秒，天天用会嫌慢。</div>
+        <button class="btn btn-secondary play">播放 F3</button>
+      </div>
+
+      <div class="sample" data-motion="f4" data-group="f">
+        <div class="top"><span class="key">F4</span><span class="name">红线版</span></div>
+        <div class="spec">节奏同 F1（390ms）· 生长线改 <span class="mono">--ef-danger</span></div>
+        <div class="what"><b>差异：</b>生长线从信号黄换成危险红，和红边、红标题同一语义，整体更"警告"；黄线版则有"信号 / 启动"的中性仪器感。同一套动作，两种情绪。</div>
+        <button class="btn btn-secondary play">播放 F4</button>
+      </div>
+
+      <div class="sample" data-motion="f5" data-group="f">
+        <div class="top"><span class="key">F5</span><span class="name">纯几何 · 无亮线</span></div>
+        <div class="spec">单段 560ms · 0% 点 / 45% 横线 / 100% 窗</div>
+        <div class="what"><b>怎么动：</b>不画独立生长线，全靠面板自己的 <span class="mono">clip-path</span> 三段关键帧：点 → 全宽细条 → 完整窗口。最干净、最克制，但那条"线"是面板背景色，存在感比亮线版弱。</div>
+        <button class="btn btn-secondary play">播放 F5</button>
+      </div>
+
+      <div class="sample" style="border-style:dashed">
+        <div class="top"><span class="key" style="color:var(--danger)">✕</span><span class="name">仍然不做</span></div>
+        <div class="spec">scale(0.9→1) / spring 回弹 / 旋转 / 错峰</div>
+        <div class="what">形状生长已经够有戏了。再叠缩放会把文字拉变形，回弹和旋转又会回到"乱飞"。窗口边框可以长，<strong>内容不能跟着变形</strong>——这是这轮所有样板的底线。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>对照：上一轮的克制组</h2></div>
+    <p class="lede">留着不是为了再选，是为了对比"有过程"和"几乎没过程"差多少。<strong>B 就是被否的那个。</strong></p>
+    <details>
+      <summary>展开 A–E 五个克制样板（可播放）</summary>
+      <div class="toolbar" style="margin-top:16px">
+        <button class="btn btn-secondary" id="playK">依次播放 A–E</button>
+      </div>
+      <div class="samples" style="margin-top:4px">
+        <div class="sample muted" data-motion="a" data-group="k">
+          <div class="top"><span class="key">A</span><span class="name">硬切</span></div><div class="spec">0ms</div>
+          <div class="what">什么都不动。</div><button class="btn btn-secondary play">播放 A</button>
+        </div>
+        <div class="sample muted" data-motion="b" data-group="k">
+          <div class="top"><span class="key">B</span><span class="name">遮罩淡入</span><span class="badge" style="border-color:var(--danger);color:var(--danger)">已否</span></div>
+          <div class="spec">200ms opacity</div><div class="what">只有背景暗下来，面板硬切出现。</div>
+          <button class="btn btn-secondary play">播放 B</button>
+        </div>
+        <div class="sample muted" data-motion="c" data-group="k">
+          <div class="top"><span class="key">C</span><span class="name">警示条擦除</span></div><div class="spec">220ms</div>
+          <div class="what">顶部警示带从左拉开。</div><button class="btn btn-secondary play">播放 C</button>
+        </div>
+        <div class="sample muted" data-motion="d" data-group="k">
+          <div class="top"><span class="key">D</span><span class="name">面板下沉 4px</span></div><div class="spec">200ms</div>
+          <div class="what">opacity + translateY 4px→0。</div><button class="btn btn-secondary play">播放 D</button>
+        </div>
+        <div class="sample muted" data-motion="e" data-group="k">
+          <div class="top"><span class="key">E</span><span class="name">扫描线落下</span></div><div class="spec">220ms</div>
+          <div class="what">1px 黄线从上扫到下。</div><button class="btn btn-secondary play">播放 E</button>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>挑中之后怎么落地</h2></div>
+    <p class="lede">项目里现在是 <strong>F1</strong>。换方案只动 <span class="mono">utilities.css</span> 一处，组件和页面逻辑不用碰。</p>
+    <div style="border:1px solid var(--line);padding:16px">
+      <table>
+        <thead><tr><th>样板</th><th>改动</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">F1</td><td>现状：入场 <span class="mono">ef-grow-h</span> + <span class="mono">ef-reveal-v</span>；退场 <span class="mono">ef-collapse-v</span> + <span class="mono">ef-shrink-h</span> + <span class="mono">ef-overlay-out</span>，生长线 <span class="mono">--ef-action</span>。组件用 <span class="mono">rendered</span> ref 延迟卸载，保证四条关闭路径都走退场</td></tr>
+          <tr><td class="mono">F2</td><td>生长线改竖向（width 2px / scaleY），面板换 <span class="mono">revealH</span></td></tr>
+          <tr><td class="mono">F3</td><td>只把两个 animation 的时长/延迟按 700ms / 460ms@420ms 调大</td></tr>
+          <tr><td class="mono">F4</td><td>生长线 <span class="mono">background: var(--ef-danger)</span></td></tr>
+          <tr><td class="mono">F5</td><td>删掉 <span class="mono">.ef-hazard-grow</span> 元素，面板换三段 <span class="mono">revealGeom</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><strong>验收口径：</strong>关掉动效，弹窗仍然一眼看出是危险区（红边 + 滚动条 + 红标题）。形状生长负责"出现得有分量"，不负责告诉用户这很危险。<span class="mono">prefers-reduced-motion</span> 下必须直接完整显示，不能把人卡在一条线上。</div>
+    <p class="label" style="margin-top:40px;text-align:center">END · modal motion v2 · <a href="gui-style-guide.html">返回 GUI 风格方案</a> · <a href="hazard-frame-demo.html">警戒框专项演示</a></p>
+  </section>
+
+</div>
+
+<!-- 共用的模拟弹窗 -->
+<div class="demo-overlay grow-group m-f1" id="overlay" hidden>
+  <div class="demo-scrim" id="scrim"></div>
+  <div class="demo-grow" aria-hidden="true"></div>
+  <div class="demo-modal" role="alertdialog" aria-modal="true" aria-label="空片擦除读取 UID">
+    <div class="demo-scanline"></div>
+    <div class="demo-strip"></div>
+    <div class="demo-head">
+      <div class="demo-title">空片擦除读取 UID</div>
+      <div class="demo-danger">危险操作 · 不可撤销 <span class="demo-code">STC / CHIP ERASE</span></div>
+      <button class="demo-close" id="closeBtn" aria-label="关闭">✕</button>
+    </div>
+    <div class="demo-body">
+      将向芯片发送擦除命令，从擦除应答取回 7 字节 UID（STC15/12/8 系列 BSL 只在擦除应答里附带 UID）。
+      <ul>
+        <li>片内<b>用户程序会被全部擦除，不可恢复</b>——仅适用于未烧程序的空片</li>
+        <li>UID 区（程序区最后 7 字节）受硬件保护，擦不掉，擦除后 UID 依然有效</li>
+        <li>读取后芯片停在 BSL，需重新上电才能运行程序</li>
+      </ul>
+    </div>
+    <div class="demo-foot">
+      <button class="btn btn-ghost" data-close>取消</button>
+      <button class="btn btn-danger" data-close>确认擦除并读取</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const el = document.documentElement;
+  el.dataset.theme = el.dataset.theme === 'dark' ? 'light' : 'dark';
+});
+
+const overlay = document.getElementById('overlay');
+const readout = document.getElementById('readout');
+let closeTimer = null;
+let playing = false;
+
+function hideNow() {
+  overlay.hidden = true;
+  overlay.classList.remove('closing');
+}
+function closeModal() {
+  if (overlay.hidden) return;
+  overlay.classList.add('closing');
+  clearTimeout(closeTimer);
+  const reduced = document.body.classList.contains('sim-reduce');
+  // F 组要留够 400ms 走完「窗 → 线 → 点」，克制组仍快速淡出
+  const wait = reduced ? 0 : (overlay.classList.contains('grow-group') ? 420 : 130);
+  closeTimer = setTimeout(hideNow, wait);
+}
+function play(key, group) {
+  clearTimeout(closeTimer);
+  hideNow();
+  void overlay.offsetWidth; // 强制重排，重播 CSS 动画
+  overlay.className = 'demo-overlay ' + (group === 'f' ? 'grow-group ' : '') + 'm-' + key;
+  overlay.hidden = false;
+  readout.textContent = '正在播放 ' + key.toUpperCase() + (group === 'f' ? ' · 形状生长' : ' · 克制组');
+}
+
+document.querySelectorAll('.sample[data-motion]').forEach(card => {
+  card.querySelector('.play').addEventListener('click', () => {
+    playing = false;
+    play(card.dataset.motion, card.dataset.group);
+  });
+});
+
+document.getElementById('closeBtn').addEventListener('click', closeModal);
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeModal));
+document.getElementById('scrim').addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+async function playSequence(keys, group, hold) {
+  if (playing) return;
+  playing = true;
+  for (const k of keys) {
+    if (!playing) return;
+    play(k, group);
+    await new Promise(r => setTimeout(r, hold));
+    closeModal();
+    await new Promise(r => setTimeout(r, group === 'f' ? 480 : 160));
+  }
+  readout.textContent = '播放完毕 · 挑一个告诉我';
+  playing = false;
+}
+document.getElementById('playF').addEventListener('click', () =>
+  playSequence(['f1','f2','f3','f4','f5'], 'f', 1200));
+document.getElementById('playK').addEventListener('click', () =>
+  playSequence(['a','b','c','d','e'], 'k', 1400));
+
+const reduceBtn = document.getElementById('reduceBtn');
+reduceBtn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('sim-reduce');
+  reduceBtn.setAttribute('aria-pressed', String(on));
+  reduceBtn.textContent = '模拟「减少动态效果」：' + (on ? '开（直接完整显示）' : '关');
+  readout.textContent = on ? 'reduced-motion = on · 弹窗直接完整显示，无生长' : '就绪';
+});
+</script>
+</body>
+</html>

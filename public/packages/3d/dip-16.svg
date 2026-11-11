@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="69 64 588 256" width="588" height="256">
+  <!-- DIP-16 顶视图（32 px/mm） 本体 19.05×6.35，引脚跨 7.87，e 2.54，缺口示 pin1 -->
+  <g fill="#c3cad6" stroke="#8e97a6" stroke-width="0.8">
+    <rect x="57.98" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="139.26" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="220.54" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="301.82" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="383.1" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="464.38" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="545.66" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="626.94" y="65.68" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="57.98" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="139.26" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="220.54" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="301.82" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="383.1" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="464.38" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="545.66" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+    <rect x="626.94" y="293.2" width="40.64" height="24.32" rx="1.5"/>
+  </g>
+  <!-- 本体 -->
+  <rect x="58" y="90" width="609.6" height="203.2" rx="3" fill="#2f3542" stroke="#0b0f16" stroke-width="1.5"/>
+  <!-- 左侧 pin1 缺口（塑封凹坑，非通孔）：深一档实心半圆 -->
+  <path d="M 58 159.6 A 32 32 0 0 1 58 223.6 Z" fill="#262c38"/>
+</svg>
